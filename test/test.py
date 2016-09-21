@@ -2,27 +2,18 @@
 
 # author: Dan Toloudis danielt@alleninstitute.org
 
-import argparse
-# import bioformats
-# from tifftools import bioformatutils2
-from tifftools import omeTifReader
-from tifftools import tifReader
-from tifftools import omeTifWriter
-from tifftools import pngWriter
-from tifftools import omexml
-# import javabridge
+# import argparse
+from aicsimagetools import omeTifReader
+from aicsimagetools import tifReader
+from aicsimagetools import omeTifWriter
+from aicsimagetools import pngWriter
+# from aicsimagetools import omexml
 import numpy as np
 # import os
 # import sys
 
 
-def mymain():
-    #bioformatutils2.initBioformats()
-
-    # reader = omeTifReader.OmeTifReader('test/img40_1_dna.tif')
-    # meta = reader.get_metadata()
-
-
+def main():
     reader0 = tifReader.TifReader('test/img40_1_dna.tif')
     reader1 = tifReader.TifReader('test/img40_1_memb.tif')
     reader2 = tifReader.TifReader('test/img40_1_struct.tif')
@@ -64,30 +55,7 @@ def mymain():
     omereader = omeTifReader.OmeTifReader('test/img40_1.ome.tif')
     sz = omereader.size_z()
 
-    bits = np.empty([40,3,100,100], dtype=np.uint16)
 
-    writer = bioformatutils2.BioformatsWriter("o.ome.tif")
-    writer.saveXYCZ(bits, dtype='uint16')
-
-    #
-    # reader = bioformatutils.open("o.ome.tif")
-    # meta = bioformatutils.loadMetadata(reader)
-    # x = meta.dumpXML()
-    # cc = meta.getPixelsSizeC(0)
-    # ct = meta.getPixelsSizeT(0)
-    # cz = meta.getPixelsSizeZ(0)
-    # bioformatutils.close(reader)
-
-    reader = bioformatutils2.BioformatsReader("o.ome.tif")
-    cc = reader.metadata.PixelsSizeC(0)
-    ct = reader.metadata.PixelsSizeT(0)
-    cz = reader.metadata.PixelsSizeZ(0)
-
-    im = reader.get_frame_2D(c=1, z=4)
-
-    bioformatutils2.shutdownModule()
-
-# bioformatutils2.jpype.setupGuiEnvironment(mymain)
-mymain()
+main()
 
 
