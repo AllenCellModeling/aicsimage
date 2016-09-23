@@ -4,7 +4,7 @@ with open('version.value', 'r') as f:
     version = f.readline().strip()
 
 with open('./aicsimagetools/aicsimagetools_version.py', 'w') as f:
-    f.writelines('AICSTOOLS_VERSION = "{}"'.format(version))
+    f.writelines('AICSIMAGETOOLS_VERSION = "{}"'.format(version))
 
 def readme():
     with open('README.rst') as f:
