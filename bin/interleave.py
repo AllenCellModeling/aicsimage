@@ -49,7 +49,7 @@ def main():
         assert len(readers) == len(channels)
 
         # do the interleaving, reading one slice at a time from each of the single channel tifs
-        d = np.ndarray([readers[0].size_z(), 5, readers[0].size_y(), readers[0].size_x()], dtype=readers[0].dtype())
+        d = np.ndarray([readers[0].size_z(), len(channels), readers[0].size_y(), readers[0].size_x()], dtype=readers[0].dtype())
         for i in range(readers[0].size_z()):
             for j in range(len(readers)):
                 d[i, j, :, :] = readers[j].load_image(z=i)
