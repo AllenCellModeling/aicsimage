@@ -696,7 +696,6 @@ class OMEXML(object):
         def get_SizeZ(self):
             '''The dimensions of the image in the Z direction in pixels'''
             return get_int_attr(self.node, "SizeZ")
-
         def set_SizeZ(self, value):
             self.node.set("SizeZ", str(value))
         SizeZ = property(get_SizeZ, set_SizeZ)
@@ -715,6 +714,27 @@ class OMEXML(object):
         def set_SizeC(self, value):
             self.node.set("SizeC", str(value))
         SizeC = property(get_SizeC, set_SizeC)
+
+        def get_PhysicalSizeX(self):
+            '''The dimensions of the image in the X direction in physical units'''
+            return get_float_attr(self.node, "PhysicalSizeX")
+        def set_PhysicalSizeX(self, value):
+            self.node.set("PhysicalSizeX", str(value))
+        PhysicalSizeX = property(get_PhysicalSizeX, set_PhysicalSizeX)
+
+        def get_PhysicalSizeY(self):
+            '''The dimensions of the image in the Y direction in physical units'''
+            return get_float_attr(self.node, "PhysicalSizeY")
+        def set_PhysicalSizeY(self, value):
+            self.node.set("PhysicalSizeY", str(value))
+        PhysicalSizeY = property(get_PhysicalSizeY, set_PhysicalSizeY)
+
+        def get_PhysicalSizeZ(self):
+            '''The dimensions of the image in the Z direction in physical units'''
+            return get_float_attr(self.node, "PhysicalSizeZ")
+        def set_PhysicalSizeZ(self, value):
+            self.node.set("PhysicalSizeZ", str(value))
+        PhysicalSizeZ = property(get_PhysicalSizeZ, set_PhysicalSizeZ)
 
         def get_channel_count(self):
             '''The number of channels in the image

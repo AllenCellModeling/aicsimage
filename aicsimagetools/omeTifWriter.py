@@ -24,8 +24,8 @@ class OmeTifWriter:
         self.tif.close()
 
     # Assumes data is xyczt or xycz or xyz
-    def save(self, data, channel_names=None, image_name="IMAGE0"):
-        self._makeMeta(data, channel_names=channel_names, image_name=image_name)
+    def save(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None):
+        self._makeMeta(data, channel_names=channel_names, image_name=image_name, pixels_physical_size=pixels_physical_size)
         shape = data.shape
         xml = self.omeMetadata.to_xml()
 
@@ -73,7 +73,7 @@ class OmeTifWriter:
         return self.omeMetadata.image().Pixels.SizeY
 
     # set up some sensible defaults from provided info
-    def _makeMeta(self, data, channel_names=None, image_name="IMAGE0"):
+    def _makeMeta(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None):
         ox = self.omeMetadata
 
         ox.image().set_Name(image_name)
@@ -81,6 +81,10 @@ class OmeTifWriter:
         pixels = ox.image().Pixels
         pixels.ome_uuid = ox.uuidStr
         pixels.set_ID("0")
+        if pixels_physical_size is not None:
+            pixels.set_PhysicalSizeX(pixels_physical_size[0])
+            pixels.set_PhysicalSizeY(pixels_physical_size[1])
+            pixels.set_PhysicalSizeZ(pixels_physical_size[2])
         shape = data.shape
         if len(shape) == 5:
             pixels.channel_count = shape[2]
