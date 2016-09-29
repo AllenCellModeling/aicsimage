@@ -24,8 +24,9 @@ class OmeTifWriter:
         self.tif.close()
 
     # Assumes data is xyczt or xycz or xyz
-    def save(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None):
-        self._makeMeta(data, channel_names=channel_names, image_name=image_name, pixels_physical_size=pixels_physical_size)
+    def save(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
+        self._makeMeta(data, channel_names=channel_names, image_name=image_name,
+                       pixels_physical_size=pixels_physical_size, channel_colors=channel_colors)
         shape = data.shape
         xml = self.omeMetadata.to_xml()
 
@@ -73,7 +74,7 @@ class OmeTifWriter:
         return self.omeMetadata.image().Pixels.SizeY
 
     # set up some sensible defaults from provided info
-    def _makeMeta(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None):
+    def _makeMeta(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
         ox = self.omeMetadata
 
         ox.image().set_Name(image_name)
@@ -120,6 +121,11 @@ class OmeTifWriter:
             for i, name in enumerate(channel_names):
                 pixels.Channel(i).set_ID("Channel:0:"+str(i))
                 pixels.Channel(i).set_Name(name+":"+str(i))
+
+        if channel_colors is not None:
+            assert len(channel_colors) == pixels.get_SizeC()
+            for i in range(len(channel_colors)):
+                pixels.Channel(i).set_Color(channel_colors[i])
 
         # assume 1 sample per channel
         for i in range(pixels.SizeC):

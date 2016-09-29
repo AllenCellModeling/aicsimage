@@ -488,10 +488,16 @@ class OMEXML(object):
 
         def get_SamplesPerPixel(self):
             return get_int_attr(self.node, "SamplesPerPixel")
-
         def set_SamplesPerPixel(self, value):
             self.node.set("SamplesPerPixel", str(value))
         SamplesPerPixel = property(get_SamplesPerPixel, set_SamplesPerPixel)
+
+        def get_Color(self):
+            return get_int_attr(self.node, "Color")
+        def set_Color(self, value):
+            self.node.set("Color", str(value))
+
+        Color = property(get_Color, set_Color)
 
     class TiffData(object):
         '''The OME/Image/Pixels/TiffData element
