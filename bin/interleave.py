@@ -9,6 +9,29 @@ import os
 import sys
 
 
+def int32(x):
+    if x > 0xFFFFFFFF:
+        raise OverflowError
+    if x > 0x7FFFFFFF:
+        x = int(0x100000000-x)
+        if x < 2147483648:
+            return -x
+        else:
+            return -2147483648
+    return x
+
+
+def rgba255(r, g, b, a):
+    assert 0 <= r <= 255
+    assert 0 <= g <= 255
+    assert 0 <= b <= 255
+    assert 0 <= a <= 255
+    # bit shift to compose rgba tuple
+    x = r << 24 | g << 16 | b << 8 | a
+    # now force x into a signed 32 bit integer for OME XML Channel Color.
+    return int32(x)
+
+
 def main():
     # python interleave.py --path /Volumes/aics/software_it/danielt/images/AICS/alphactinin/ --prefix img40_1
     parser = argparse.ArgumentParser(description='Interleave tiff files as channels in a single tiff. '
@@ -25,6 +48,13 @@ def main():
     channels = ['dna', 'memb', 'struct', 'seg_nuc', 'seg_cell']
     tifext = '.tif'
     physical_size = [0.065, 0.065, 0.29]
+    channel_colors = [
+        rgba255(255, 255, 255, 255),
+        rgba255(255, 0, 255, 255),
+        rgba255(0, 255, 255, 255),
+        rgba255(255, 0, 0, 255),
+        rgba255(0, 0, 255, 255)
+    ]
 
     # dictionary of channelname:fullpath
     image_paths_in = {}
@@ -50,7 +80,8 @@ def main():
         assert len(readers) == len(channels)
 
         # do the interleaving, reading one slice at a time from each of the single channel tifs
-        d = np.ndarray([readers[0].size_z(), len(channels), readers[0].size_y(), readers[0].size_x()], dtype=readers[0].dtype())
+        d = np.ndarray([readers[0].size_z(), len(channels), readers[0].size_y(), readers[0].size_x()],
+                       dtype=readers[0].dtype())
         for i in range(readers[0].size_z()):
             for j in range(len(readers)):
                 d[i, j, :, :] = readers[j].load_image(z=i)
@@ -67,7 +98,8 @@ def main():
             print('no output file to delete')
 
         writer = omeTifWriter.OmeTifWriter(image_out)
-        writer.save(d, channel_names=[x.upper() for x in channels], pixels_physical_size=physical_size)
+        writer.save(d, channel_names=[x.upper() for x in channels],
+                    pixels_physical_size=physical_size, channel_colors=channel_colors)
         writer.close()
         print('Completed ' + image_out)
 
