@@ -24,6 +24,7 @@ def main():
     inseries = args.prefix
     channels = ['dna', 'memb', 'struct', 'seg_nuc', 'seg_cell']
     tifext = '.tif'
+    physical_size = [0.065, 0.065, 0.29]
 
     # dictionary of channelname:fullpath
     image_paths_in = {}
@@ -66,7 +67,7 @@ def main():
             print('no output file to delete')
 
         writer = omeTifWriter.OmeTifWriter(image_out)
-        writer.save(d, channel_names=[x.upper() for x in channels])
+        writer.save(d, channel_names=[x.upper() for x in channels], pixels_physical_size=physical_size)
         writer.close()
         print('Completed ' + image_out)
 
