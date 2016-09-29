@@ -42,12 +42,13 @@ NS_ORIGINAL_METADATA = "openmicroscopy.org/OriginalMetadata"
 NS_DEFAULT = "http://www.openmicroscopy.org/Schemas/{ns_key}/2013-06"
 NS_RE = r"http://www.openmicroscopy.org/Schemas/(?P<ns_key>.*)/[0-9/-]"
 
-default_xml = """<?xml version="1.0" encoding="UTF-8"?>
-<OME xmlns="{ns_ome_default}s"
+default_xml = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Warning: this comment is an OME-XML metadata block, which contains crucial dimensional parameters and other important metadata. Please edit cautiously (if at all), and back up the original data before doing so. For more information, see the OME-TIFF web site: http://ome-xml.org/wiki/OmeTiff. -->
+<OME xmlns="{ns_ome_default}"
      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
      xsi:schemaLocation="http://www.openmicroscopy.org/Schemas/OME/2013-06 http://www.openmicroscopy.org/Schemas/OME/2012-03/ome.xsd">
   <Image ID="Image:0" Name="default.png">
-    <AcquisitionDate>%(DEFAULT_NOW)s</AcquisitionDate>
+    <AcquisitionDate>{timestamp}</AcquisitionDate>
     <Pixels DimensionOrder="XYCTZ"
             ID="Pixels:0"
             SizeC="1"
@@ -59,12 +60,9 @@ default_xml = """<?xml version="1.0" encoding="UTF-8"?>
 <Channel ID="Channel:0:0" SamplesPerPixel="1">
         <LightPath/>
       </Channel>
-      <BinData xmlns="%(NS_BINARY_FILE)s"
-       BigEndian="false" Length="0"/>
     </Pixels>
   </Image>
-  <StructuredAnnotations xmlns="{ns_sa_default}s"/>
-</OME>""".format(ns_ome_default=NS_DEFAULT.format(ns_key='ome'), ns_sa_default=NS_DEFAULT.format(ns_key='sa'))
+</OME>""".format(ns_ome_default=NS_DEFAULT.format(ns_key='ome'), timestamp=xsd_now())
 
 #
 # These are the OME-XML pixel types - not all supported by subimager
@@ -321,22 +319,35 @@ class OMEXML(object):
 
         # determine OME namespaces
         self.ns = get_namespaces(self.dom.getroot())
-        if self.ns['ome'] is None:
-            raise Exception("Error: String not in OME-XML format")
+        if __name__ == '__main__':
+            if self.ns['ome'] is None:
+                raise Exception("Error: String not in OME-XML format")
+
+        # generate a uuid if there is none
+        # < OME UUID = "urn:uuid:ef8af211-b6c1-44d4-97de-daca46f16346"
+        omeElem = self.dom.getroot()#.findall(qn(self.ns['ome'], "OME"))[0]
+        if not omeElem.get('UUID'):
+            omeElem.set('UUID', 'urn:uuid:'+str(uuid.uuid4()))
+        self.uuidStr = omeElem.get('UUID')
 
     def __str__(self):
         #
         # need to register the ome namespace because BioFormats expects
         # that namespace to be the default or to be explicitly named "ome"
         #
-        for ns_key in ["ome", "sa", "spw"]:
+
+        for ns_key in ["ome"]:
             ns = self.ns.get(ns_key) or NS_DEFAULT.format(ns_key=ns_key)
-            ElementTree.register_namespace(ns_key, ns)
-        ElementTree.register_namespace("om", NS_ORIGINAL_METADATA)
+            # ElementTree.register_namespace(ns_key, ns)
+            ElementTree.register_namespace('', ns)
+        # ElementTree.register_namespace("om", NS_ORIGINAL_METADATA)
         result = StringIO()
         ElementTree.ElementTree(self.root_node).write(result,
                                                       encoding=uenc,
-                                                      method="xml")
+                                                      method="xml",
+                                                      xml_declaration = True
+                                                      # default_namespace = 'http://www.openmicroscopy.org/Schemas/ome/2013-06'
+                                                      )
         return result.getvalue()
 
     def to_xml(self, indent="\t", newline="\n", encoding=uenc):
@@ -368,6 +379,7 @@ class OMEXML(object):
             new_image.AcquisitionDate = xsd_now()
             new_pixels = self.Pixels(
                 ElementTree.SubElement(new_image.node, qn(self.ns['ome'], "Pixels")))
+            new_pixels.ome_uuid = self.uuidStr
             new_pixels.ID = str(uuid.uuid4())
             new_pixels.DimensionOrder = DO_XYCTZ
             new_pixels.PixelType = PT_UINT8
@@ -481,6 +493,63 @@ class OMEXML(object):
             self.node.set("SamplesPerPixel", str(value))
         SamplesPerPixel = property(get_SamplesPerPixel, set_SamplesPerPixel)
 
+    class TiffData(object):
+        '''The OME/Image/Pixels/TiffData element
+
+        <TiffData FirstC="0" FirstT="0" FirstZ="0" IFD="0" PlaneCount="1">
+            <UUID FileName="img40_1.ome.tif">urn:uuid:ef8af211-b6c1-44d4-97de-daca46f16346</UUID>
+        </TiffData>
+        For our purposes, there will be one TiffData per 2-dimensional image plane.
+        '''
+        def __init__(self, node):
+            self.node = node
+            self.ns = get_namespaces(self.node)
+
+        def get_FirstZ(self):
+            '''The Z index of the plane'''
+            return get_int_attr(self.node, "FirstZ")
+
+        def set_FirstZ(self, value):
+            self.node.set("FirstZ", str(value))
+
+        FirstZ = property(get_FirstZ, set_FirstZ)
+
+        def get_FirstC(self):
+            '''The channel index of the plane'''
+            return get_int_attr(self.node, "FirstC")
+
+        def set_FirstC(self, value):
+            self.node.set("FirstC", str(value))
+
+        FirstC = property(get_FirstC, set_FirstC)
+
+        def get_FirstT(self):
+            '''The T index of the plane'''
+            return get_int_attr(self.node, "FirstT")
+
+        def set_FirstT(self, value):
+            self.node.set("FirstT", str(value))
+
+        FirstT = property(get_FirstT, set_FirstT)
+
+        def get_IFD(self):
+            '''plane index within tiff file'''
+            return get_int_attr(self.node, "IFD")
+
+        def set_IFD(self, value):
+            self.node.set("IFD", str(value))
+
+        IFD = property(get_IFD, set_IFD)
+
+        def get_PlaneCount(self):
+            '''How many planes in this TiffData. Should always be 1'''
+            return get_int_attr(self.node, "PlaneCount")
+
+        def set_PlaneCount(self, value):
+            self.node.set("PlaneCount", str(value))
+
+        PlaneCount = property(get_PlaneCount, set_PlaneCount)
+
     class Plane(object):
         '''The OME/Image/Pixels/Plane element
 
@@ -577,6 +646,8 @@ class OMEXML(object):
         def __init__(self, node):
             self.node = node
             self.ns = get_namespaces(self.node)
+            self.ome_uuid = ""
+            self.node.set("BigEndian", "true")
 
         def get_ID(self):
             return self.node.get("ID")
@@ -712,6 +783,39 @@ class OMEXML(object):
             '''Get the indexed plane from the Pixels element'''
             plane = self.node.findall(qn(self.ns['ome'], "Plane"))[index]
             return OMEXML.Plane(plane)
+
+        def TiffData(self, index=0):
+            '''Get the indexed TiffData from the Pixels element'''
+            tiffData = self.node.findall(qn(self.ns['ome'], "TiffData"))[index]
+            return OMEXML.TiffData(tiffData)
+
+        def populate_TiffData(self, filename):
+            ''' assuming Pixels has its sizes, set up tiffdata elements'''
+            assert self.SizeC is not None
+            assert self.SizeZ is not None
+            assert self.SizeT is not None
+            total = self.SizeC * self.SizeT * self.SizeZ
+            # blow away the old ones.
+            tiffdatas = self.node.findall(qn(self.ns['ome'], "TiffData"))
+            for td in tiffdatas:
+                self.node.remove(td)
+
+            # assumes xyczt
+            ifd = 0
+            for i in range(self.SizeT):
+                for j in range(self.SizeZ):
+                    for k in range(self.SizeC):
+                        new_tiffdata = OMEXML.TiffData(
+                            ElementTree.SubElement(self.node, qn(self.ns['ome'], "TiffData")))
+                        new_tiffdata.set_FirstC(k)
+                        new_tiffdata.set_FirstZ(j)
+                        new_tiffdata.set_FirstT(i)
+                        new_tiffdata.set_IFD(ifd)
+                        new_tiffdata.set_PlaneCount(1)
+                        uuidelem = ElementTree.SubElement(new_tiffdata.node, qn(self.ns['ome'], "UUID"))
+                        uuidelem.set('FileName', filename)
+                        uuidelem.text = self.ome_uuid
+                        ifd = ifd + 1
 
     class StructuredAnnotations(dict):
         '''The OME/StructuredAnnotations element

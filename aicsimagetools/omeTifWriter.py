@@ -1,4 +1,5 @@
 import omexml
+import os
 import tifffile
 
 
@@ -78,6 +79,7 @@ class OmeTifWriter:
         ox.image().set_Name(image_name)
         ox.image().set_ID("0")
         pixels = ox.image().Pixels
+        pixels.ome_uuid = ox.uuidStr
         pixels.set_ID("0")
         shape = data.shape
         if len(shape) == 5:
@@ -118,5 +120,8 @@ class OmeTifWriter:
         # assume 1 sample per channel
         for i in range(pixels.SizeC):
             pixels.Channel(i).set_SamplesPerPixel(1)
+
+        # many assumptions in here: one file per image, one plane per tiffdata, etc.
+        pixels.populate_TiffData(os.path.basename(self.filePath))
 
         return ox
