@@ -7,6 +7,7 @@ from aicsimagetools import omeTifReader
 from aicsimagetools import tifReader
 from aicsimagetools import omeTifWriter
 from aicsimagetools import pngWriter
+from aicsimagetools import cziReader
 # from aicsimagetools import omexml
 import numpy as np
 # import os
@@ -14,6 +15,10 @@ import numpy as np
 
 
 def main():
+    # czr = cziReader.CziReader('test/20160705_I01_001.czi')
+    # czdata = czr.load()
+    #
+    #
     reader0 = tifReader.TifReader('test/img40_1_dna.tif')
     reader1 = tifReader.TifReader('test/img40_1_memb.tif')
     reader2 = tifReader.TifReader('test/img40_1_struct.tif')
@@ -27,10 +32,10 @@ def main():
         d[i, 2, :, :] = reader2.load_image(z=i)
         d[i, 3, :, :] = reader3.load_image(z=i)
         d[i, 4, :, :] = reader4.load_image(z=i)
-
-    writer = omeTifWriter.OmeTifWriter('test/o.ome.tif')
-    writer.save(d)
-    writer.close()
+    #
+    # writer = omeTifWriter.OmeTifWriter('test/o.ome.tif')
+    # writer.save(d)
+    # writer.close()
 
     d2 = np.ndarray([reader0.size_y(), reader0.size_x(), 3])
     d2[:,:,0] = d[reader0.size_z()/2, 0, :,:]
