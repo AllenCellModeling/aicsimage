@@ -19,7 +19,7 @@ setup(name='aicsimagetools',
       author_email='danielt@alleninstitute.org',
       license='MIT',
       packages=['aicsimagetools'],
-      scripts=['bin/interleave.py'],
+      scripts=['bin/interleave.py', 'bin/thumbnail.py'],
       install_requires=[
           'numpy',
           'pillow',
