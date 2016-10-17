@@ -6,6 +6,7 @@ with open('version.value', 'r') as f:
 with open('./aicsimagetools/aicsimagetools_version.py', 'w') as f:
     f.writelines('AICSIMAGETOOLS_VERSION = "{}"'.format(version))
 
+
 def readme():
     with open('README.rst') as f:
         return f.read()
@@ -19,7 +20,7 @@ setup(name='aicsimagetools',
       author_email='danielt@alleninstitute.org',
       license='MIT',
       packages=['aicsimagetools'],
-      scripts=['bin/interleave.py', 'bin/thumbnail.py'],
+      scripts=[],
       install_requires=[
           'numpy',
           'pillow',
