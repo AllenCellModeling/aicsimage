@@ -1,4 +1,5 @@
 from scipy.misc import imsave
+import numpy as np
 
 class PngWriter:
     """
@@ -24,6 +25,8 @@ class PngWriter:
         assert len(shape) == 3 or len(shape) == 2
         if len(shape) == 3:
             assert shape[2] == 3 or shape[2] == 4 or shape[2] == 1
+        if shape[2] == 1:
+            data = np.repeat(data, repeats=3, axis=2)
         imsave(self.filePath, data)
 
     def save_image(self, data, z=0, c=0, t=0):
