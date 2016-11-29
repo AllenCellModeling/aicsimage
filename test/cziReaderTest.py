@@ -13,11 +13,12 @@ class SetUpTest(unittest.TestCase):
     def setUp(self):
         self.reader = cziReader.CziReader(os.path.join('img', 'T=5_Z=3_CH=2_CZT_All_CH_per_Slice.czi'))
         self.load = self.reader.load()
-        self.load_image = np.ndarray([self.reader.size_z(), self.reader.size_c(), self.reader.size_y(),
+        self.load_image = np.ndarray([self.reader.size_t(), self.reader.size_z(), self.reader.size_c(), self.reader.size_y(),
                                       self.reader.size_x()], dtype=self.reader.dtype())
-        for i in range(self.reader.size_z()):
-            for j in range(self.reader.size_c()):
-                self.load_image[i, j, :, :] = self.reader.load_image(z=i, c=j)
+        for i in range(self.reader.size_t()):
+            for j in range(self.reader.size_z()):
+                for k in range(self.reader.size_c()):
+                    self.load_image[i, j, k, :, :] = self.reader.load_image(t=i, z=j, c=k)
 
 
 class CziLoadDimensionTestCase(SetUpTest):
@@ -32,10 +33,10 @@ class CziLoadDimensionTestCase(SetUpTest):
 class CziLoadImageDimensionsTestCase(SetUpTest):
     """
     Test to check the dimensionality of the array loaded by CziReader
-    This should be 4 dimensional, ZCYX
+    This should be 5 dimensional, TZCYX
     """
     def runTest(self):
-        self.assertEqual(len(self.load_image.shape), 4)
+        self.assertEqual(len(self.load_image.shape), 5)
 
 
 class CziLoadComparisonLoadImageTestCase(SetUpTest):

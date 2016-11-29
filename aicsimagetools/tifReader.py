@@ -18,11 +18,7 @@ class TifReader:
         self.tif.close()
 
     def load(self):
-        # This returns a single 3d array of ZYX
-        # This makes total sense, because each tif layer constitutes a channel
-        # But this breaks the continuity of the reader classes
-        data = self.tif.asarray()
-        return data
+        return self.tif.asarray()
 
     def load_image(self, z=0, c=0, t=0):
         # assume c-z-t precedence

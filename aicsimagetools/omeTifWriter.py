@@ -110,6 +110,7 @@ class OmeTifWriter:
             pixels.set_SizeY(shape[1])
             pixels.set_SizeX(shape[2])
 
+        # this must be set to the *reverse* of what dimensionality the ome tif file is saved as
         pixels.set_DimensionOrder('XYCZT')
         pixels.set_PixelType(data.dtype.name)
 
