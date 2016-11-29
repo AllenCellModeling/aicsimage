@@ -1,6 +1,7 @@
 from scipy.misc import imsave
 import numpy as np
 
+
 class PngWriter:
     """
     Save a png

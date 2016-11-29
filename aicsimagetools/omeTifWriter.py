@@ -1,11 +1,12 @@
 import omexml
 import os
 import tifffile
+import numpy as np
 
 
 class OmeTifWriter:
     """
-    assumes XYCZT ordering for now
+    assumes ZCYX ordering for now
     """
 
     def __init__(self, file_path):
@@ -23,14 +24,14 @@ class OmeTifWriter:
     def close(self):
         self.tif.close()
 
-    # Assumes data is xyczt or xycz or xyz
+    # Assumes data is TZCYX or ZCYX or ZYX
     def save(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
         self._makeMeta(data, channel_names=channel_names, image_name=image_name,
                        pixels_physical_size=pixels_physical_size, channel_colors=channel_colors)
         shape = data.shape
         xml = self.omeMetadata.to_xml()
 
-        # check data shape for xyczt or xycz or xyz
+        # check data shape for TZCYX or ZCYX or ZYX
         if len(shape) == 5:
             for i in range(self.size_t()):
                 for j in range(self.size_z()):
@@ -44,7 +45,7 @@ class OmeTifWriter:
             for i in range(self.size_z()):
                 self.tif.save(data[i, :, :], compress=9, description=xml)
         else:
-            print "Data expected to have shape length 3, 4, or 5 but does not."
+            print("Data expected to have shape length 3, 4, or 5 but does not.")
 
     def save_image(self, data, z=0, c=0, t=0):
         # assume this is one data slice of x by y
@@ -110,7 +111,6 @@ class OmeTifWriter:
             pixels.set_SizeX(shape[2])
 
         pixels.set_DimensionOrder('XYCZT')
-
         pixels.set_PixelType(data.dtype.name)
 
         if channel_names is None:

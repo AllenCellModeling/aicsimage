@@ -3,37 +3,44 @@
 # authors: Dan Toloudis     danielt@alleninstitute.org
 #          Zach Crabtree    zacharyc@alleninstitute.org
 
-from aicsimagetools import pngWriter
 from aicsimagetools import cziReader
 import numpy as np
-from transformationTest import transform
+import os
+import unittest
 
 
-def main():
+class SetUpTest(unittest.TestCase):
+    def setUp(self):
+        self.reader = cziReader.CziReader(os.path.join('img', 'T=5_Z=3_CH=2_CZT_All_CH_per_Slice.czi'))
+        self.load = self.reader.load()
+        self.load_image = np.ndarray([self.reader.size_z(), self.reader.size_c(), self.reader.size_y(),
+                                      self.reader.size_x()], dtype=self.reader.dtype())
+        for i in range(self.reader.size_z()):
+            for j in range(self.reader.size_c()):
+                self.load_image[i, j, :, :] = self.reader.load_image(z=i, c=j)
 
-    czireader = cziReader.CziReader('T=5_Z=3_CH=2_CZT_All_CH_per_Slice.czi')
-    czi_image = np.ndarray([czireader.size_z(), czireader.size_c(), czireader.size_y(), czireader.size_x()],
-                           dtype=czireader.dtype())
-    czi_loaded = czireader.load()
 
-    for i in range(czireader.size_z()):
-        for j in range(czireader.size_c()):
-            if len(czireader.czi.shape) == 7:
-                czi_image[i, j, :, :] = czi_loaded[0, i, j, :, :]
-            else:
-                czi_image[i, j, :, :] = czi_loaded[i, j, :, :]
+class CziLoadDimensionTestCase(SetUpTest):
+    """
+    Test to check the dimensionality of the array loaded by CziReader
+    This should be 4 dimensional, ZCYX, or 5 dimensional, TZCYX.
+    """
+    def runTest(self):
+        self.assertTrue(len(self.load.shape) == 4 or len(self.load.shape) == 5)
 
-    czi_image_2 = np.ndarray([czireader.size_x(), czireader.size_y(), 1], dtype=czireader.dtype())
 
-    czi_image_2[:, :, 0] = czireader.load_image(z=1, c=1, t=1)
+class CziLoadImageDimensionsTestCase(SetUpTest):
+    """
+    Test to check the dimensionality of the array loaded by CziReader
+    This should be 4 dimensional, ZCYX
+    """
+    def runTest(self):
+        self.assertEqual(len(self.load_image.shape), 4)
 
-    pngwriter = pngWriter.PngWriter('czitest.png')
-    pngwriter.save(transform(czi_image))
-    pngwriter.close()
 
-    # output a single slice to test the load_image function
-    pngwriter = pngWriter.PngWriter('czitest2.png')
-    pngwriter.save(czi_image_2)
-    pngwriter.close()
-
-main()
+class CziLoadComparisonLoadImageTestCase(SetUpTest):
+    """
+    Test to check if load() and load_image() (for all slices) load the same image
+    """
+    def runTest(self):
+        self.assertTrue(np.array_equal(self.load, self.load_image))

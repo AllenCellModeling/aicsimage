@@ -4,7 +4,7 @@ import tifffile
 
 class OmeTifReader:
     """
-    assumes XYCZT ordering for now
+    assumes TZCYX ordering for now
     """
 
     def __init__(self, file_path):
