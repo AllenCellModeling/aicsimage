@@ -20,7 +20,7 @@ class TifReader:
     def load(self):
         return self.tif.asarray()
 
-    def load_image(self, z=0, c=0, t=0):
+    def load_slice(self, z=0, c=0, t=0):
         # assume c-z-t precedence
         # assume stacks are in Z, c and t are always 0
         # index = c + (self.size_c() * z) + (self.size_c() * self.size_z() * t)

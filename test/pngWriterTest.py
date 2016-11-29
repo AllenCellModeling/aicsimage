@@ -20,7 +20,7 @@ class SetUpTestCase(unittest.TestCase):
                                  self.reader.size_x()], dtype=self.reader.dtype())
         for i in range(self.reader.size_z()):
             for j in range(self.reader.size_c()):
-                self.image[i, j, :, :] = self.reader.load_image(z=i, c=j)
+                self.image[i, j, :, :] = self.reader.load_slice(z=i, c=j)
 
 
 class PngSaveComparisonTestCase(SetUpTestCase):

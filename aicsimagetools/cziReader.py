@@ -38,7 +38,7 @@ class CziReader:
             # returns array with dimensions 'CZYX'
             return np.transpose(transposed_image, (1, 0, 2, 3))
 
-    def load_image(self, z=0, c=0, t=0):
+    def load_slice(self, z=0, c=0, t=0):
         # use this method when you need only one specific slice
 
         if self.hasTimeDimension:

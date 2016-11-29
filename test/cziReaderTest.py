@@ -18,7 +18,7 @@ class SetUpTest(unittest.TestCase):
         for i in range(self.reader.size_t()):
             for j in range(self.reader.size_z()):
                 for k in range(self.reader.size_c()):
-                    self.load_image[i, j, k, :, :] = self.reader.load_image(t=i, z=j, c=k)
+                    self.load_image[i, j, k, :, :] = self.reader.load_slice(t=i, z=j, c=k)
 
 
 class CziLoadDimensionTestCase(SetUpTest):

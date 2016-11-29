@@ -27,7 +27,7 @@ class OmeTifReader:
         data = self.tif.asarray()
         return data
 
-    def load_image(self, z=0, c=0, t=0):
+    def load_slice(self, z=0, c=0, t=0):
         index = c + (self.size_c() * z) + (self.size_c() * self.size_z() * t)
         data = self.tif.asarray(key=index)
         return data

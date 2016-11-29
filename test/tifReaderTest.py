@@ -20,11 +20,11 @@ class SetUpTestCase(unittest.TestCase):
                                      dtype=self.reader0.dtype())
 
         for i in range(self.reader0.size_z()):
-            self.load_image[i, 0, :, :] = self.reader0.load_image(z=i)
-            self.load_image[i, 1, :, :] = self.reader1.load_image(z=i)
-            self.load_image[i, 2, :, :] = self.reader2.load_image(z=i)
-            self.load_image[i, 3, :, :] = self.reader3.load_image(z=i)
-            self.load_image[i, 4, :, :] = self.reader4.load_image(z=i)
+            self.load_image[i, 0, :, :] = self.reader0.load_slice(z=i)
+            self.load_image[i, 1, :, :] = self.reader1.load_slice(z=i)
+            self.load_image[i, 2, :, :] = self.reader2.load_slice(z=i)
+            self.load_image[i, 3, :, :] = self.reader3.load_slice(z=i)
+            self.load_image[i, 4, :, :] = self.reader4.load_slice(z=i)
 
 
 class TifLoadImageDimensionTestCase(SetUpTestCase):
@@ -54,7 +54,7 @@ class TifLoadComparisonTestCase(SetUpTestCase):
         loaded_image_slices = np.ndarray([self.reader0.size_z(), self.reader0.size_y(),
                                           self.reader0.size_x()], dtype=self.reader0.dtype())
         for i in range(self.reader0.size_z()):
-            loaded_image_slices[i, :, :] = self.reader0.load_image(z=i)
+            loaded_image_slices[i, :, :] = self.reader0.load_slice(z=i)
         loaded_image = self.reader0.load()
 
         self.assertTrue(np.array_equal(loaded_image, loaded_image_slices))

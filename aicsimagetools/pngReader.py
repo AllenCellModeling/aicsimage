@@ -22,6 +22,3 @@ class PngReader:
     # Assumes data is xyz where z is rgba, rgb, or r
     def load(self):
         return scipy.misc.imread(self.filePath)
-
-    def load_image(self, z=0, c=0, t=0):
-        return self.load()
