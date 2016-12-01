@@ -14,8 +14,8 @@ class SetUpTest(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         self.reader = cziReader.CziReader(os.path.join(dir_path, 'img', 'T=5_Z=3_CH=2_CZT_All_CH_per_Slice.czi'))
         self.load = self.reader.load()
-        self.load_image = np.ndarray([self.reader.size_t(), self.reader.size_z(), self.reader.size_c(), self.reader.size_y(),
-                                      self.reader.size_x()], dtype=self.reader.dtype())
+        self.load_image = np.ndarray([self.reader.size_t(), self.reader.size_z(), self.reader.size_c(),
+                                      self.reader.size_y(), self.reader.size_x()], dtype=self.reader.dtype())
         for i in range(self.reader.size_t()):
             for j in range(self.reader.size_z()):
                 for k in range(self.reader.size_c()):

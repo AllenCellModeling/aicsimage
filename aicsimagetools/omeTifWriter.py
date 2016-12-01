@@ -1,7 +1,6 @@
-import omexml
+from aicsimagetools import omexml
 import os
 import tifffile
-import numpy as np
 
 
 class OmeTifWriter:

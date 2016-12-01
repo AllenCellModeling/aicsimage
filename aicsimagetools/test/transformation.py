@@ -38,6 +38,7 @@ def transform(image):
         # adjusting intensity frequency histogram to lie along the x axis
         transformed_image[:, :, x] -= channel_min_value
         # stretching the peaks along 0 - 255
-        transformed_image[:, :, x] *= 255 / (channel_max_value - channel_min_value)
+        peak_stretch = int(255.0 / (channel_max_value - channel_min_value))
+        transformed_image[:, :, x] *= peak_stretch
 
     return transformed_image

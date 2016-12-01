@@ -1,5 +1,6 @@
-import czifile
+from aicsimagetools import czifile
 import numpy as np
+
 
 class CziReader:
     """

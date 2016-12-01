@@ -5,7 +5,7 @@
 from aicsimagetools import pngWriter
 from aicsimagetools import cziReader
 from aicsimagetools import pngReader
-from transformation import *
+from aicsimagetools.test.transformation import *
 import unittest
 import os
 import numpy as np

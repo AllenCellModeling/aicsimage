@@ -8,6 +8,7 @@ from testOmeTifWriter import *
 from testTifReader import *
 from testPngWriter import *
 from testPngReader import *
+import sys
 import unittest
 
 
@@ -53,6 +54,7 @@ def main():
     complete_test_suite.addTest(png_reader_test_suite)
     complete_test_suite.addTest(png_writer_test_suite)
 
-    unittest.TextTestRunner(verbosity=2).run(complete_test_suite)
+    exit_code = not unittest.TextTestRunner(verbosity=2).run(complete_test_suite).wasSuccessful()
+    sys.exit(exit_code)
 
 main()

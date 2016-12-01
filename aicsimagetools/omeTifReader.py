@@ -1,5 +1,6 @@
-import omexml
+from aicsimagetools import omexml
 import tifffile
+
 
 
 class OmeTifReader:
