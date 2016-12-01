@@ -126,10 +126,13 @@ try:
     _have_czifile = True
 except ImportError:
     _have_czifile = False
-    warnings.warn(
-        "failed to import the optional _czifile C extension module.\n"
-        "Decoding of JXR and JPEG encoded images will not be available.\n"
-        "Czifile.pyx can be obtained at http://www.lfd.uci.edu/~gohlke/")
+    """
+    Suppressing optional import warning
+    """
+    # warnings.warn(
+    #     "failed to import the optional _czifile C extension module.\n"
+    #     "Decoding of JXR and JPEG encoded images will not be available.\n"
+    #     "Czifile.pyx can be obtained at http://www.lfd.uci.edu/~gohlke/")
 
 __version__ = '2015.08.17'
 __docformat__ = 'restructuredtext en'
