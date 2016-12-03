@@ -44,7 +44,7 @@ class PngWriterTestGroup(unittest.TestCase):
     This should not change the behavior of save(), so the output should still be identical to the comparison_image
     """
     def test_pngSaveImageComparison(self):
-        self.writer.save_image(transform(self.image), z=1, c=2, t=3)
+        self.writer.save_slice(transform(self.image), z=1, c=2, t=3)
         reader = pngReader.PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png'))
         output_image = reader.load()
         self.assertTrue(np.array_equal(self.comparison_image, output_image))

@@ -30,5 +30,5 @@ class PngWriter:
             data = np.repeat(data, repeats=3, axis=2)
         imsave(self.filePath, data)
 
-    def save_image(self, data, z=0, c=0, t=0):
+    def save_slice(self, data, z=0, c=0, t=0):
         self.save(data)

@@ -47,7 +47,7 @@ class OmeTifWriter:
         else:
             print("Data expected to have shape length 3, 4, or 5 but does not.")
 
-    def save_image(self, data, z=0, c=0, t=0):
+    def save_slice(self, data, z=0, c=0, t=0):
         # assume this is one data slice of x by y
         assert len(data.shape) == 2
         assert data.shape[0] == self.size_y()
