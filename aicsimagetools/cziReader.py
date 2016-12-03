@@ -26,17 +26,20 @@ class CziReader:
     def __exit__(self, exc_type, exc_value, traceback):
         self.czi.close()
 
+    def close(self):
+        self.czi.close()
+
     def load(self):
         # use this method when more than one slice is necessary
         image = self.czi.asarray()
 
         if self.hasTimeDimension:
             transposed_image = image[0, :, :, :, :, :, 0]
-            # returns array with dimensions 'TCZYX'
+            # returns array with dimensions 'TZCYX'
             return np.transpose(transposed_image, (0, 2, 1, 3, 4))
         else:
             transposed_image = image[0, :, :, :, :, 0]
-            # returns array with dimensions 'CZYX'
+            # returns array with dimensions 'ZCYX'
             return np.transpose(transposed_image, (1, 0, 2, 3))
 
     def load_slice(self, z=0, c=0, t=0):

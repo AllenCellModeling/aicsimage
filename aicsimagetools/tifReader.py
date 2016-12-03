@@ -15,6 +15,9 @@ class TifReader:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def close(self):
         self.tif.close()
 
     def load(self):

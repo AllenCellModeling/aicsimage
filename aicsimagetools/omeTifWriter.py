@@ -25,6 +25,7 @@ class OmeTifWriter:
 
     # Assumes data is TZCYX or ZCYX or ZYX
     def save(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
+
         self._makeMeta(data, channel_names=channel_names, image_name=image_name,
                        pixels_physical_size=pixels_physical_size, channel_colors=channel_colors)
         shape = data.shape

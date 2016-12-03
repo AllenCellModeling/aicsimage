@@ -146,7 +146,7 @@ def imread(filename, *args, **kwargs):
 
     Examples
     --------
-    >>> image = imread('test.czi')
+    >>> image = imread(_test)
     >>> image.shape
     (3, 3, 3, 250, 200, 3)
     >>> image.dtype

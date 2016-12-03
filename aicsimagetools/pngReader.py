@@ -1,3 +1,4 @@
+from PIL import Image
 import scipy.misc
 
 
@@ -21,4 +22,8 @@ class PngReader:
 
     # Assumes data is xyz where z is rgba, rgb, or r
     def load(self):
-        return scipy.misc.imread(self.filePath)
+        # this is dumb but this is the way to make the file close correctly with Py3.5 :(
+        # sorry future programmer
+        with open(self.filePath, 'rb') as image_file:
+            with Image.open(image_file) as image:
+                return scipy.misc.fromimage(image)
