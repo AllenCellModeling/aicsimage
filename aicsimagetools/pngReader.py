@@ -1,5 +1,6 @@
 from PIL import Image
 import scipy.misc
+import numpy as np
 
 
 class PngReader:
@@ -20,10 +21,10 @@ class PngReader:
     def close(self):
         pass
 
-    # Assumes data is xyz where z is rgba, rgb, or r
     def load(self):
         # this is dumb but this is the way to make the file close correctly with Py3.5 :(
         # sorry future programmer
         with open(self.filePath, 'rb') as image_file:
             with Image.open(image_file) as image:
-                return scipy.misc.fromimage(image)
+                # returns cyx where c is rgb, rgba, or r
+                return np.transpose(scipy.misc.fromimage(image), (2, 0, 1))

@@ -25,10 +25,11 @@ class OmeTifWriter:
 
     # Assumes data is TZCYX or ZCYX or ZYX
     def save(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
+        shape = data.shape
+        assert (len(shape) == 5 or len(shape) == 4 or len(shape) == 3)
 
         self._makeMeta(data, channel_names=channel_names, image_name=image_name,
                        pixels_physical_size=pixels_physical_size, channel_colors=channel_colors)
-        shape = data.shape
         xml = self.omeMetadata.to_xml()
 
         # check data shape for TZCYX or ZCYX or ZYX
@@ -44,10 +45,10 @@ class OmeTifWriter:
         elif len(shape) == 3:
             for i in range(self.size_z()):
                 self.tif.save(data[i, :, :], compress=9, description=xml)
-        else:
-            print("Data expected to have shape length 3, 4, or 5 but does not.")
 
     def save_slice(self, data, z=0, c=0, t=0):
+        # data is a single YX slice - need to insert it into a pre-made image (putting one slice in between two others)
+        
         # assume this is one data slice of x by y
         assert len(data.shape) == 2
         assert data.shape[0] == self.size_y()

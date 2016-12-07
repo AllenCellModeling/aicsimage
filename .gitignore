@@ -20,3 +20,6 @@
 
 # stackdump files
 python2.7.exe*
+
+# testing image files
+/test/img/*test_output*

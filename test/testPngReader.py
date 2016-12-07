@@ -13,12 +13,13 @@ class PngReaderTestGroup(unittest.TestCase):
     def setUpClass(cls):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         with pngReader.PngReader(os.path.join(dir_path, 'img', 'img40_1.png')) as reader:
-            cls.array_to_check = reader.load()
+            cls.input = reader.load()
 
     """
     Test to assure that the png is always read in as a 3 dimensional array
-    Will return XYC
+    Will return CYX
     """
     def test_shapeOutput(self):
-        self.assertEqual(len(self.array_to_check.shape), 3)
+        self.assertEqual(len(self.input.shape), 3)
+        self.assertEqual(self.input.shape[0], 3)
 
