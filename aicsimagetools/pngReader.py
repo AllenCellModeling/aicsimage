@@ -26,5 +26,8 @@ class PngReader:
         # sorry future programmer
         with open(self.filePath, 'rb') as image_file:
             with Image.open(image_file) as image:
-                # returns cyx where c is rgb, rgba, or r
-                return np.transpose(scipy.misc.fromimage(image), (2, 0, 1))
+                data = scipy.misc.fromimage(image)
+                if len(data.shape) == 3:
+                    # returns cyx where c is rgb, rgba, or r
+                    data = np.transpose(data, (2, 0, 1))
+                return data

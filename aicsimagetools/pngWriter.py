@@ -4,7 +4,7 @@ import numpy as np
 
 class PngWriter:
     """
-    Save a png
+    Saves a png
     """
 
     def __init__(self, file_path):
@@ -22,13 +22,17 @@ class PngWriter:
 
     # Assumes data is CYX where c is rgb, rgba, or r
     def save(self, data):
-        shape = data.shape
-        assert len(shape) == 3 or len(shape) == 2
-        if len(shape) == 3:
-            assert shape[0] == 3 or shape[0] == 4 or shape[0] == 1
-        if shape[0] == 1:
-            data = np.repeat(data, repeats=3, axis=2)
-        data = np.transpose(data, (1, 2, 0))
+        # check for rgb, rgba, or r
+        if len(data.shape) == 3:
+            assert data.shape[0] == 4 or data.shape[0] == 3 or data.shape[0] == 1
+            # if three dimensions, transpose to YXC (imsave() needs it in these axes)
+            data = np.transpose(data, (1, 2, 0))
+            # if there's only one channel, repeat across the next two channels
+            if data.shape[2] == 1:
+                data = np.repeat(data, repeats=3, axis=2)
+        elif len(data.shape) != 2:
+            raise ValueError("Data was not of dimensions CYX or YX")
+
         imsave(self.filePath, data)
 
     # data is CYX or YX array

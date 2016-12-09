@@ -41,4 +41,32 @@ class PngWriterTestGroup(unittest.TestCase):
         self.assertTrue(np.array_equal(self.image, output_image))
         reader.close()
 
+    def test_twoDimensionalImages(self):
+        image = np.ndarray([2, 2], dtype=np.uint8)
+        image[0, 0] = 255
+        image[0, 1] = 0
+        image[1, 0] = 0
+        image[1, 1] = 255
+        self.writer.save(image)
+        with pngReader.PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png')) as reader:
+            loaded_image = reader.load()
+            self.assertTrue(np.array_equal(image, loaded_image))
 
+    def test_threeDimensionalImages(self):
+        image = np.zeros([1, 2, 2], dtype=np.uint8)
+        image[0, 0, 0] = 255
+        image[0, 0, 1] = 0
+        image[0, 1, 0] = 0
+        image[0, 1, 1] = 255
+        self.writer.save(image)
+        with pngReader.PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png')) as reader:
+            # we know that the channels will be repeated, so only check the bottommost channel
+            loaded_image = reader.load()[0, :, :]
+            sliced_image = image[0, :, :]
+            self.assertTrue(np.array_equal(loaded_image, sliced_image))
+
+    def test_fourDimensionalImages(self):
+        image = np.random.rand(1, 2, 3, 4)
+        # the pngwriter cannot handle 4d images, and should thus throw an error
+        with self.assertRaises(ValueError):
+            self.writer.save(image)
