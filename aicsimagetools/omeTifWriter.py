@@ -121,7 +121,7 @@ class OmeTifWriter:
         else:
             for i, name in enumerate(channel_names):
                 pixels.Channel(i).set_ID("Channel:0:"+str(i))
-                pixels.Channel(i).set_Name(name+":"+str(i))
+                pixels.Channel(i).set_Name(name)
 
         if channel_colors is not None:
             assert len(channel_colors) == pixels.get_SizeC()
