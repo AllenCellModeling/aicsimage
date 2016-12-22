@@ -4,6 +4,7 @@
 #          Zach Crabtree    zacharyc@alleninstitute.org
 
 from aicsimagetools import cziReader
+import aicsimagetools
 import numpy as np
 import os
 import unittest
@@ -14,6 +15,7 @@ class CziReaderTestGroup(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        aicsimagetools.init()
         dir_path = os.path.dirname(os.path.realpath(__file__))
         with cziReader.CziReader(os.path.join(dir_path, 'img', 'T=5_Z=3_CH=2_CZT_All_CH_per_Slice.czi')) as reader:
             z_index = m.floor(reader.size_z() / 2)
@@ -22,12 +24,16 @@ class CziReaderTestGroup(unittest.TestCase):
             cls.slice = reader.load_slice(z=z_index, c=c_index, t=t_index)
             cls.load = reader.load()
             cls.load_image = np.ndarray([reader.size_t(), reader.size_z(), reader.size_c(), reader.size_y(),
-                                         reader.size_x()], dtype=reader.dtype())
+                                         reader.size_x()])
             for i in range(reader.size_t()):
                 for j in range(reader.size_z()):
                     for k in range(reader.size_c()):
                         cls.load_image[i, j, k, :, :] = reader.load_slice(t=i, z=j, c=k)
             cls.metadata = reader.get_metadata()
+
+    @classmethod
+    def tearDownClass(cls):
+        aicsimagetools.close()
 
     """
     Test to check the dimensionality of the array loaded by CziReader
@@ -55,10 +61,3 @@ class CziReaderTestGroup(unittest.TestCase):
     """
     def test_compareLoadMethodResults(self):
         self.assertTrue(np.array_equal(self.load, self.load_image))
-
-
-    """
-    Sandbox for metadata
-    """
-    def test_metadata(self):
-        metadata = self.metadata
