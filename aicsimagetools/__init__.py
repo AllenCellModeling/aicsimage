@@ -9,5 +9,13 @@ from .cziReader import CziReader
 from .aicsimagetools_version import *
 
 
+def init():
+    pass
+
+
+def close():
+    pass
+
+
 def get_version():
     return AICSIMAGETOOLS_VERSION

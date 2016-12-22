@@ -1,5 +1,6 @@
 from aicsimagetools import omexml
 import tifffile
+import numpy as np
 
 
 
@@ -9,10 +10,13 @@ class OmeTifReader:
     """
 
     def __init__(self, file_path):
-        # nothing yet!
         self.filePath = file_path
-        self.tif = tifffile.TiffFile(self.filePath)
-        assert self.tif.is_ome
+        try:
+            self.tif = tifffile.TiffFile(self.filePath)
+        except ValueError:
+            raise AssertionError("File is not a valid file type")
+        except IOError:
+            raise AssertionError("File is empty or does not exist")
         if 'image_description' in self.tif.pages[0].tags:
             d = self.tif.pages[0].tags['image_description'].value.strip()
             assert d.startswith(b'<?xml version=') and d.endswith(b'</OME>')
@@ -29,7 +33,8 @@ class OmeTifReader:
 
     def load(self):
         data = self.tif.asarray()
-        return data
+        # Expand return to have time value of 1
+        return np.expand_dims(data, axis=0)
 
     def load_slice(self, z=0, c=0, t=0):
         index = c + (self.size_c() * z) + (self.size_c() * self.size_z() * t)
