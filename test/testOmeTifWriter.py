@@ -27,7 +27,7 @@ class OmeTifWriterTestGroup(unittest.TestCase):
     Test to check that OmeTifWriter saves arrays that are reflexive with OmeTifReader
     """
     def test_writerShapeComparison(self):
-        self.writer.save(self.image)
+        self.writer.save(self.image, overwrite_file=True)
 
         with omeTifReader.OmeTifReader(os.path.join(self.dir_path, 'ometif_test_output.ome.tif')) as test_output_reader:
             output = test_output_reader.load()
@@ -40,4 +40,21 @@ class OmeTifWriterTestGroup(unittest.TestCase):
     def test_loadAssertionError(self):
         image_to_save = np.ones((1, 2, 3, 4, 5, 6))
         with self.assertRaises(AssertionError):
-            self.writer.save(image_to_save)
+            self.writer.save(image_to_save, overwrite_file=True)
+
+    """
+        Test to check if save() can overwrite a file
+        """
+
+    def test_overwriteFile(self):
+        with omeTifWriter.OmeTifWriter(os.path.join(self.dir_path, 'ometif_test_output.ome.tif')) as writer:
+            writer.save(self.image, overwrite_file=True)
+
+    """
+    Test to check if save() will raise error when user does not want to overwrite a file that exists
+    """
+
+    def test_dontOverwriteFile(self):
+        with self.assertRaises(Exception):
+            with omeTifWriter.OmeTifWriter(os.path.join(self.dir_path, 'ometif_test_output.ome.tif')) as writer:
+                writer.save(self.image)

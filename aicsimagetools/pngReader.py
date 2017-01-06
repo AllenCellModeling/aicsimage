@@ -4,8 +4,16 @@ import numpy as np
 
 
 class PngReader:
-    """
-    Load a png
+    """This class is used to open and process the contents of a png file.
+
+    Examples:
+        reader = pngReader.PngReader(path="file.png")
+        file_image = reader.load()
+
+        with pngReader.PngReader(path="file2.png") as reader:
+            file2_image = reader.load()
+
+    The load function will get a 3D (RGB)YX array from the png file.
     """
 
     def __init__(self, file_path):
@@ -22,6 +30,9 @@ class PngReader:
         pass
 
     def load(self):
+        """
+        :return: A 3D array of CYX, where C is the RBG channel.
+        """
         # this is dumb but this is the way to make the file close correctly with Py3.5 :(
         # sorry future programmer
         with open(self.filePath, 'rb') as image_file:
