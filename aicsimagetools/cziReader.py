@@ -73,7 +73,7 @@ class CziReader:
         else:
             transposed_image = image[0, :, :, :, :, 0]
             # returns array with dimensions 'ZCYX'
-            return np.transpose(transposed_image, (1, 0, 2, 3))
+            return np.expand_dims(np.transpose(transposed_image, (1, 0, 2, 3)), 0)
 
     def load_slice(self, z=0, c=0, t=0):
         """Retrieves the 2D YX slice from the image
