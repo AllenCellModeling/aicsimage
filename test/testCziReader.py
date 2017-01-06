@@ -5,10 +5,9 @@
 
 from aicsimagetools import cziReader
 import aicsimagetools
-import numpy as np
 import os
 import unittest
-import math as m
+from transformation import *
 
 
 class CziReaderTestGroup(unittest.TestCase):
@@ -29,7 +28,6 @@ class CziReaderTestGroup(unittest.TestCase):
                 for j in range(reader.size_z()):
                     for k in range(reader.size_c()):
                         cls.load_image[i, j, k, :, :] = reader.load_slice(t=i, z=j, c=k)
-            cls.metadata = reader.get_metadata()
 
     @classmethod
     def tearDownClass(cls):

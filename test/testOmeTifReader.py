@@ -40,14 +40,11 @@ class OmeTifReaderTestGroup(unittest.TestCase):
         self.assertTrue(np.array_equal(self.load, self.load_image))
 
     def test_omeTifEmptyFileError(self):
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(Exception):
             with omeTifReader.OmeTifReader('fakefile') as reader:
                 reader.load()
 
     def test_notOmeTifFile(self):
-        with self.assertRaises(AssertionError):
-            with omeTifReader.OmeTifReader(os.path.join(self.dir_path, 'img', 'img40_1.png')) as reader:
+        with self.assertRaises(Exception):
+            with omeTifReader.OmeTifReader(os.path.join(self.dir_path, 'img', 'T=5_Z=3_CH=2_CZT_All_CH_per_Slice.czi')) as reader:
                 reader.load()
-
-
-

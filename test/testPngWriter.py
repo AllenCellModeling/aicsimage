@@ -41,6 +41,10 @@ class PngWriterTestGroup(unittest.TestCase):
         self.assertTrue(np.array_equal(self.image, output_image))
         reader.close()
 
+    """
+    Test saves an image with a single xy plane
+    This test assures that the pixels are written to the correct orientation
+    """
     def test_twoDimensionalImages(self):
         image = np.ndarray([2, 2], dtype=np.uint8)
         image[0, 0] = 255
@@ -52,6 +56,10 @@ class PngWriterTestGroup(unittest.TestCase):
             loaded_image = reader.load()
             self.assertTrue(np.array_equal(image, loaded_image))
 
+    """
+    Test saves an image with a single xy plane, but gives one channel
+    This test assures that the channels are repeated when written with less than 3 channels
+    """
     def test_threeDimensionalImages(self):
         image = np.zeros([1, 2, 2], dtype=np.uint8)
         image[0, 0, 0] = 255
@@ -60,13 +68,18 @@ class PngWriterTestGroup(unittest.TestCase):
         image[0, 1, 1] = 255
         self.writer.save(image, overwrite_file=True)
         with pngReader.PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png')) as reader:
-            # we know that the channels will be repeated, so only check the bottommost channel
-            loaded_image = reader.load()[0, :, :]
-            sliced_image = image[0, :, :]
-            self.assertTrue(np.array_equal(loaded_image, sliced_image))
+            all_channels = reader.load()
+            channel_r = all_channels[0, :, :]
+            channel_g = all_channels[1, :, :]
+            channel_b = all_channels[2, :, :]
+            self.assertTrue(np.array_equal(channel_r, channel_g) and np.array_equal(channel_g, channel_b) and np.array_equal(channel_r, image[0, :, :]))
 
+    """
+    Test attempts to save an image with zcyx dims
+    This should fail because the pngwriter does not accept images with more than 3 dims
+    """
     def test_fourDimensionalImages(self):
         image = np.random.rand(1, 2, 3, 4)
         # the pngwriter cannot handle 4d images, and should thus throw an error
-        with self.assertRaises(ValueError):
+        with self.assertRaises(Exception):
             self.writer.save(image, overwrite_file=True)
