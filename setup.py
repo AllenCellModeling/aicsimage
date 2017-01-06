@@ -28,5 +28,5 @@ setup(name='aicsimagetools',
           'tifffile'
       ],
       zip_safe=False,
-      test_suite='test'
+      test_suite='test.test_suite'
       )

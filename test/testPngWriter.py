@@ -5,7 +5,6 @@
 import os
 import unittest
 
-from aicsimagetools import cziReader
 from aicsimagetools import pngReader
 from aicsimagetools import pngWriter
 from test.transformation import *
@@ -17,35 +16,70 @@ class PngWriterTestGroup(unittest.TestCase):
     def setUpClass(cls):
         cls.dir_path = os.path.dirname(os.path.realpath(__file__))
         cls.writer = pngWriter.PngWriter(os.path.join(cls.dir_path, 'img', 'pngwriter_test_output.png'))
-        with cziReader.CziReader(os.path.join(cls.dir_path, 'img', 'T=5_Z=3_CH=2_CZT_All_CH_per_Slice.czi')) as reader:
-            with pngReader.PngReader(os.path.join(cls.dir_path, 'img', 'czi_output_comparison.png')) as comparisonReader:
-                cls.comparison_image = comparisonReader.load()
-                cls.image = np.ndarray([reader.size_z(), reader.size_c(), reader.size_y(),
-                                        reader.size_x()], dtype=reader.dtype())
-            for i in range(reader.size_z()):
-                for j in range(reader.size_c()):
-                    cls.image[i, j, :, :] = reader.load_slice(z=i, c=j)
-
-        reader.close()
+        # unfortunately, the rounding is necessary - scipy.fromimage() only returns integer values for pixels
+        cls.image = np.round(transform(np.random.rand(40, 3, 128, 256)))
 
     """
     Test saves an image and compares it with a previously saved image.
-    This test should assure that the png save() method works as it always has
+    This test should assure that the png save() method does not transpose any dimensions as it saves
     """
     def test_pngSaveComparison(self):
-        self.writer.save(transform(self.image))
+        self.writer.save(self.image, overwrite_file=True)
         reader = pngReader.PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png'))
         output_image = reader.load()
-        self.assertTrue(np.array_equal(self.comparison_image, output_image))
+        self.assertTrue(np.array_equal(self.image, output_image))
         reader.close()
 
     """
     Test saves an image with various z, c, and t.
-    This should not change the behavior of save(), so the output should still be identical to the comparison_image
+    The extra parameters should not change the output from save()'s output
     """
     def test_pngSaveImageComparison(self):
-        self.writer.save_image(transform(self.image), z=1, c=2, t=3)
+        self.writer.save_slice(self.image, z=1, c=2, t=3, overwrite_file=True)
         reader = pngReader.PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png'))
         output_image = reader.load()
-        self.assertTrue(np.array_equal(self.comparison_image, output_image))
+        self.assertTrue(np.array_equal(self.image, output_image))
         reader.close()
+
+    """
+    Test saves an image with a single xy plane
+    This test assures that the pixels are written to the correct orientation
+    """
+    def test_twoDimensionalImages(self):
+        image = np.ndarray([2, 2], dtype=np.uint8)
+        image[0, 0] = 255
+        image[0, 1] = 0
+        image[1, 0] = 0
+        image[1, 1] = 255
+        self.writer.save(image, overwrite_file=True)
+        with pngReader.PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png')) as reader:
+            loaded_image = reader.load()
+            self.assertTrue(np.array_equal(image, loaded_image))
+
+    """
+    Test saves an image with a single xy plane, but gives one channel
+    This test assures that the channels are repeated when written with less than 3 channels
+    """
+    def test_threeDimensionalImages(self):
+        image = np.zeros([1, 2, 2], dtype=np.uint8)
+        image[0, 0, 0] = 255
+        image[0, 0, 1] = 0
+        image[0, 1, 0] = 0
+        image[0, 1, 1] = 255
+        self.writer.save(image, overwrite_file=True)
+        with pngReader.PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png')) as reader:
+            all_channels = reader.load()
+            channel_r = all_channels[0, :, :]
+            channel_g = all_channels[1, :, :]
+            channel_b = all_channels[2, :, :]
+            self.assertTrue(np.array_equal(channel_r, channel_g) and np.array_equal(channel_g, channel_b) and np.array_equal(channel_r, image[0, :, :]))
+
+    """
+    Test attempts to save an image with zcyx dims
+    This should fail because the pngwriter does not accept images with more than 3 dims
+    """
+    def test_fourDimensionalImages(self):
+        image = np.random.rand(1, 2, 3, 4)
+        # the pngwriter cannot handle 4d images, and should thus throw an error
+        with self.assertRaises(Exception):
+            self.writer.save(image, overwrite_file=True)

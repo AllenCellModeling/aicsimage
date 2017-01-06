@@ -4,14 +4,29 @@ import tifffile
 
 
 class OmeTifWriter:
-    """
-    assumes ZCYX ordering for now
+    """This class can take arrays of pixel values and do the necessary metadata creation to write them
+    properly in OME xml format.
+
+    Example:
+        image = numpy.ndarray([1, 10, 3, 1024, 2048])
+        # There needs to be some sort of data inside the image array
+        writer = omeTifWriter.OmeTifWriter(path="file.ome.tif")
+        writer.save(image)
+
+        image2 = numpy.ndarray([5, 486, 210])
+        # There needs to be some sort of data inside the image2 array
+        with omeTifWriter.OmeTifWriter(path="file2.ome.tif") as writer2:
+            writer2.save(image2)
+
+        # Convert a CZI file into OME Tif.
+        reader = cziReader.CziReader(path="file3.czi")
+        writer = omeTifWriter.OmeTifWriter(path="file3.ome.tif")
+        writer.save(reader.load())
+
     """
 
     def __init__(self, file_path):
-        # nothing yet!
-        self.filePath = file_path
-        self.tif = tifffile.TiffWriter(self.filePath)
+        self.file_path = file_path
         self.omeMetadata = omexml.OMEXML()
 
     def __enter__(self):
@@ -21,14 +36,32 @@ class OmeTifWriter:
         self.close()
 
     def close(self):
-        self.tif.close()
+        pass
 
-    # Assumes data is TZCYX or ZCYX or ZYX
-    def save(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
+    def save(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None,
+             overwrite_file=False):
+        """Save an image with the proper OME xml metadata.
 
-        self._makeMeta(data, channel_names=channel_names, image_name=image_name,
-                       pixels_physical_size=pixels_physical_size, channel_colors=channel_colors)
+        :param data: An array of dimensions TZCYX, ZCYX, or CYX to be written out to a file.
+        :param channel_names: The names for each channel to be put into the OME metadata
+        :param image_name: The name of the image to be put into the OME metadata
+        :param pixels_physical_size: The physical size of each pixel in the image
+        :param channel_colors: The channel colors to be put into the OME metadata
+        :param overwrite_file: If the file exists and this arg is True, the file will be overwritten
+        """
+
+        if overwrite_file and os.path.isfile(self.file_path):
+            os.remove(self.file_path)
+        elif os.path.isfile(self.file_path):
+            raise IOError("File exists but user has chosen not to overwrite it.")
+
+        tif = tifffile.TiffWriter(self.file_path)
+
         shape = data.shape
+        assert (len(shape) == 5 or len(shape) == 4 or len(shape) == 3)
+
+        self._make_meta(data, channel_names=channel_names, image_name=image_name,
+                        pixels_physical_size=pixels_physical_size, channel_colors=channel_colors)
         xml = self.omeMetadata.to_xml()
 
         # check data shape for TZCYX or ZCYX or ZYX
@@ -36,25 +69,36 @@ class OmeTifWriter:
             for i in range(self.size_t()):
                 for j in range(self.size_z()):
                     for k in range(self.size_c()):
-                        self.tif.save(data[i, j, k, :, :], compress=9, description=xml)
+                        tif.save(data[i, j, k, :, :], compress=9, description=xml)
         elif len(shape) == 4:
             for i in range(self.size_z()):
                 for j in range(self.size_c()):
-                    self.tif.save(data[i, j, :, :], compress=9, description=xml)
+                    tif.save(data[i, j, :, :], compress=9, description=xml)
         elif len(shape) == 3:
             for i in range(self.size_z()):
-                self.tif.save(data[i, :, :], compress=9, description=xml)
-        else:
-            print("Data expected to have shape length 3, 4, or 5 but does not.")
+                tif.save(data[i, :, :], compress=9, description=xml)
 
-    def save_image(self, data, z=0, c=0, t=0):
-        # assume this is one data slice of x by y
+        tif.close()
+
+    def save_slice(self, data, z=0, c=0, t=0):
+        """ this doesn't do the necessary functionality at this point
+
+        TODO:
+            * make this insert a YX slice in between two other slices inside a full image
+            * data should be a 5 dim array
+
+        :param data:
+        :param z:
+        :param c:
+        :param t:
+        :return:
+        """
         assert len(data.shape) == 2
         assert data.shape[0] == self.size_y()
         assert data.shape[1] == self.size_x()
-        # index = c + (self.size_c() * z) + (self.size_c() * self.size_z() * t)
-        # tifffile interface only lets me write the next consecutive piece of data.
-        self.tif.save(data, compress=9)
+        tif = tifffile.TiffWriter(self.file_path)
+        tif.save(data, compress=9)
+        tif.close()
 
     def set_metadata(self, ome_metadata):
         self.omeMetadata = ome_metadata
@@ -75,7 +119,15 @@ class OmeTifWriter:
         return self.omeMetadata.image().Pixels.SizeY
 
     # set up some sensible defaults from provided info
-    def _makeMeta(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
+    def _make_meta(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
+        """Creates the necessary metadata for an OME tiff image
+
+        :param data: An array of dimensions TZCYX, ZCYX, or CYX to be written out to a file.
+        :param channel_names: The names for each channel to be put into the OME metadata
+        :param image_name: The name of the image to be put into the OME metadata
+        :param pixels_physical_size: The physical size of each pixel in the image
+        :param channel_colors: The channel colors to be put into the OME metadata
+        """
         ox = self.omeMetadata
 
         ox.image().set_Name(image_name)
@@ -133,6 +185,6 @@ class OmeTifWriter:
             pixels.Channel(i).set_SamplesPerPixel(1)
 
         # many assumptions in here: one file per image, one plane per tiffdata, etc.
-        pixels.populate_TiffData(os.path.basename(self.filePath))
+        pixels.populate_TiffData(os.path.basename(self.file_path))
 
         return ox

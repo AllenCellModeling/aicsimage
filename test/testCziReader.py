@@ -4,27 +4,34 @@
 #          Zach Crabtree    zacharyc@alleninstitute.org
 
 from aicsimagetools import cziReader
-import numpy as np
+import aicsimagetools
 import os
 import unittest
+from transformation import *
 
 
 class CziReaderTestGroup(unittest.TestCase):
 
     @classmethod
-    def setUp(cls):
+    def setUpClass(cls):
+        aicsimagetools.init()
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        reader = cziReader.CziReader(os.path.join(dir_path, 'img', 'T=5_Z=3_CH=2_CZT_All_CH_per_Slice.czi'))
-        # with cziReader.CziReader(os.path.join(dir_path, 'img', 'T=5_Z=3_CH=2_CZT_All_CH_per_Slice.czi')) as reader:
-        cls.load = reader.load()
-        cls.load_image = np.ndarray([reader.size_t(), reader.size_z(), reader.size_c(),
-                                      reader.size_y(), reader.size_x()], dtype=reader.dtype())
-        for i in range(reader.size_t()):
-            for j in range(reader.size_z()):
-                for k in range(reader.size_c()):
-                    cls.load_image[i, j, k, :, :] = reader.load_slice(t=i, z=j, c=k)
+        with cziReader.CziReader(os.path.join(dir_path, 'img', 'T=5_Z=3_CH=2_CZT_All_CH_per_Slice.czi')) as reader:
+            z_index = m.floor(reader.size_z() / 2)
+            c_index = m.floor(reader.size_c() / 2)
+            t_index = m.floor(reader.size_t() / 2)
+            cls.slice = reader.load_slice(z=z_index, c=c_index, t=t_index)
+            cls.load = reader.load()
+            cls.load_image = np.ndarray([reader.size_t(), reader.size_z(), reader.size_c(), reader.size_y(),
+                                         reader.size_x()])
+            for i in range(reader.size_t()):
+                for j in range(reader.size_z()):
+                    for k in range(reader.size_c()):
+                        cls.load_image[i, j, k, :, :] = reader.load_slice(t=i, z=j, c=k)
 
-        reader.close()
+    @classmethod
+    def tearDownClass(cls):
+        aicsimagetools.close()
 
     """
     Test to check the dimensionality of the array loaded by CziReader
@@ -39,6 +46,13 @@ class CziReaderTestGroup(unittest.TestCase):
     """
     def test_loadImageDimensions(self):
         self.assertEqual(len(self.load_image.shape), 5)
+
+    """
+    Test to check the dimensionality of the slice loaded by CziReader
+    This should be 2 dimensional, YX
+    """
+    def test_loadSliceDimension(self):
+        self.assertEqual(len(self.slice.shape), 2)
 
     """
     Test to check if load() and load_image() (for all slices) load the same image

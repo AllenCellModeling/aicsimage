@@ -22,7 +22,7 @@ def transform(image):
     if image.shape[1] < rgb_channels:
         # if there is only one channel available, the channels are repeated three times (to c = 3) R -> RRR
         # if there are two channels available, the channels are repeated twice (to c = 4) RG -> RRGG
-        #   we eliminate the first R to have the RGG channels read in as RGB channels (red and cyan colors)
+        # we eliminate the first R to have the RGG channels read in as RGB channels (red and cyan colors)
         image = np.repeat(image, repeats=rgb_channels + 1 - image.shape[1], axis=1)
         if image.shape[1] == 4:
             image = np.delete(image, 0, 1)
@@ -41,4 +41,4 @@ def transform(image):
         peak_stretch = int(255.0 / (channel_max_value - channel_min_value))
         transformed_image[:, :, x] *= peak_stretch
 
-    return transformed_image
+    return np.transpose(transformed_image, (2, 0, 1))

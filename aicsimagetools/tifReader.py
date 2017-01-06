@@ -2,8 +2,16 @@ import tifffile
 
 
 class TifReader:
-    """
-    info
+    """This class is used to open and process the contents of a tif file.
+
+    Examples:
+        reader = tifReader.TifReader(path="file.tif")
+        file_image = reader.load()
+
+        with tifReader.TifReader(path="file2.tif") as reader:
+            file2_image = reader.load()
+
+    The load function will get a 3D ZYX array from a tif file.
     """
 
     def __init__(self, file_path):
@@ -21,12 +29,20 @@ class TifReader:
         self.tif.close()
 
     def load(self):
+        """This will get an entire z stack from a tif file.
+
+        :return: A 3D ZYX slice from the tif file.
+        """
         return self.tif.asarray()
 
     def load_slice(self, z=0, c=0, t=0):
-        # assume c-z-t precedence
-        # assume stacks are in Z, c and t are always 0
-        # index = c + (self.size_c() * z) + (self.size_c() * self.size_z() * t)
+        """This will get a single slice out of the z stack of a tif file.
+
+        :param z: The z index within the tiff stack
+        :param c: An arbitrary c index that does nothing
+        :param t: An arbitrary t index that does nothing
+        :return: A 2D YX slice from the tiff file.
+        """
         index = z
         data = self.tif.asarray(key=index)
         return data
