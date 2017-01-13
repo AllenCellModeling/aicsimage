@@ -18,8 +18,12 @@ class PngWriter:
             writer2.save(image2)
     """
 
-    def __init__(self, file_path):
-        self.file_path = file_path
+    def __init__(self, file_path, overwrite_file=False):
+        self.file_path = file_path.encode('utf-8')
+        if overwrite_file and os.path.isfile(self.file_path):
+            os.remove(self.file_path)
+        elif os.path.isfile(self.file_path):
+            raise IOError("File exists but user has chosen not to overwrite it.")
 
     def __enter__(self):
         return self
@@ -30,17 +34,11 @@ class PngWriter:
     def close(self):
         pass
 
-    def save(self, data, overwrite_file=False):
+    def save(self, data):
         """Takes in an array of CYX pixel values and writes them to a png
 
         :param data: a CYX or YX array with C being the rgb channels for each pixel value
-        :param overwrite_file: If the file exists and this arg is True, the file will be overwritten
         """
-
-        if overwrite_file and os.path.isfile(self.file_path):
-            os.remove(self.file_path)
-        elif os.path.isfile(self.file_path):
-            raise IOError("File exists but user has chosen not to overwrite it.")
 
         # check for rgb, rgba, or r
         if len(data.shape) == 3:
@@ -55,7 +53,7 @@ class PngWriter:
 
         imsave(self.file_path, data)
 
-    def save_slice(self, data, z=0, c=0, t=0, overwrite_file=False):
+    def save_slice(self, data, z=0, c=0, t=0):
         """Exactly the same functionality as save() but allows the interface to be the same as OmeTifWriter
 
         :param data: a CYX or YX array with C being the rgb channels for each pixel value
@@ -64,4 +62,4 @@ class PngWriter:
         :param t: an arbitrary t index that does nothing
         :param overwrite_file: If the file exists and this arg is True, the file will be overwritten
         """
-        self.save(data, overwrite_file=overwrite_file)
+        self.save(data)

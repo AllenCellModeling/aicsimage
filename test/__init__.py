@@ -40,7 +40,7 @@ class TotalTestGroup(unittest.TestCase):
         suite.addTest(loader.loadTestsFromModule(testPngReader))
         suite.addTest(loader.loadTestsFromModule(testPngWriter))
         suite.addTest(loader.loadTestsFromModule(testTifReader))
-        exitcode = unittest.TextTestRunner().run(suite).wasSuccessful()
+        exitcode = unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
         print('\n')
         self.assertTrue(exitcode)
 
