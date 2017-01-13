@@ -51,7 +51,7 @@ class PngWriter:
         elif len(data.shape) != 2:
             raise ValueError("Data was not of dimensions CYX or YX")
 
-        imsave(self.file_path, data)
+        imsave(self.file_path, data, format="png")
 
     def save_slice(self, data, z=0, c=0, t=0):
         """Exactly the same functionality as save() but allows the interface to be the same as OmeTifWriter

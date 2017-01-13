@@ -1,10 +1,10 @@
 import unittest
-import testCziReader
-import testOmeTifReader
-import testOmeTifWriter
-import testPngReader
-import testPngWriter
-import testTifReader
+from test import testCziReader
+from test import testOmeTifReader
+from test import testOmeTifWriter
+from test import testPngReader
+from test import testPngWriter
+from test import testTifReader
 import aicsimagetools
 
 """
