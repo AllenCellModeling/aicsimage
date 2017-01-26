@@ -62,19 +62,10 @@ class OmeTifWriter:
         xml = self.omeMetadata.to_xml()
 
         # check data shape for TZCYX or ZCYX or ZYX
-        if len(shape) == 5:
-            for i in range(self.size_t()):
-                for j in range(self.size_z()):
-                    for k in range(self.size_c()):
-                        tif.save(data[i, j, k, :, :], compress=9, description=xml)
-        elif len(shape) == 4:
-            for i in range(self.size_z()):
-                print('.', end="")
-                for j in range(self.size_c()):
-                    tif.save(data[i, j, :, :], compress=9, description=xml)
-        elif len(shape) == 3:
-            for i in range(self.size_z()):
-                tif.save(data[i, :, :], compress=9, description=xml)
+        dims = len(shape)
+        if dims == 5 or dims == 4 or dims == 3:
+            # minisblack instructs TiffWriter to not try to infer rgb color within the data array
+            tif.save(data, compress=9, description=xml, photometric='minisblack')
 
         tif.close()
 
