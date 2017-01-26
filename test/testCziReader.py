@@ -7,7 +7,7 @@ from aicsimagetools import cziReader
 import aicsimagetools
 import os
 import unittest
-from transformation import *
+from test.transformation import *
 
 
 class CziReaderTestGroup(unittest.TestCase):

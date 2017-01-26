@@ -25,9 +25,13 @@ class OmeTifWriter:
 
     """
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, overwrite_file=False):
         self.file_path = file_path
         self.omeMetadata = omexml.OMEXML()
+        if overwrite_file and os.path.isfile(self.file_path):
+            os.remove(self.file_path)
+        elif os.path.isfile(self.file_path):
+            raise IOError("File exists but user has chosen not to overwrite it.")
 
     def __enter__(self):
         return self
@@ -38,8 +42,7 @@ class OmeTifWriter:
     def close(self):
         pass
 
-    def save(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None,
-             overwrite_file=False):
+    def save(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
         """Save an image with the proper OME xml metadata.
 
         :param data: An array of dimensions TZCYX, ZCYX, or CYX to be written out to a file.
@@ -50,10 +53,7 @@ class OmeTifWriter:
         :param overwrite_file: If the file exists and this arg is True, the file will be overwritten
         """
 
-        if overwrite_file and os.path.isfile(self.file_path):
-            os.remove(self.file_path)
-        elif os.path.isfile(self.file_path):
-            raise IOError("File exists but user has chosen not to overwrite it.")
+
 
         tif = tifffile.TiffWriter(self.file_path)
 
