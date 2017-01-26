@@ -1,3 +1,4 @@
+from __future__ import print_function
 from aicsimagetools import omexml
 import os
 import tifffile
