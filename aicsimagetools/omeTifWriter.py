@@ -50,11 +50,7 @@ class OmeTifWriter:
         :param image_name: The name of the image to be put into the OME metadata
         :param pixels_physical_size: The physical size of each pixel in the image
         :param channel_colors: The channel colors to be put into the OME metadata
-        :param overwrite_file: If the file exists and this arg is True, the file will be overwritten
         """
-
-
-
         tif = tifffile.TiffWriter(self.file_path)
 
         shape = data.shape
@@ -72,6 +68,7 @@ class OmeTifWriter:
                         tif.save(data[i, j, k, :, :], compress=9, description=xml)
         elif len(shape) == 4:
             for i in range(self.size_z()):
+                print('.', end="")
                 for j in range(self.size_c()):
                     tif.save(data[i, j, :, :], compress=9, description=xml)
         elif len(shape) == 3:
