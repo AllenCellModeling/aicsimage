@@ -67,6 +67,8 @@ class CziReader:
         image = self.czi.asarray()
 
         # TODO: Proper error checking if indices are incorrect
+        axes = self.czi.axes
+        assert(len(image.shape) == len(axes))
         if self.hasTimeDimension:
             transposed_image = image[0, :, :, :, :, :, 0]
             # returns array with dimensions 'TZCYX'
@@ -74,11 +76,11 @@ class CziReader:
         elif len(image.shape) == 5:
             transposed_image = image[0, :, :, :, 0]
             # returns array with dimension 'CYX'
-            return [[transposed_image.transpose(0, 2, 1)]]
+            return np.transpose(transposed_image, (0, 2, 1))
         else:
             transposed_image = image[0, :, :, :, :, 0]
             # returns array with dimensions 'ZCYX'
-            return [np.transpose(transposed_image, (1, 0, 2, 3))]
+            return np.transpose(transposed_image, (1, 0, 2, 3))
 
     def load_slice(self, z=0, c=0, t=0):
         """Retrieves the 2D YX slice from the image
