@@ -165,13 +165,14 @@ class OmeTifWriter:
                 pixels.Channel(i).set_ID("Channel:0:"+str(i))
                 pixels.Channel(i).set_Name("C:"+str(i))
         else:
-            for i, name in enumerate(channel_names):
+            for i in range(pixels.SizeC):
+                name = channel_names[i]
                 pixels.Channel(i).set_ID("Channel:0:"+str(i))
                 pixels.Channel(i).set_Name(name)
 
         if channel_colors is not None:
-            assert len(channel_colors) == pixels.get_SizeC()
-            for i in range(len(channel_colors)):
+            assert len(channel_colors) >= pixels.get_SizeC()
+            for i in range(pixels.SizeC):
                 pixels.Channel(i).set_Color(channel_colors[i])
 
         # assume 1 sample per channel
