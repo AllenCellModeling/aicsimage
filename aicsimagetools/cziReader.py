@@ -48,7 +48,7 @@ class CziReader:
         """
         self.filePath = file_path
         self.czi = czifile.CziFile(self.filePath)
-        self.hasTimeDimension = len(self.czi.shape) == 7
+        self.hasTimeDimension = 'T' in self.czi.axes
 
     def __enter__(self):
         return self
