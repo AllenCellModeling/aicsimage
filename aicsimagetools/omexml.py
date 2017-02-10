@@ -309,15 +309,13 @@ class OMEXML(object):
     See the `OME-XML schema documentation <http://git.openmicroscopy.org/src/develop/components/specification/Documentation/Generated/OME-2011-06/ome.html>`_.
 
     '''
-    def __init__(self, xml=None):
-        if xml is None:
+    def __init__(self, xml=None, rootnode=None):
+        if xml is None and rootnode is None:
             xml = default_xml
-        # if isinstance(xml, str):
-        #     try:
-        #         xml = xml.encode("utf-8")
-        #     except UnicodeDecodeError:
-        #         xml = xml.encode('ISO-8859-1')
-        self.dom = ElementTree.fromstring(xml, ElementTree.XMLParser(encoding='ISO-8859-1'))
+        if rootnode is None:
+            self.dom = ElementTree.fromstring(xml, ElementTree.XMLParser(encoding='ISO-8859-1'))
+        else:
+            self.dom = rootnode
 
         # determine OME namespaces
         self.ns = get_namespaces(self.dom)
@@ -327,7 +325,7 @@ class OMEXML(object):
 
         # generate a uuid if there is none
         # < OME UUID = "urn:uuid:ef8af211-b6c1-44d4-97de-daca46f16346"
-        omeElem = self.dom#.findall(qn(self.ns['ome'], "OME"))[0]
+        omeElem = self.dom
         if not omeElem.get('UUID'):
             omeElem.set('UUID', 'urn:uuid:'+str(uuid.uuid4()))
         self.uuidStr = omeElem.get('UUID')
