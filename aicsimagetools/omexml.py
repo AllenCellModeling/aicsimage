@@ -313,7 +313,11 @@ class OMEXML(object):
         if xml is None and rootnode is None:
             xml = default_xml
         if rootnode is None:
-            self.dom = ElementTree.fromstring(xml, ElementTree.XMLParser(encoding='ISO-8859-1'))
+            if sys.platform.startswith('win'):
+                enc = 'ISO-8859-1'
+            else:
+                enc = 'UTF-8'
+            self.dom = ElementTree.fromstring(xml, ElementTree.XMLParser(encoding=enc))
         else:
             self.dom = rootnode
 
