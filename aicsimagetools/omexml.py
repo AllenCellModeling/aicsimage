@@ -755,7 +755,7 @@ class OMEXML(object):
             return len(self.node.findall(qn(self.ns['ome'], "Channel")))
 
         def set_channel_count(self, value):
-            assert value > 0
+            assert value >= 0
             channel_count = self.channel_count
             if channel_count > value:
                 channels = self.node.findall(qn(self.ns['ome'], "Channel"))
@@ -814,6 +814,18 @@ class OMEXML(object):
             '''Get the indexed TiffData from the Pixels element'''
             tiffData = self.node.findall(qn(self.ns['ome'], "TiffData"))[index]
             return OMEXML.TiffData(tiffData)
+
+        def get_planes_of_channel(self, index):
+            planes = self.node.findall(qn(self.ns['ome'], "Plane[@TheC='"+str(index)+"']"))
+            return planes
+
+        # does not fix up any indices
+        def remove_channel(self, index):
+            channel = self.node.findall(qn(self.ns['ome'], "Channel"))[index]
+            self.node.remove(channel)
+            planes = self.get_planes_of_channel(index)
+            for p in planes:
+                self.node.remove(p)
 
         def append_channel(self, index, name):
             # add channel
