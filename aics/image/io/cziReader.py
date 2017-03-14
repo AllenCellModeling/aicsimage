@@ -49,7 +49,7 @@ class CziReader:
         """
         self.filePath = file_path
         self.czi = czifile.CziFile(self.filePath)
-        self.hasTimeDimension = len(self.czi.shape) == 7
+        self.hasTimeDimension = 'T' in self.czi.axes
 
     def __enter__(self):
         return self
@@ -67,14 +67,34 @@ class CziReader:
         """
         image = self.czi.asarray()
 
-        if self.hasTimeDimension:
-            transposed_image = image[0, :, :, :, :, :, 0]
-            # returns array with dimensions 'TZCYX'
-            return np.transpose(transposed_image, (0, 2, 1, 3, 4))
-        else:
-            transposed_image = image[0, :, :, :, :, 0]
-            # returns array with dimensions 'ZCYX'
-            return np.expand_dims(np.transpose(transposed_image, (1, 0, 2, 3)), 0)
+        # TODO: Proper error checking if indices are incorrect
+        axes = self.czi.axes
+        assert(len(image.shape) == len(axes))
+
+        knowndims = 'TZCYX'
+        axisordering = []
+        # We want to strip all dimensions away that are not in knowndims
+        # and then transpose into the ordering contained in knowndims.
+        # Build up a slice tuple like [0,0,:,:,:,0]
+        # Start by taking the first element from each axis
+        slicing = [0]*len(axes)
+        # now find the index of axes we care about and take the whole data set of that axis using slice(None)
+        for i in range(len(knowndims)):
+            pos = axes.find(knowndims[i])
+            if pos != -1:
+                axisordering.append(pos)
+                slicing[pos] = slice(None)
+
+        # axisordering contains indices of dimensions in the original array.
+        # convert to dimensions in the new sliced array.
+        # something like [3 2 4 5] turns into [1 0 2 3]
+        axisordering = sorted(range(len(axisordering)), key=axisordering.__getitem__)
+
+        transposed_image = image[tuple(slicing)]
+        # don't assume all known dimensions are present: time might be missing?
+        # assert(len(transposed_image.shape) == len(knowndims))
+        assert(len(transposed_image.shape) == len(axisordering))
+        return np.transpose(transposed_image, tuple(axisordering))
 
     def load_slice(self, z=0, c=0, t=0):
         """Retrieves the 2D YX slice from the image
