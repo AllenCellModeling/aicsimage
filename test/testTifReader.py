@@ -3,11 +3,13 @@
 # authors: Dan Toloudis     danielt@alleninstitute.org
 #          Zach Crabtree    zacharyc@alleninstitute.org
 
-from aicsimagetools import tifReader
-import os
-import numpy as np
-import unittest
 import math as m
+import os
+import unittest
+
+import numpy as np
+
+from aicsimageio import tifReader
 
 
 class TifReaderTestGroup(unittest.TestCase):

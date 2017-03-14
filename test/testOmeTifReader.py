@@ -3,18 +3,20 @@
 # authors: Dan Toloudis     danielt@alleninstitute.org
 #          Zach Crabtree    zacharyc@alleninstitute.org
 
-from aicsimagetools import omeTifReader
-import aicsimagetools
 import os
-import numpy as np
 import unittest
+
+import numpy as np
+
+import aicsimageio
+from aicsimageio import omeTifReader
 
 
 class OmeTifReaderTestGroup(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        aicsimagetools.init()
+        aicsimageio.init()
         cls.dir_path = os.path.dirname(os.path.realpath(__file__))
         with omeTifReader.OmeTifReader(os.path.join(cls.dir_path, 'img', 'img40_1.ome.tif')) as reader:
             cls.load = reader.load()
@@ -28,7 +30,7 @@ class OmeTifReaderTestGroup(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        aicsimagetools.close()
+        aicsimageio.close()
 
     def test_omeTifLoadShapeCorrectDimensions(self):
         self.assertEqual(len(self.load.shape), 5)

@@ -1,11 +1,12 @@
 import unittest
+
+import aicsimageio
 from test import testCziReader
 from test import testOmeTifReader
 from test import testOmeTifWriter
 from test import testPngReader
 from test import testPngWriter
 from test import testTifReader
-import aicsimagetools
 
 """
 To test all modules with the command line, use:
@@ -29,7 +30,7 @@ class TotalTestGroup(unittest.TestCase):
 
     def setUp(self):
         unittest.TestCase.__init__(self)
-        aicsimagetools.init()
+        aicsimageio.init()
 
     def runTest(self):
         loader = unittest.TestLoader()
@@ -45,4 +46,4 @@ class TotalTestGroup(unittest.TestCase):
         self.assertTrue(exitcode)
 
     def tearDown(self):
-        aicsimagetools.close()
+        aicsimageio.close()

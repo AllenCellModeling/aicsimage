@@ -1,6 +1,10 @@
-from aicsimagetools import omexml
+from __future__ import print_function
+
 import os
+
 import tifffile
+
+from io import omexml
 
 
 class OmeTifWriter:
@@ -42,7 +46,7 @@ class OmeTifWriter:
     def close(self):
         pass
 
-    def save(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
+    def save(self, data, omexml=None, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
         """Save an image with the proper OME xml metadata.
 
         :param data: An array of dimensions TZCYX, ZCYX, or CYX to be written out to a file.
@@ -50,33 +54,26 @@ class OmeTifWriter:
         :param image_name: The name of the image to be put into the OME metadata
         :param pixels_physical_size: The physical size of each pixel in the image
         :param channel_colors: The channel colors to be put into the OME metadata
-        :param overwrite_file: If the file exists and this arg is True, the file will be overwritten
         """
-
-
-
         tif = tifffile.TiffWriter(self.file_path)
 
         shape = data.shape
         assert (len(shape) == 5 or len(shape) == 4 or len(shape) == 3)
 
-        self._make_meta(data, channel_names=channel_names, image_name=image_name,
-                        pixels_physical_size=pixels_physical_size, channel_colors=channel_colors)
+        if omexml is None:
+            self._make_meta(data, channel_names=channel_names, image_name=image_name,
+                            pixels_physical_size=pixels_physical_size, channel_colors=channel_colors)
+        else:
+            pixels = omexml.image().Pixels
+            pixels.populate_TiffData(os.path.basename(self.file_path))
+            self.omeMetadata = omexml
         xml = self.omeMetadata.to_xml()
 
         # check data shape for TZCYX or ZCYX or ZYX
-        if len(shape) == 5:
-            for i in range(self.size_t()):
-                for j in range(self.size_z()):
-                    for k in range(self.size_c()):
-                        tif.save(data[i, j, k, :, :], compress=9, description=xml)
-        elif len(shape) == 4:
-            for i in range(self.size_z()):
-                for j in range(self.size_c()):
-                    tif.save(data[i, j, :, :], compress=9, description=xml)
-        elif len(shape) == 3:
-            for i in range(self.size_z()):
-                tif.save(data[i, :, :], compress=9, description=xml)
+        dims = len(shape)
+        if dims == 5 or dims == 4 or dims == 3:
+            # minisblack instructs TiffWriter to not try to infer rgb color within the data array
+            tif.save(data, compress=9, description=xml, photometric='minisblack')
 
         tif.close()
 
@@ -171,13 +168,14 @@ class OmeTifWriter:
                 pixels.Channel(i).set_ID("Channel:0:"+str(i))
                 pixels.Channel(i).set_Name("C:"+str(i))
         else:
-            for i, name in enumerate(channel_names):
+            for i in range(pixels.SizeC):
+                name = channel_names[i]
                 pixels.Channel(i).set_ID("Channel:0:"+str(i))
-                pixels.Channel(i).set_Name(name+":"+str(i))
+                pixels.Channel(i).set_Name(name)
 
         if channel_colors is not None:
-            assert len(channel_colors) == pixels.get_SizeC()
-            for i in range(len(channel_colors)):
+            assert len(channel_colors) >= pixels.get_SizeC()
+            for i in range(pixels.SizeC):
                 pixels.Channel(i).set_Color(channel_colors[i])
 
         # assume 1 sample per channel
