@@ -43,7 +43,7 @@ class OmeTifWriter:
     def close(self):
         pass
 
-    def save(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
+    def save(self, data, omexml=None, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
         """Save an image with the proper OME xml metadata.
 
         :param data: An array of dimensions TZCYX, ZCYX, or CYX to be written out to a file.
@@ -57,8 +57,13 @@ class OmeTifWriter:
         shape = data.shape
         assert (len(shape) == 5 or len(shape) == 4 or len(shape) == 3)
 
-        self._make_meta(data, channel_names=channel_names, image_name=image_name,
-                        pixels_physical_size=pixels_physical_size, channel_colors=channel_colors)
+        if omexml is None:
+            self._make_meta(data, channel_names=channel_names, image_name=image_name,
+                            pixels_physical_size=pixels_physical_size, channel_colors=channel_colors)
+        else:
+            pixels = omexml.image().Pixels
+            pixels.populate_TiffData(os.path.basename(self.file_path))
+            self.omeMetadata = omexml
         xml = self.omeMetadata.to_xml()
 
         # check data shape for TZCYX or ZCYX or ZYX
@@ -160,13 +165,14 @@ class OmeTifWriter:
                 pixels.Channel(i).set_ID("Channel:0:"+str(i))
                 pixels.Channel(i).set_Name("C:"+str(i))
         else:
-            for i, name in enumerate(channel_names):
+            for i in range(pixels.SizeC):
+                name = channel_names[i]
                 pixels.Channel(i).set_ID("Channel:0:"+str(i))
                 pixels.Channel(i).set_Name(name)
 
         if channel_colors is not None:
-            assert len(channel_colors) == pixels.get_SizeC()
-            for i in range(len(channel_colors)):
+            assert len(channel_colors) >= pixels.get_SizeC()
+            for i in range(pixels.SizeC):
                 pixels.Channel(i).set_Color(channel_colors[i])
 
         # assume 1 sample per channel

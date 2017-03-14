@@ -551,7 +551,7 @@ class SubBlockSegment(object):
         self._fh.seek(self.data_offset)
         if raw:
             return self._fh.read(self.data_size)
-        elif self.compression:
+        elif self.compression and self.compression < RAW_COMPRESSION_VALUE:
             if self.compression not in DECOMPRESS:
                 raise ValueError("compression unknown or not supported")
             # TODO: test this
@@ -1084,7 +1084,7 @@ def match_filename(filename):
     match = re.search(r'(.*?)(?:\((\d+)\))?\.czi$',
                       filename, re.IGNORECASE).groups()
     name = match[0] + '.czi'
-    part = int(match[1]) if len(match) > 1 else 0
+    part = int(match[1]) if len(match) > 1 and match[1] is not None else 0
     return name, part
 
 
@@ -1175,6 +1175,7 @@ COMPRESSION = {
     4: "JpegXrFile",
     # 100 and up: camera/system specific specific RAW data
 }
+RAW_COMPRESSION_VALUE = 100
 
 # map DirectoryEntryDV.compression to decompression function
 DECOMPRESS = {
