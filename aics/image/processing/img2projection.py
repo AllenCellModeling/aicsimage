@@ -1,6 +1,6 @@
 # Author: Evan Wiederspan
 
-from aicsimagetools import *
+#from aicsimagetools import *
 import numpy as np
 import matplotlib.pyplot as pplot
 
@@ -17,17 +17,6 @@ def matproj(im, dim, method='max', slice_index=0):
     else:
         raise ValueError
     return im
-
-
-def arrange(projz, projy, projx, sx, sy, sz):
-    #                            439, 167, 5
-    # assume all images are shape [x,y,3]
-    # do stuff and return big image
-
-    im_all = np.zeros((3, sy+sz, sx+sz))
-
-
-    return im_all
 
 
 def im2projection(im1, proj_all=False, proj_method='max', colors=lambda i: [1, 1, 1], global_adjust=False, local_adjust=False):
@@ -109,7 +98,7 @@ def im2projection(im1, proj_all=False, proj_method='max', colors=lambda i: [1, 1
 
         # local contrast adjustment, minus the min, divide the max
         if local_adjust:
-           # img_piece -= np.min(img_piece)
+            img_piece -= np.min(img_piece)
             img_piece /= np.max(img_piece)
         img_final += img_piece
 
@@ -124,50 +113,9 @@ def im2projection(im1, proj_all=False, proj_method='max', colors=lambda i: [1, 1
     return img_final
 
 
-def test():
-    def shouldThrow(f, *args, **kargs):
-        try:
-            f(*args, **kargs)
-        except ValueError:
-            return True
-        return False
-    # check that 4d array input works
-    assert im2projection(np.empty((1, 3, 4, 5))).shape == (3, 4, 5)
-    # any number of channels
-    assert im2projection(np.empty((10, 3, 4, 5))).shape == (3, 4, 5)
-    # but only a 4d
-    assert shouldThrow(im2projection, np.empty((1, 1, 3, 4, 5)))
-    # check that 3d array list works
-    assert im2projection([np.empty((3, 4, 5)), np.empty((3, 4, 5))]).shape == (3, 4, 5)
-    # check that 2d array list works
-    assert im2projection([np.empty((4, 5)), np.empty((4, 5))]).shape == (3, 4, 5)
-    # but not a list of 1d arrays
-    assert shouldThrow(im2projection, [np.array([1, 2, 3]), np.array([1, 2, 3])])
-    # has to be a numpy array
-    assert shouldThrow(im2projection, [[[[1]]]])
-
-    # checking projection methods
-    test_cube = np.empty((1, 5, 5, 5))
-    assert im2projection(test_cube, proj_method='max').shape == (3, 5, 5)
-    assert shouldThrow(im2projection, test_cube, proj_method='not-real')
-
-    # color methods
-    assert im2projection(test_cube, colors='jet') is not None
-    # only valid methods
-    assert shouldThrow(im2projection, test_cube, colors='fake_func')
-    # colors passed in as 0-255 should be scaled down
-    assert (im2projection(np.ones((1, 5, 5, 5)), colors=[[255, 255, 255]])[0] == 1).all()
-    # colors function should cancel out red channel
-    assert (im2projection(test_cube, colors=lambda i: [0, 1, 1])[0] == 0).all()
-    # color adjust should create some value at 255 in each channel
-    # I do > 254 because it probably wont give a value that's exactly 255 due to floating point multiplication
-    assert (im2projection(np.random.random((1, 5, 5, 5)), global_adjust=True)[0] > 254).any()
-
-
-def run(in_files):
-    img = [omeTifReader.OmeTifReader(f).load()[0] for f in in_files]
-    out = im2projection(img, proj_all=True, proj_method='max', colors='jet', local_adjust=True)
-    with pngWriter.PngWriter('5-channel-global-contrast.png', overwrite_file=True) as w:
-        w.save(out)
-#test()
-run(['../20160708_I01_001_1.ome.tif_memb.tif', '../20160708_I01_001_1.ome.tif_nuc.tif', '../20160708_I01_001_1.ome.tif_dna.tif', '../20160708_I01_001_1.ome.tif_struct.tif', '../20160708_I01_001_1.ome.tif_cell.tif'])
+# def run(in_files):
+#     img = [omeTifReader.OmeTifReader(f).load()[0] for f in in_files]
+#     out = im2projection(img, proj_all=True, proj_method='max', colors='jet', local_adjust=True)
+#     with pngWriter.PngWriter('5-channel-global-contrast.png', overwrite_file=True) as w:
+#         w.save(out)
+# run(['../20160708_I01_001_1.ome.tif_memb.tif', '../20160708_I01_001_1.ome.tif_nuc.tif', '../20160708_I01_001_1.ome.tif_dna.tif', '../20160708_I01_001_1.ome.tif_struct.tif', '../20160708_I01_001_1.ome.tif_cell.tif'])
