@@ -3,10 +3,6 @@
 from aicsimagetools import *
 import numpy as np
 import matplotlib.pyplot as pplot
-import scipy
-import numbers
-
-# taken from cellbrowser-tools thumbnail2.py
 
 
 def matproj(im, dim, method='max', slice_index=0):
@@ -27,48 +23,19 @@ def arrange(projz, projy, projx, sx, sy, sz):
     #                            439, 167, 5
     # assume all images are shape [x,y,3]
     # do stuff and return big image
-    shZ = projz.shape
-    shX = projx.shape
-    shY = projy.shape
-    # assert (len(shZ) == len(shY) == len(shX) == 3)
 
     im_all = np.zeros((3, sy+sz, sx+sz))
-    print(im_all.shape)
-    # im_all = np.zeros(np.hstack((sx+sz, sy+sz, 3)))
-    im_all[:, :sy, :sz] = projx
-    im_all[:, :sy, sz:] = projz
-    im_all[:, sy:, sz:] = projy
+
 
     return im_all
 
 
-def make_rgb_proj(imzyx, axis, color, method='max', rescale_inten=True, slice_index=0):
-    imdbl = np.asarray(imzyx).astype('double')
-    # do projection
-    im_proj = matproj(imdbl, axis, method, slice_index=slice_index)
-    print(im_proj.shape)
-    # turn into RGB
-    # im_proj = np.expand_dims(im_proj, 2)
-    # im_proj = np.repeat(im_proj, 3, 2)
- 
-    # inject color.  careful of type mismatches.
-    im_proj[0, :, :] *= color[0]
-    im_proj[1, :, :] *= color[1]
-    im_proj[2, :, :] *= color[2]
-
-    # if rescale_inten:
-    #     maxval = np.max(im_proj.flatten())
-    #     im_proj = im_proj / maxval    
-
-    return im_proj
-
-
-def im2projection(im1, proj_all=False, proj_method='max', colors=lambda i: [1, 1, 1], color_adjust=False, contrast_type="none"):
+def im2projection(im1, proj_all=False, proj_method='max', colors=lambda i: [1, 1, 1], global_adjust=False, local_adjust=False):
     # im: either a 4d numpy array as CZYX, list of 3d ZYX np arrays, or list of 2d YX np arrays
     # method, str. 'mean', 'sum', 'max', or 'slice'. max by default
     # proj_all, true gives all 3 projections, false just gives xy. false by default
-    # contrast_type, 'none', 'local', or 'global'. none by default
-    # color_adjust, boolean. If true, will scale each color channel independently to ensure that the max value is 255. False by default
+    # global_adjust, boolean. If true, will scale image as a whole to ensure that the max value is 255. False by default
+    # local_adjust, boolean. If true, will scale each color channel independently to ensure that the max value is 255. False by default
 
     # TODO: turn this into one-liner with np.cat?
     # turn list of 2d or 3d arrays into single 4d array if needed
@@ -83,7 +50,7 @@ def im2projection(im1, proj_all=False, proj_method='max', colors=lambda i: [1, 1
             im = np.stack(im1)
         else:
             if im1.ndim != 4:
-                raise ValueError("invalid dimensions for im1")
+                raise ValueError("Invalid dimensions for im1")
             im = im1
 
     except (AttributeError, IndexError):
@@ -94,14 +61,14 @@ def im2projection(im1, proj_all=False, proj_method='max', colors=lambda i: [1, 1
     if isinstance(colors, str):
         # pass it in to matplotlib
         try:
-            colors = pplot.get_cmap(colors)(np.linspace(0,1,len(im)))
+            colors = pplot.get_cmap(colors)(np.linspace(0, 1, im.shape[0]))
         except ValueError:
             # thrown when string is not valid function
             raise ValueError("Invalid cmap string")
     elif callable(colors):
         # if its a function
         try:
-            colors = [colors(i) for i in range(len(im))]
+            colors = [colors(i) for i in range(im.shape[0])]
         except:
             raise ValueError("Invalid color function")
 
@@ -127,35 +94,32 @@ def im2projection(im1, proj_all=False, proj_method='max', colors=lambda i: [1, 1
                 # flipping to get them facing the right way
                 proj_x = np.fliplr(np.transpose(proj_x, (1, 0)))
                 proj_y = np.flipud(proj_y)
-                img_piece = arrange(proj_z, proj_y, proj_x, proj_z.shape[1], proj_z.shape[0], proj_y.shape[0])
+                #img_piece = arrange(proj_z, proj_y, proj_x, proj_z.shape[1], proj_z.shape[0], proj_y.shape[0])
+                sx, sy, sz = proj_z.shape[1], proj_z.shape[0], proj_y.shape[0]
+                img_piece[:, :sy, :sz] = proj_x
+                img_piece[:, :sy, sz:] = proj_z
+                img_piece[:, sy:, sz:] = proj_y
             else:
                 img_piece[:] = proj_z
         except ValueError:
             raise ValueError("Invalid projection function")
 
-        # TODO: can this be a one-liner?
         for c in range(3):
             img_piece[c] *= colors[i][c]
 
+        # local contrast adjustment, minus the min, divide the max
+        if local_adjust:
+           # img_piece -= np.min(img_piece)
+            img_piece /= np.max(img_piece)
         img_final += img_piece
 
-    # color range adjustment
-    if color_adjust:
+    # color range adjustment, ensure that max value is 255
+    if global_adjust:
         # scale color channels independently
         for c in range(3):
             max_val = np.max(img_final[c].flatten())
             if max_val > 0:
                 img_final[c] *= (255 / max_val)
-
-    # global contrast adjustment
-    if contrast_type == 'global':
-        img_final /= np.max(img_final.flatten())
-    elif contrast_type == 'local':
-        z_len, y_len = im.shape[1:3]
-        # TODO: research efficiency of this, it looks pretty slow
-        img_final[:, :y_len, :z_len] /= np.max(img_final[:, :y_len, :z_len].flatten())
-        img_final[:, :y_len, z_len:] /= np.max(img_final[:, :y_len, z_len:].flatten())
-        img_final[:, y_len:, z_len:] /= np.max(img_final[:, y_len:, z_len:].flatten())
 
     return img_final
 
@@ -197,13 +161,13 @@ def test():
     assert (im2projection(test_cube, colors=lambda i: [0, 1, 1])[0] == 0).all()
     # color adjust should create some value at 255 in each channel
     # I do > 254 because it probably wont give a value that's exactly 255 due to floating point multiplication
-    assert (im2projection(np.random.random((1, 5, 5, 5)), color_adjust=True)[0] > 254).any()
+    assert (im2projection(np.random.random((1, 5, 5, 5)), global_adjust=True)[0] > 254).any()
 
 
 def run(in_files):
     img = [omeTifReader.OmeTifReader(f).load()[0] for f in in_files]
-    out = im2projection(img, proj_all=True, proj_method='mean', colors='jet', color_adjust=True, contrast_type='global')
+    out = im2projection(img, proj_all=True, proj_method='max', colors='jet', local_adjust=True)
     with pngWriter.PngWriter('5-channel-global-contrast.png', overwrite_file=True) as w:
         w.save(out)
-test()
-# run(['../20160708_I01_001_1.ome.tif_memb.tif', '../20160708_I01_001_1.ome.tif_nuc.tif', '../20160708_I01_001_1.ome.tif_dna.tif', '../20160708_I01_001_1.ome.tif_struct.tif', '../20160708_I01_001_1.ome.tif_cell.tif'])
+#test()
+run(['../20160708_I01_001_1.ome.tif_memb.tif', '../20160708_I01_001_1.ome.tif_nuc.tif', '../20160708_I01_001_1.ome.tif_dna.tif', '../20160708_I01_001_1.ome.tif_struct.tif', '../20160708_I01_001_1.ome.tif_cell.tif'])
