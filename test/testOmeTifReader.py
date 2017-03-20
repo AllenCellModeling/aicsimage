@@ -30,7 +30,7 @@ class OmeTifReaderTestGroup(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        aicsimageio.close()
+        io.close()
 
     def test_omeTifLoadShapeCorrectDimensions(self):
         self.assertEqual(len(self.load.shape), 5)

@@ -9,7 +9,7 @@ import unittest
 
 import numpy as np
 
-from aicsimageio import tifReader
+from aics.image.io import tifReader
 
 
 class TifReaderTestGroup(unittest.TestCase):

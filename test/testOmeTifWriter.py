@@ -7,16 +7,16 @@ import unittest
 
 import numpy as np
 
-import aicsimageio
-from aicsimageio import omeTifReader
-from aicsimageio import omeTifWriter
+from aics.image import io
+from aics.image.io import omeTifReader
+from aics.image.io import omeTifWriter
 
 
 class OmeTifWriterTestGroup(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        aicsimageio.init()
+        io.init()
         cls.dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'img')
         cls.file = os.path.join(cls.dir_path, 'ometif_test_output.ome.tif')
         cls.image = np.random.rand(1, 40, 3, 128, 256)
@@ -27,7 +27,7 @@ class OmeTifWriterTestGroup(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         os.remove(cls.file)
-        aicsimageio.close()
+        io.close()
 
     """
     Test to check that OmeTifWriter saves arrays that are reflexive with OmeTifReader

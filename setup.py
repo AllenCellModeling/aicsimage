@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open('version.value', 'r') as f:
     version = f.readline().strip()
@@ -19,7 +19,7 @@ setup(name='aics.image.io',
       author='Dan Toloudis',
       author_email='danielt@alleninstitute.org',
       license='MIT',
-      packages=['aics', 'aics.image', 'aics.image.io'],
+      packages=find_packages(),
       scripts=[],
       install_requires=[
           'numpy',

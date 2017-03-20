@@ -1,10 +1,7 @@
 from __future__ import print_function
-
 import os
-
 import tifffile
-
-from io import omexml
+import omexml
 
 
 class OmeTifWriter:
