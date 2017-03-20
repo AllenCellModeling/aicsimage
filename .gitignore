@@ -1,0 +1,8 @@
+build/
+dist/
+.idea/
+aics/
+.image/
+.processing/
+*.egg-info/
+*.pyc
