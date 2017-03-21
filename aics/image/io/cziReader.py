@@ -1,6 +1,5 @@
-import numpy as np
-
 import czifile
+import numpy as np
 
 
 class CziReader:

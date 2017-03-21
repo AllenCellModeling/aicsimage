@@ -60,6 +60,5 @@ class PngWriter:
         :param z: an arbitrary z index that does nothing
         :param c: an arbitrary c index that does nothing
         :param t: an arbitrary t index that does nothing
-        :param overwrite_file: If the file exists and this arg is True, the file will be overwritten
         """
         self.save(data)

@@ -11,8 +11,7 @@
 
 from __future__ import absolute_import, unicode_literals
 
-import xml.etree.ElementTree
-from xml.etree import cElementTree as ElementTree
+import xml.etree.ElementTree as ElementTree
 
 import sys
 if sys.version_info.major == 3:
@@ -310,22 +309,27 @@ class OMEXML(object):
     See the `OME-XML schema documentation <http://git.openmicroscopy.org/src/develop/components/specification/Documentation/Generated/OME-2011-06/ome.html>`_.
 
     '''
-    def __init__(self, xml=None):
-        if xml is None:
+    def __init__(self, xml=None, rootnode=None):
+        if xml is None and rootnode is None:
             xml = default_xml
-        if isinstance(xml, str):
-            xml = xml.encode("utf-8")
-        self.dom = ElementTree.ElementTree(ElementTree.fromstring(xml))
+        if rootnode is None:
+            if sys.platform.startswith('win'):
+                enc = 'ISO-8859-1'
+            else:
+                enc = 'UTF-8'
+            self.dom = ElementTree.fromstring(xml, ElementTree.XMLParser(encoding=enc))
+        else:
+            self.dom = rootnode
 
         # determine OME namespaces
-        self.ns = get_namespaces(self.dom.getroot())
+        self.ns = get_namespaces(self.dom)
         if __name__ == '__main__':
             if self.ns['ome'] is None:
                 raise Exception("Error: String not in OME-XML format")
 
         # generate a uuid if there is none
         # < OME UUID = "urn:uuid:ef8af211-b6c1-44d4-97de-daca46f16346"
-        omeElem = self.dom.getroot()#.findall(qn(self.ns['ome'], "OME"))[0]
+        omeElem = self.dom
         if not omeElem.get('UUID'):
             omeElem.set('UUID', 'urn:uuid:'+str(uuid.uuid4()))
         self.uuidStr = omeElem.get('UUID')
@@ -358,7 +362,7 @@ class OMEXML(object):
 
     @property
     def root_node(self):
-        return self.dom.getroot()
+        return self.dom
 
     def get_image_count(self):
         '''The number of images (= series) specified by the XML'''
@@ -755,7 +759,7 @@ class OMEXML(object):
             return len(self.node.findall(qn(self.ns['ome'], "Channel")))
 
         def set_channel_count(self, value):
-            assert value > 0
+            assert value >= 0
             channel_count = self.channel_count
             if channel_count > value:
                 channels = self.node.findall(qn(self.ns['ome'], "Channel"))
@@ -815,6 +819,37 @@ class OMEXML(object):
             tiffData = self.node.findall(qn(self.ns['ome'], "TiffData"))[index]
             return OMEXML.TiffData(tiffData)
 
+        def get_planes_of_channel(self, index):
+            planes = self.node.findall(qn(self.ns['ome'], "Plane[@TheC='"+str(index)+"']"))
+            return planes
+
+        # does not fix up any indices
+        def remove_channel(self, index):
+            channel = self.node.findall(qn(self.ns['ome'], "Channel"))[index]
+            self.node.remove(channel)
+            planes = self.get_planes_of_channel(index)
+            for p in planes:
+                self.node.remove(p)
+
+        def append_channel(self, index, name):
+            # add channel
+            new_channel = OMEXML.Channel(
+                ElementTree.SubElement(self.node, qn(self.ns['ome'], "Channel")))
+            new_channel.SamplesPerPixel = 1
+            new_channel.ID = "Channel:0:"+str(index)
+            new_channel.Name = name
+            # add a bunch of planes with "TheC"=str(index)
+            for t in range(self.get_SizeT()):
+                for z in range(self.get_SizeZ()):
+                    new_plane = OMEXML.Plane(
+                        ElementTree.SubElement(self.node, qn(self.ns['ome'], "Plane")))
+                    new_plane.TheC = str(index)
+                    new_plane.TheZ = str(z)
+                    new_plane.TheT = str(t)
+            # update SizeC
+            self.set_SizeC(self.get_SizeC() + 1)
+
+        # can be done as a single step just prior to final output
         def populate_TiffData(self, filename):
             ''' assuming Pixels has its sizes, set up tiffdata elements'''
             assert self.SizeC is not None
