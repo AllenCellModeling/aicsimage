@@ -12,7 +12,7 @@ def matproj(im, dim, method='max', slice_index=0):
     elif method == 'sum':
         im = np.sum(im, dim)
     elif method == 'slice':
-        im = im[slice_index, :, :]
+        im = im[slice_index]
     else:
         raise ValueError("Invalid projection method")
     return im
