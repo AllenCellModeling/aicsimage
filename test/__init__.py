@@ -1,5 +1,5 @@
 import unittest
-from test import testImg2Projection
+from test import testImgToProjection
 
 
 def test_suite():
@@ -14,7 +14,7 @@ class TotalTestGroup(unittest.TestCase):
     def runTest(self):
         loader = unittest.TestLoader()
         suite = unittest.TestSuite()
-        suite.addTest(loader.loadTestsFromModule(testImg2Projection))
+        suite.addTest(loader.loadTestsFromModule(testImgToProjection))
         exitcode = unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
         print('\n')
         self.assertTrue(exitcode)

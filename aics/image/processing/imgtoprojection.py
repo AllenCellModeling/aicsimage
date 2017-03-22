@@ -1,6 +1,5 @@
 # Author: Evan Wiederspan
 
-#from aicsimagetools import *
 import numpy as np
 import matplotlib.pyplot as pplot
 
@@ -15,24 +14,31 @@ def matproj(im, dim, method='max', slice_index=0):
     elif method == 'slice':
         im = im[slice_index, :, :]
     else:
-        raise ValueError
+        raise ValueError("Invalid projection method")
     return im
 
 
-def im2projection(im1, proj_all=False, proj_method='max', colors=lambda i: [1, 1, 1], global_adjust=False, local_adjust=False):
-    # im: either a 4d numpy array as CZYX, list of 3d ZYX np arrays, or list of 2d YX np arrays
-    # method, str. 'mean', 'sum', 'max', or 'slice'. max by default
-    # proj_all, true gives all 3 projections, false just gives xy. false by default
-    # global_adjust, boolean. If true, will scale image as a whole to ensure that the max value is 255. False by default
-    # local_adjust, boolean. If true, will scale each color channel independently to ensure that the max value is 255. False by default
+def imgtoprojection(im1, proj_all=False, proj_method='max', colors=lambda i: [1, 1, 1], global_adjust=False, local_adjust=False):
+    """
+    Outputs projections of a 4d CZYX numpy array into a CYX numpy array, allowing for color masks for each input channel
+    as well as adjustment options
+    :param im1: Either a 4d numpy array or a list of 3D or 2D numpy arrays. The input that will be projected
+    :param proj_all: boolean. True outputs XY, YZ, and XZ projections in a grid, False just outputs XY. False by default
+    :param proj_method: string. Method by which to do projections. 'Max' by default
+    :param colors: Can be either a string which corresponds to a cmap function in matplotlib, a function that
+    takes in the channel index and returns a list of numbers, or a list of lists containing the color multipliers.
+    :param global_adjust: boolean. If true, scales each color channel to set its max to be 255
+    after combining all channels. False by default
+    :param local_adjust: boolean. If true, performs contrast adjustment on each channel individually. False by default
+    :return: a CYX numpy array containing the requested projections
+    """
 
-    # TODO: turn this into one-liner with np.cat?
     # turn list of 2d or 3d arrays into single 4d array if needed
     try:
-        if type(im1) == type([]):
+        if isinstance(im1, (type([]), type(()))):
             # if only YX, add a single Z dimen
             if im1[0].ndim == 2:
-                im1 = list(map(lambda a: np.expand_dims(a,axis=0), im1))
+                im1 = [np.expand_dims(c, axis=0) for c in im1]
             elif im1[0].ndim != 3:
                 raise ValueError("im1 must be a list of 2d or 3d arrays")
             # combine list into 4d array
@@ -83,7 +89,6 @@ def im2projection(im1, proj_all=False, proj_method='max', colors=lambda i: [1, 1
                 # flipping to get them facing the right way
                 proj_x = np.fliplr(np.transpose(proj_x, (1, 0)))
                 proj_y = np.flipud(proj_y)
-                #img_piece = arrange(proj_z, proj_y, proj_x, proj_z.shape[1], proj_z.shape[0], proj_y.shape[0])
                 sx, sy, sz = proj_z.shape[1], proj_z.shape[0], proj_y.shape[0]
                 img_piece[:, :sy, :sz] = proj_x
                 img_piece[:, :sy, sz:] = proj_z
@@ -111,11 +116,3 @@ def im2projection(im1, proj_all=False, proj_method='max', colors=lambda i: [1, 1
                 img_final[c] *= (255 / max_val)
 
     return img_final
-
-
-# def run(in_files):
-#     img = [omeTifReader.OmeTifReader(f).load()[0] for f in in_files]
-#     out = im2projection(img, proj_all=True, proj_method='max', colors='jet', local_adjust=True)
-#     with pngWriter.PngWriter('5-channel-global-contrast.png', overwrite_file=True) as w:
-#         w.save(out)
-# run(['../20160708_I01_001_1.ome.tif_memb.tif', '../20160708_I01_001_1.ome.tif_nuc.tif', '../20160708_I01_001_1.ome.tif_dna.tif', '../20160708_I01_001_1.ome.tif_struct.tif', '../20160708_I01_001_1.ome.tif_cell.tif'])
