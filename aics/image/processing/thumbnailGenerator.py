@@ -11,6 +11,7 @@ import math as m
 z_axis_index = 0
 _cmy = [[0.0, 1.0, 1.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0]]
 
+
 def get_thresholds(image, **kwargs):
     """
     This function finds thresholds for an image in order to reduce noise and bring up the peak contrast
@@ -25,9 +26,9 @@ def get_thresholds(image, **kwargs):
                         default = .40
     :return: tuple of float values, the lower and upper thresholds of the image
     """
-    border_percent = .1 if not kwargs.has_key("border_percent") else float(kwargs["border_percent"])
-    max_percent = .998 if not kwargs.has_key("max_percent") else float(kwargs["max_percent"])
-    min_percent = .40 if not kwargs.has_key("min_percent") else float(kwargs["min_percent"])
+    border_percent = kwargs.get("border_percent", .1)
+    max_percent = kwargs.get("max_percent", .998)
+    min_percent = kwargs.get("min_percent", .4)
 
     # expects CYX
     # using this allows us to ignore the bright corners of a cell image
@@ -63,10 +64,14 @@ def resize_cyx_image(image, new_size):
 
     :param image: CYX ndarray
     :param new_size: tuple of shape of desired image dimensions in (C, Y, X)
-    :return: image with shape of new_shape with image data
+    :return: image with shape of new_size with image data
     """
-    image = image.transpose((2, 1, 0))
     scaling = (float(image.shape[1]) / new_size[1])
+    if scaling != float(image.shape[2] / new_size[2]):
+        raise ValueError("new_size does not have the same aspect ratio as image")
+    # new_size and image don't need to have the same number of channels, so don't check it
+
+    image = image.transpose((2, 1, 0))
     if scaling < 1:
         scaling = 1.0/scaling
         im_out = t.pyramid_expand(image, upscale=scaling)
@@ -75,19 +80,8 @@ def resize_cyx_image(image, new_size):
     else:
         im_out = image
     im_out = im_out.transpose((2, 0, 1))
+
     return im_out
-
-
-def mask_image(image, mask):
-    """
-    This function eliminates all data in the image where mask = 0
-
-    :param image: an ndarray
-    :param mask: a boolean ndarray with the same shape as image
-    :return: an ndarray with the same shape as image
-    """
-    im_masked = np.multiply(image, mask > 0)
-    return im_masked
 
 
 def create_projection(image, axis, method='max', **kwargs):
@@ -107,8 +101,8 @@ def create_projection(image, axis, method='max', **kwargs):
     :param kwargs:
     :return:
     """
-    slice_index = 0 if not kwargs.has_key("slice_index") else int(kwargs["slice_index"])
-    sections = 3 if not kwargs.has_key("sections") else int(kwargs["sections"])
+    slice_index = kwargs.get("slice_index", 0)
+    sections = kwargs.get("sections", 3)
 
     if method == 'max':
         image = np.max(image, axis)
@@ -124,7 +118,8 @@ def create_projection(image, axis, method='max', **kwargs):
         stack = np.zeros(image[0].shape)
         for i in range(sections - 1):
             bottom_bound = separator * i
-            top_bound = separator * (i + 1)
+            top_bound = separator + bottom_bound
+            # TODO: this line assumes the stack is separated through the z-axis, instead of the designated axis param
             section = np.max(image[bottom_bound:top_bound], axis)
             stack += section
         stack += np.max(image[separator * sections - 1:])
@@ -183,7 +178,7 @@ class ThumbnailGenerator:
 
     """
 
-    def __init__(self, colors=_cmy, size=128, channel_indices=[0, 1, 2], mask_channel_index=5, **kwargs):
+    def __init__(self, colors=_cmy, size=128, channel_indices=None, channel_thresholds=None, mask_channel_index=5, **kwargs):
         """
         :param colors: The color palette that will be used to color each channel. The default palette
                        colors the membrane channel cyan, structure with magenta, and nucleus with yellow.
@@ -213,18 +208,22 @@ class ThumbnailGenerator:
             "proj_sections" : The number of sections that will be used to determine projections, if projection="sections"
         """
 
-        layering = "alpha-blend" if not kwargs.has_key("layering") else kwargs["layering"]
-        projection = "max" if not kwargs.has_key("projection") else kwargs["projection"]
-        proj_sections = 3 if not kwargs.has_key("proj_sections") else kwargs["proj_sections"]
+        layering = kwargs.get("layering", "alpha-blend")
+        projection = kwargs.get("projection", "max")
+        proj_sections = kwargs.get("proj_sections", 3)
+        if channel_indices is None:
+            channel_indices = [0, 1, 2]
+        if channel_thresholds is None:
+            channel_thresholds = [.65, .65, .65]
 
         assert len(colors) == 3 and len(colors[0]) == 3
         self.colors = colors
 
         self.size = size
-        self.memb_index = channel_indices[0]
-        self.struct_index = channel_indices[1]
-        self.nuc_index = channel_indices[2]
+        assert len(colors) == len(channel_indices)
         self.channel_indices = channel_indices
+        assert len(channel_thresholds) == len(channel_indices)
+        self.channel_thresholds = channel_thresholds
         self.mask_channel_index = mask_channel_index
 
         assert layering == "superimpose" or layering == "alpha-blend"
@@ -263,19 +262,21 @@ class ThumbnailGenerator:
         layered_image = np.zeros((projection_array[0].shape[0], projection_array[0].shape[1], 4))
 
         for i in range(len(projection_array)):
+
             projection = projection_array[i]
             # normalize channel projection
             projection /= np.max(projection)
             assert projection.shape == projection_array[0].shape
+
             # 4 channels - rgba
             rgb_out = np.expand_dims(projection, 2)
             rgb_out = np.repeat(rgb_out, 4, 2).astype('float')
             # inject color.  careful of type mismatches.
             rgb_out *= self.colors[i] + [1.0]
-            # normalize image
-            rgb_out /= np.max(rgb_out)
+
             rgb_out = rgb_out.transpose((2, 1, 0))
-            min_percent = .4 if i == self.nuc_index else .6
+            # since there is a projection for each channel, there will be a threshold for each projection.
+            min_percent = self.channel_thresholds[i]
             lower_threshold, upper_threshold = get_thresholds(rgb_out, min_percent=min_percent)
             rgb_out = rgb_out.transpose((2, 1, 0))
 
@@ -305,7 +306,7 @@ class ThumbnailGenerator:
                     dest_px = layered_image[x, y, 0:3]
                     layered_image[x, y, 0:3] = layering_method(source_pixel=src_px, dest_pixel=dest_px)
                     # if mask_array has elements and the pixel is 0
-                    if mask_array and mask_array[i][x,y] == 0.0:
+                    if mask_array and mask_array[i][x, y] == 0.0:
                         layered_image[x, y, 3] = 0.0
                     else:
                         layered_image[x, y, 3] = 1.0
@@ -314,8 +315,8 @@ class ThumbnailGenerator:
 
     def make_thumbnail(self, image, apply_cell_mask=False):
         """
-        This method is the primary interface with the ThumbnailGenerator. It can be used many times with different images,
-        in order to save the configuration that was specified at the beginning of the generator.
+        This method is the primary interface with the ThumbnailGenerator. It can be used many times with different
+        images in order to save the configuration that was specified at the beginning of the generator.
 
         :param image: single ZCYX image that is the source of the thumbnail
         :param apply_cell_mask: boolean value that designates whether the image is a fullfield or segmented cell
@@ -326,13 +327,13 @@ class ThumbnailGenerator:
         # check to make sure there are 6 or more channels
         image = image.astype(np.float32)
         assert image.shape[1] >= 6
-        assert max(self.memb_index, self.struct_index, self.nuc_index) <= image.shape[1] - 1
+        assert self.mask_channel_index <= image.shape[1]
+        assert max(self.channel_indices) <= image.shape[1] - 1
 
         im_size = np.array(image[:, 0].shape)
         assert len(im_size) == 3
         shape_out_rgb = self._get_output_shape(im_size)
 
-        # ignore trans-light channel and seg channels
         num_noise_floor_bins = 256
         projection_array = []
         mask_array = []
