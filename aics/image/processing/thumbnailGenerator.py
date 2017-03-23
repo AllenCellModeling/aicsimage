@@ -66,7 +66,7 @@ def resize_cyx_image(image, new_size):
     :param new_size: tuple of shape of desired image dimensions in (C, Y, X)
     :return: image with shape of new_size with image data
     """
-    scaling = float(image.shape[1] / new_size[1])
+    scaling = float(image.shape[1]) / new_size[1]
     # new_size and image don't need to have the same number of channels, so don't check it
 
     image = image.transpose((2, 1, 0))
@@ -313,14 +313,14 @@ class ThumbnailGenerator:
         This method is the primary interface with the ThumbnailGenerator. It can be used many times with different
         images in order to save the configuration that was specified at the beginning of the generator.
 
-        :param image: single ZCYX image that is the source of the thumbnail
+        :param image: ZCYX image that is the source of the thumbnail
         :param apply_cell_mask: boolean value that designates whether the image is a fullfield or segmented cell
                                 False -> fullfield, True -> segmented cell
-        :return: a single CYX image, scaled down to the size designated in the constructor
+        :return: a CYX image, scaled down to the size designated in the constructor
         """
 
-        # check to make sure there are 6 or more channels
         image = image.astype(np.float32)
+        # check to make sure there are 6 or more channels
         assert image.shape[1] >= 6
         assert self.mask_channel_index <= image.shape[1]
         assert max(self.channel_indices) <= image.shape[1] - 1
@@ -328,6 +328,10 @@ class ThumbnailGenerator:
         im_size = np.array(image[:, 0].shape)
         assert len(im_size) == 3
         shape_out_rgb = self._get_output_shape(im_size)
+
+        if apply_cell_mask:
+            for i in range(len(self.channel_indices)):
+                image[:, i] = np.multiply(image[:, i], image[:, self.mask_channel_index] > 0)
 
         num_noise_floor_bins = 256
         projection_array = []
