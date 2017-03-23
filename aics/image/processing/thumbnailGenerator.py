@@ -176,7 +176,9 @@ class ThumbnailGenerator:
 
     """
 
-    def __init__(self, colors=_cmy, size=128, channel_indices=None, channel_thresholds=None, mask_channel_index=5, **kwargs):
+    def __init__(self, colors=_cmy, size=128,
+                 channel_indices=None, channel_thresholds=None, channel_multipliers=None,
+                 mask_channel_index=5, **kwargs):
         """
         :param colors: The color palette that will be used to color each channel. The default palette
                        colors the membrane channel cyan, structure with magenta, and nucleus with yellow.
@@ -213,6 +215,8 @@ class ThumbnailGenerator:
             channel_indices = [0, 1, 2]
         if channel_thresholds is None:
             channel_thresholds = [.65, .65, .65]
+        if channel_multipliers is None:
+            channel_multipliers = [1, 1, 1]
 
         assert len(colors) == 3 and len(colors[0]) == 3
         self.colors = colors
@@ -222,6 +226,8 @@ class ThumbnailGenerator:
         self.channel_indices = channel_indices
         assert len(channel_thresholds) == len(channel_indices)
         self.channel_thresholds = channel_thresholds
+        assert len(channel_multipliers) == len(channel_indices)
+        self.channel_multipliers = channel_multipliers
         self.mask_channel_index = mask_channel_index
 
         assert layering == "superimpose" or layering == "alpha-blend"
@@ -265,6 +271,9 @@ class ThumbnailGenerator:
             # normalize channel projection
             projection /= np.max(projection)
             assert projection.shape == projection_array[0].shape
+
+            projection *= self.channel_multipliers[i]
+            projection[projection > 1] = 1
 
             # 4 channels - rgba
             rgb_out = np.expand_dims(projection, 2)
