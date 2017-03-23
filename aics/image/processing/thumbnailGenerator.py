@@ -66,9 +66,7 @@ def resize_cyx_image(image, new_size):
     :param new_size: tuple of shape of desired image dimensions in (C, Y, X)
     :return: image with shape of new_size with image data
     """
-    scaling = (float(image.shape[1]) / new_size[1])
-    if scaling != float(image.shape[2] / new_size[2]):
-        raise ValueError("new_size does not have the same aspect ratio as image")
+    scaling = float(image.shape[1] / new_size[1])
     # new_size and image don't need to have the same number of channels, so don't check it
 
     image = image.transpose((2, 1, 0))
@@ -76,7 +74,7 @@ def resize_cyx_image(image, new_size):
         scaling = 1.0/scaling
         im_out = t.pyramid_expand(image, upscale=scaling)
     elif scaling > 1:
-        im_out = np.asarray(t.pyramid_reduce(image, downscale=scaling))
+        im_out = t.pyramid_reduce(image, downscale=scaling)
     else:
         im_out = image
     im_out = im_out.transpose((2, 0, 1))
@@ -259,7 +257,7 @@ class ThumbnailGenerator:
         # array cannot be empty or have more channels than the color array
         assert projection_array
         assert len(projection_array) == len(self.colors)
-        layered_image = np.zeros((projection_array[0].shape[0], projection_array[0].shape[1], 4))
+        layered_image = np.zeros((4, projection_array[0].shape[1], projection_array[0].shape[0]))
 
         for i in range(len(projection_array)):
 
@@ -272,13 +270,10 @@ class ThumbnailGenerator:
             rgb_out = np.expand_dims(projection, 2)
             rgb_out = np.repeat(rgb_out, 4, 2).astype('float')
             # inject color.  careful of type mismatches.
-            rgb_out *= self.colors[i] + [1.0]
-
-            rgb_out = rgb_out.transpose((2, 1, 0))
+            rgb_out = (rgb_out * (self.colors[i] + [1.0])).transpose((2, 1, 0))
             # since there is a projection for each channel, there will be a threshold for each projection.
             min_percent = self.channel_thresholds[i]
             lower_threshold, upper_threshold = get_thresholds(rgb_out, min_percent=min_percent)
-            rgb_out = rgb_out.transpose((2, 1, 0))
 
             def superimpose(source_pixel, dest_pixel):
                 pixel_weight = np.mean(source_pixel)
@@ -299,19 +294,19 @@ class ThumbnailGenerator:
 
             layering_method = superimpose if self.layering_mode == "superimpose" else alpha_blend
 
-            for x in range(rgb_out.shape[0]):
+            for x in range(rgb_out.shape[2]):
                 for y in range(rgb_out.shape[1]):
                     # these slicing methods in C channel are getting the rgb data *only* and ignoring the alpha values
-                    src_px = rgb_out[x, y, 0:3]
-                    dest_px = layered_image[x, y, 0:3]
-                    layered_image[x, y, 0:3] = layering_method(source_pixel=src_px, dest_pixel=dest_px)
+                    src_px = rgb_out[0:3, y, x]
+                    dest_px = layered_image[0:3, y, x]
+                    layered_image[0:3, y, x] = layering_method(source_pixel=src_px, dest_pixel=dest_px)
                     # if mask_array has elements and the pixel is 0
                     if mask_array and mask_array[i][x, y] == 0.0:
-                        layered_image[x, y, 3] = 0.0
+                        layered_image[3, y, x] = 0.0
                     else:
-                        layered_image[x, y, 3] = 1.0
+                        layered_image[3, y, x] = 1.0
 
-        return layered_image.transpose((2, 1, 0))
+        return layered_image
 
     def make_thumbnail(self, image, apply_cell_mask=False):
         """
@@ -347,7 +342,7 @@ class ThumbnailGenerator:
             thumb = np.asarray(thumb).astype('double')
             im_proj = create_projection(thumb, 0, projection_type, slice_index=int(thumb.shape[0] // 2), sections=self.proj_sections)
             if apply_cell_mask:
-                mask_proj = create_projection(image[:, self.mask_channel_index], 0, method="slice", slice_index=int(image.shape[0] // 2))
+                mask_proj = create_projection(image[:, self.mask_channel_index], 0, method="max")
                 mask_array.append(mask_proj)
             projection_array.append(im_proj)
 
