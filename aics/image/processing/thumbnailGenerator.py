@@ -63,12 +63,16 @@ def resize_cyx_image(image, new_size):
     This function resizes a CYX image.
 
     :param image: CYX ndarray
-    :param new_size: tuple of shape of desired image dimensions in (C, Y, X)
-    :return: image with shape of new_size with image data
+    :param new_size: tuple of shape of desired image dimensions in CYX
+    :return: image with shape of new_size
     """
     scaling = float(image.shape[1]) / new_size[1]
-    # new_size and image don't need to have the same number of channels, so don't check it
-
+    test_shape = np.ceil(np.divide(image.shape, [1, scaling, scaling]))
+    if not np.array_equal(test_shape, new_size):
+        scaling = float(image.shape[2]) / new_size[2]
+        test_shape = np.ceil(np.divide(image.shape, [1, scaling, scaling]))
+        if not np.array_equal(test_shape, new_size):
+            raise ValueError("This image does not have the same aspect ratio as new_size")
     image = image.transpose((2, 1, 0))
     if scaling < 1:
         scaling = 1.0/scaling
@@ -77,7 +81,8 @@ def resize_cyx_image(image, new_size):
         im_out = t.pyramid_reduce(image, downscale=scaling)
     else:
         im_out = image
-    im_out = im_out.transpose((2, 0, 1))
+    im_out = im_out.transpose((2, 1, 0))
+    assert im_out.shape == new_size
 
     return im_out
 
@@ -206,11 +211,16 @@ class ThumbnailGenerator:
                              max projection for each.
 
             "proj_sections" : The number of sections that will be used to determine projections, if projection="sections"
+            "old_alg" : Use the old algorithm for generating thumbnails.
+                    False -> use new parameters
+                    True -> use old algorithm
         """
 
-        layering = kwargs.get("layering", "alpha-blend")
-        projection = kwargs.get("projection", "max")
-        proj_sections = kwargs.get("proj_sections", 3)
+        self.layering = kwargs.get("layering", "alpha-blend")
+        self.projection = kwargs.get("projection", "max")
+        self.proj_sections = kwargs.get("proj_sections", 3)
+        self.old_alg = kwargs.get("old_alg", False)
+
         if channel_indices is None:
             channel_indices = [0, 1, 2]
         if channel_thresholds is None:
@@ -230,12 +240,88 @@ class ThumbnailGenerator:
         self.channel_multipliers = channel_multipliers
         self.mask_channel_index = mask_channel_index
 
-        assert layering == "superimpose" or layering == "alpha-blend"
-        self.layering_mode = layering
+        assert self.layering == "superimpose" or self.layering == "alpha-blend"
+        assert self.projection == "slice" or self.projection == "max" or self.projection == "sections"
 
-        assert projection == "slice" or projection == "max" or projection == "sections"
-        self.projection_mode = projection
-        self.proj_sections = proj_sections
+    def old_algorithm(self, image, new_size, apply_cell_mask=False):
+        if apply_cell_mask:
+            shape_out_rgb = new_size
+
+            # apply the cell segmentation mask.  bye bye to data outside the cell
+            # for i in range(len(self.channel_indices)):
+            #     image[:, i] = np.multiply(image[:, i], image[:, self.mask_channel_index] > 0)
+
+            num_noise_floor_bins = 32
+            composite = np.zeros(shape_out_rgb)
+            for i in range(3):
+                ch = self.channel_indices[i]
+                # try to subtract out the noise floor.
+                # range is chosen to ignore zeros due to masking.  alternative is to pass mask image as weights=im1[-1]
+                thumb = subtract_noise_floor(image[:, i], bins=num_noise_floor_bins)
+                # apply mask
+                thumb = np.multiply(thumb, image[:, self.mask_channel_index] > 0)
+
+                # renormalize
+                thmax = thumb.max()
+                thumb /= thmax
+
+                # resize before projection?
+                rgbproj = np.asarray(thumb)
+                rgbproj = create_projection(rgbproj, 0, self.projection, slice_index=rgbproj.shape[1] // 2)
+                rgb_out = np.expand_dims(rgbproj, 2)
+                rgb_out = np.repeat(rgb_out, 3, 2)
+
+                # inject color.  careful of type mismatches.
+                rgb_out *= self.colors[i]
+
+                rgb_out = resize_cyx_image(rgb_out.transpose((2, 1, 0)), shape_out_rgb).astype(np.float32)
+                composite += rgb_out
+            # renormalize
+            composite /= composite.max()
+            # return as cyx for pngwriter
+            return composite.transpose((0, 2, 1))
+        else:
+            image = image.transpose((1, 0, 2, 3))
+            shape_out_rgb = new_size
+
+            num_noise_floor_bins = 16
+            composite = np.zeros(shape_out_rgb)
+            channel_indices = self.channel_indices
+            rgb_image = image[:, 0].astype('float')
+            for i in channel_indices:
+                # subtract out the noise floor.
+                immin = image[i].min()
+                immax = image[i].max()
+                hi, bin_edges = np.histogram(image[i], bins=num_noise_floor_bins, range=(max(1, immin), immax))
+                # index of tallest peak in histogram
+                peakind = np.argmax(hi)
+                # subtract this out
+                thumb = image[i].astype(np.float32)
+                thumb -= bin_edges[peakind]
+                # don't go negative
+                thumb[thumb < 0] = 0
+                # renormalize
+                thmax = thumb.max()
+                thumb /= thmax
+
+                imdbl = np.asarray(thumb).astype('double')
+                im_proj = create_projection(imdbl, 0, 'slice', slice_index=int(thumb.shape[0] // 2))
+
+                rgb_image[i] = im_proj
+
+            for i in range(len(channel_indices)):
+                # turn into RGB
+                rgb_out = np.expand_dims(rgb_image[i], 2)
+                rgb_out = np.repeat(rgb_out, 3, 2).astype('float')
+
+                # inject color.  careful of type mismatches.
+                rgb_out *= self.colors[i]
+
+                rgb_out = resize_cyx_image(rgb_out.transpose((2, 1, 0)), shape_out_rgb)
+                composite += rgb_out
+
+            # returns a CYX array for the pngwriter
+            return composite.transpose((0, 2, 1))
 
     def _get_output_shape(self, im_size):
         """
@@ -248,10 +334,10 @@ class ThumbnailGenerator:
         max_edge = self.size
         # keep same number of z slices.
         shape_out = np.hstack((im_size[0],
-                               max_edge if im_size[1] > im_size[2] else max_edge * im_size[1] / im_size[2],
-                               max_edge if im_size[1] < im_size[2] else max_edge * im_size[2] / im_size[1]
+                               max_edge if im_size[1] > im_size[2] else max_edge * (float(im_size[1]) / im_size[2]),
+                               max_edge if im_size[1] < im_size[2] else max_edge * (float(im_size[2]) / im_size[1])
                                ))
-        return 3, shape_out[2], shape_out[1]
+        return 3, int(round(shape_out[2])), int(round(shape_out[1]))
 
     def _layer_projections(self, projection_array, mask_array):
         """
@@ -337,6 +423,9 @@ class ThumbnailGenerator:
         im_size = np.array(image[:, 0].shape)
         assert len(im_size) == 3
         shape_out_rgb = self._get_output_shape(im_size)
+
+        if self.old_alg:
+            return self.old_algorithm(image, shape_out_rgb, apply_cell_mask=apply_cell_mask)
 
         if apply_cell_mask:
             for i in range(len(self.channel_indices)):
