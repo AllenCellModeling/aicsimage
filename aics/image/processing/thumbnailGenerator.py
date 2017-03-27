@@ -35,9 +35,9 @@ def get_thresholds(image, **kwargs):
     im_width = image.shape[2]
     im_height = image.shape[1]
     left_bound = int(m.floor(border_percent * im_width))
-    right_bound = int(m.ceil((1 - border_percent) * im_width))
+    right_bound = int(m.ceil((1 - border_percent) * im_width)) + 1
     bottom_bound = int(m.floor(border_percent * im_height))
-    top_bound = int(m.ceil((1 - border_percent) * im_height))
+    top_bound = int(m.ceil((1 - border_percent) * im_height)) + 1
     cut_border = image[:, left_bound:right_bound, bottom_bound:top_bound]
 
     immin = cut_border.min()
@@ -165,7 +165,7 @@ def subtract_noise_floor(image, bins=256):
     # image is a 3D ZYX image
     immin = image.min()
     immax = image.max()
-    hi, bin_edges = np.histogram(image, bins=bins, range=(max(1, immin), immax))
+    hi, bin_edges = np.histogram(image, bins=bins, range=(immin, immax))
     # index of tallest peak in histogram
     peakind = np.argmax(hi)
     # subtract this out
@@ -223,11 +223,6 @@ class ThumbnailGenerator:
                     True -> use old algorithm
         """
 
-        self.layering = kwargs.get("layering", "alpha-blend")
-        self.projection = kwargs.get("projection", "max")
-        self.proj_sections = kwargs.get("proj_sections", 3)
-        self.old_alg = kwargs.get("old_alg", False)
-
         if channel_indices is None:
             channel_indices = [0, 1, 2]
         if channel_thresholds is None:
@@ -235,22 +230,32 @@ class ThumbnailGenerator:
         if channel_multipliers is None:
             channel_multipliers = [1, 1, 1]
 
-        assert len(colors) == 3 and len(colors[0]) == 3
-        self.colors = colors
-
-        self.size = size
-        assert len(colors) == len(channel_indices)
-        self.channel_indices = channel_indices
-        assert len(channel_thresholds) == len(channel_indices)
-        self.channel_thresholds = channel_thresholds
-        assert len(channel_multipliers) == len(channel_indices)
-        self.channel_multipliers = channel_multipliers
-        self.mask_channel_index = mask_channel_index
+        self.layering = kwargs.get("layering", "alpha-blend")
+        self.projection = kwargs.get("projection", "max")
+        self.proj_sections = kwargs.get("proj_sections", 3)
+        self.old_alg = kwargs.get("old_alg", False)
 
         assert self.layering == "superimpose" or self.layering == "alpha-blend"
         assert self.projection == "slice" or self.projection == "max" or self.projection == "sections"
 
-    def old_algorithm(self, image, new_size, apply_cell_mask=False):
+        assert len(colors) == 3 and len(colors[0]) == 3
+        self.colors = colors
+
+        self.size = size
+
+        assert len(colors) == len(channel_indices)
+        assert min(channel_indices) >= 0
+        self.channel_indices = channel_indices
+
+        assert len(channel_thresholds) == len(channel_indices)
+        self.channel_thresholds = channel_thresholds
+
+        assert len(channel_multipliers) == len(channel_indices)
+        self.channel_multipliers = channel_multipliers
+
+        self.mask_channel_index = mask_channel_index
+
+    def _old_algorithm(self, image, new_size, apply_cell_mask=False):
         if apply_cell_mask:
             shape_out_rgb = new_size
 
@@ -344,7 +349,7 @@ class ThumbnailGenerator:
                                max_edge if im_size[1] > im_size[2] else max_edge * (float(im_size[1]) / im_size[2]),
                                max_edge if im_size[1] < im_size[2] else max_edge * (float(im_size[2]) / im_size[1])
                                ))
-        return 3, int(round(shape_out[2])), int(round(shape_out[1]))
+        return 4, int(round(shape_out[2])), int(round(shape_out[1]))
 
     def _layer_projections(self, projection_array, mask_array):
         """
@@ -424,6 +429,7 @@ class ThumbnailGenerator:
         image = image.astype(np.float32)
         # check to make sure there are 6 or more channels
         assert image.shape[1] >= 6
+        assert image.shape[2] > 1 and image.shape[3] > 1
         assert self.mask_channel_index <= image.shape[1]
         assert max(self.channel_indices) <= image.shape[1] - 1
 
@@ -432,7 +438,7 @@ class ThumbnailGenerator:
         shape_out_rgb = self._get_output_shape(im_size)
 
         if self.old_alg:
-            return self.old_algorithm(image, shape_out_rgb, apply_cell_mask=apply_cell_mask)
+            return self._old_algorithm(image, shape_out_rgb, apply_cell_mask=apply_cell_mask)
 
         if apply_cell_mask:
             for i in range(len(self.channel_indices)):
@@ -447,6 +453,7 @@ class ThumbnailGenerator:
             if not apply_cell_mask:
                 projection_type = 'slice'
             # subtract out the noise floor.
+            image /= np.max(image)
             thumb = subtract_noise_floor(image[:, i], bins=num_noise_floor_bins)
             thumb = np.asarray(thumb).astype('double')
             im_proj = create_projection(thumb, 0, projection_type, slice_index=int(thumb.shape[0] // 2),
