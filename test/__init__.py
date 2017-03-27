@@ -1,6 +1,6 @@
 import unittest
 
-import aicsimageio
+from aics.image.io import init, close
 from test import testCziReader
 from test import testOmeTifReader
 from test import testOmeTifWriter
@@ -30,7 +30,7 @@ class TotalTestGroup(unittest.TestCase):
 
     def setUp(self):
         unittest.TestCase.__init__(self)
-        aicsimageio.init()
+        init()
 
     def runTest(self):
         loader = unittest.TestLoader()
@@ -46,4 +46,4 @@ class TotalTestGroup(unittest.TestCase):
         self.assertTrue(exitcode)
 
     def tearDown(self):
-        aicsimageio.close()
+        close()
