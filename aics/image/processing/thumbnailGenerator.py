@@ -67,15 +67,22 @@ def resize_cyx_image(image, new_size):
     :return: image with shape of new_size
     """
     scaling = float(image.shape[1]) / new_size[1]
+    # get the shape of the image that is resized by the scaling factor
     test_shape = np.ceil(np.divide(image.shape, [1, scaling, scaling]))
+    # sometimes the scaling can be rounded incorrectly and scale the image to
+    # one pixel too high or too low
     if not np.array_equal(test_shape, new_size):
+        # getting the scaling from the other dimension solves this rounding problem
         scaling = float(image.shape[2]) / new_size[2]
         test_shape = np.ceil(np.divide(image.shape, [1, scaling, scaling]))
+        # if neither scaling factors achieve the desired shape, then the aspect ratio of the image
+        # is different than the aspect ratio of new_size
         if not np.array_equal(test_shape, new_size):
             raise ValueError("This image does not have the same aspect ratio as new_size")
+
     image = image.transpose((2, 1, 0))
     if scaling < 1:
-        scaling = 1.0/scaling
+        scaling = 1.0 / scaling
         im_out = t.pyramid_expand(image, upscale=scaling)
     elif scaling > 1:
         im_out = t.pyramid_reduce(image, downscale=scaling)
@@ -387,7 +394,7 @@ class ThumbnailGenerator:
                 else:
                     return dest_pixel
 
-            layering_method = superimpose if self.layering_mode == "superimpose" else alpha_blend
+            layering_method = superimpose if self.layering == "superimpose" else alpha_blend
 
             for x in range(rgb_out.shape[2]):
                 for y in range(rgb_out.shape[1]):
@@ -434,7 +441,7 @@ class ThumbnailGenerator:
         num_noise_floor_bins = 256
         projection_array = []
         mask_array = []
-        projection_type = self.projection_mode
+        projection_type = self.projection
         for i in self.channel_indices:
             # don't use max projections on the fullfield images... they get too messy
             if not apply_cell_mask:
@@ -442,7 +449,8 @@ class ThumbnailGenerator:
             # subtract out the noise floor.
             thumb = subtract_noise_floor(image[:, i], bins=num_noise_floor_bins)
             thumb = np.asarray(thumb).astype('double')
-            im_proj = create_projection(thumb, 0, projection_type, slice_index=int(thumb.shape[0] // 2), sections=self.proj_sections)
+            im_proj = create_projection(thumb, 0, projection_type, slice_index=int(thumb.shape[0] // 2),
+                                        sections=self.proj_sections)
             if apply_cell_mask:
                 mask_proj = create_projection(image[:, self.mask_channel_index], 0, method="max")
                 mask_array.append(mask_proj)
