@@ -8,15 +8,15 @@ import unittest
 
 import numpy as np
 
-import aicsimageio
-from aicsimageio import omeTifReader
+from aics.image import io
+from aics.image.io import omeTifReader
 
 
 class OmeTifReaderTestGroup(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        aicsimageio.init()
+        io.init()
         cls.dir_path = os.path.dirname(os.path.realpath(__file__))
         with omeTifReader.OmeTifReader(os.path.join(cls.dir_path, 'img', 'img40_1.ome.tif')) as reader:
             cls.load = reader.load()
