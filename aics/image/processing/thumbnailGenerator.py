@@ -139,28 +139,6 @@ def create_projection(image, axis, method='max', **kwargs):
     return image
 
 
-def arrange(projz, projx, projy, sx, sy, sz, rescale_inten=True):
-    # assume all images are shape [x,y,3]
-    # do stuff and return big image
-    shZ = projz.shape
-    shX = projx.shape
-    shY = projy.shape
-    assert (len(shZ) == len(shY) == len(shX) == 3)
-
-    im_all = np.zeros(np.hstack((sx + sz, sy + sz, 3)))
-    # imz is xXy
-    im_all[0:sx, sz:] = projz
-    # imy is zXx (so transpose it)
-    im_all[0:sx, 0:sz] = np.transpose(projy, (1, 0, 2))
-    # imx is zXy
-    im_all[sx:, sz:] = projx
-
-    if rescale_inten:
-        im_all /= np.max(im_all.flatten())
-
-    return im_all
-
-
 def subtract_noise_floor(image, bins=256):
     # image is a 3D ZYX image
     immin = image.min()
