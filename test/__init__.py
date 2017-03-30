@@ -1,6 +1,6 @@
 import unittest
-
-import testThumbnailGenerator
+from test import testImgToProjection
+from test import testThumbnailGenerator
 
 """
 To test all modules with the command line, use:
@@ -29,6 +29,10 @@ class TotalTestGroup(unittest.TestCase):
         loader = unittest.TestLoader()
         suite = unittest.TestSuite()
         suite.addTest(loader.loadTestsFromModule(testThumbnailGenerator))
+        suite.addTest(loader.loadTestsFromModule(testImgToProjection))
         exitcode = unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
         print('\n')
         self.assertTrue(exitcode)
+
+    def tearDown(self):
+        pass
