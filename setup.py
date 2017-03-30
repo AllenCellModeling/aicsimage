@@ -3,30 +3,24 @@ from setuptools import setup, find_packages
 with open('version.value', 'r') as f:
     version = f.readline().strip()
 
-with open('./aics/image/io/aicsimageio_version.py', 'w') as f:
-    f.writelines('AICSIMAGEIO_VERSION = "{}"'.format(version))
+with open('./aics/image/processing/aicsimageprocessing_version.py', 'w') as f:
+    f.writelines('AICSIMAGEPROCESSING_VERSION = "{}"'.format(version))
 
 
 def readme():
     with open('README.rst') as f:
         return f.read()
 
-setup(name='aics.image.io',
+setup(name='aics.image.processing',
       version=version,
-      description='Simple file format readers and writers',
+      description='A generalized scientific image processing module from the Allen Institute for Cell Science.',
       long_description=readme(),
-      url='http://stash.corp.alleninstitute.org/projects/AICS/repos/aicsimageio',
-      author='Dan Toloudis',
-      author_email='danielt@alleninstitute.org',
+      url='http://stash.corp.alleninstitute.org/projects/AICS/repos/image-processing',
+      author='Zach Crabtree',
+      author_email='zacharyc@alleninstitute.org',
       license='MIT',
-      packages=find_packages(exclude=["iotest"]),
+      packages=find_packages(exclude=["test"]),
       scripts=[],
-      install_requires=[
-          'numpy',
-          'pillow',
-          'scipy',
-          'tifffile'
-      ],
+      install_requires=[],
       zip_safe=False,
-      test_suite='iotest.test_suite'
       )
