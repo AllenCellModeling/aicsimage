@@ -1,21 +1,21 @@
 import unittest
 
-from aics.image.io import init, close
-from test import testCziReader
-from test import testOmeTifReader
-from test import testOmeTifWriter
-from test import testPngReader
-from test import testPngWriter
-from test import testTifReader
+from io import init, close
+from iotest import testCziReader
+from iotest import testOmeTifReader
+from iotest import testOmeTifWriter
+from iotest import testPngReader
+from iotest import testPngWriter
+from iotest import testTifReader
 
 """
-To test all modules with the command line, use:
-    python setup.py test
+To iotest all modules with the command line, use:
+    python setup.py iotest
 
-To test individual modules with the command line, use:
+To iotest individual modules with the command line, use:
     python -m unittest discover --pattern=test_module.py
 
-It is a possibility to test a few modules at a time with a regex pattern:
+It is a possibility to iotest a few modules at a time with a regex pattern:
     python -m unittest discover --pattern=*Reader.py
 However, this can cause issues with the **bioformats** implementation because the JVM
 will crash after one or more instantiations

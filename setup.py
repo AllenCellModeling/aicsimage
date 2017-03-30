@@ -19,7 +19,7 @@ setup(name='aics.image.io',
       author='Dan Toloudis',
       author_email='danielt@alleninstitute.org',
       license='MIT',
-      packages=find_packages(exclude=["test"]),
+      packages=find_packages(exclude=["iotest"]),
       scripts=[],
       install_requires=[
           'numpy',
@@ -28,5 +28,5 @@ setup(name='aics.image.io',
           'tifffile'
       ],
       zip_safe=False,
-      test_suite='test.test_suite'
+      test_suite='iotest.test_suite'
       )

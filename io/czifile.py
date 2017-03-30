@@ -89,7 +89,7 @@ References
 
 Examples
 --------
->>> with CziFile('test.czi') as czi:
+>>> with CziFile(iotesti') as czi:
 ...     image = czi.asarray()
 >>> image.shape
 (3, 3, 3, 250, 200, 3)
@@ -554,7 +554,7 @@ class SubBlockSegment(object):
         elif self.compression and self.compression < RAW_COMPRESSION_VALUE:
             if self.compression not in DECOMPRESS:
                 raise ValueError("compression unknown or not supported")
-            # TODO: test this
+            # TODO: iotest this
             data = self._fh.read(self.data_size)
             data = DECOMPRESS[self.compression](data)
             if self.compression == 2:

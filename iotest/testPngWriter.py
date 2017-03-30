@@ -6,8 +6,9 @@ import os
 import unittest
 
 from aics.image.io import pngReader
-from aics.image.io import pngWriter
-from test.transformation import *
+
+from io import pngWriter
+from iotest.transformation import *
 
 
 class PngWriterTestGroup(unittest.TestCase):
@@ -22,7 +23,7 @@ class PngWriterTestGroup(unittest.TestCase):
 
     """
     Test saves an image and compares it with a previously saved image.
-    This test should assure that the png save() method does not transpose any dimensions as it saves
+    This iotest should assure that the png save() method does not transpose any dimensions as it saves
     """
     def test_pngSaveComparison(self):
         self.writer.save(self.image)
@@ -44,7 +45,7 @@ class PngWriterTestGroup(unittest.TestCase):
 
     """
     Test saves an image with a single xy plane
-    This test assures that the pixels are written to the correct orientation
+    This iotest assures that the pixels are written to the correct orientation
     """
     def test_twoDimensionalImages(self):
         image = np.ndarray([2, 2], dtype=np.uint8)
@@ -59,7 +60,7 @@ class PngWriterTestGroup(unittest.TestCase):
 
     """
     Test saves an image with a single xy plane, but gives one channel
-    This test assures that the channels are repeated when written with less than 3 channels
+    This iotest assures that the channels are repeated when written with less than 3 channels
     """
     def test_threeDimensionalImages(self):
         image = np.zeros([1, 2, 2], dtype=np.uint8)
