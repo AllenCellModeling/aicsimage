@@ -1,4 +1,4 @@
-from aicsimagetools import czifile
+import czifile
 import numpy as np
 
 

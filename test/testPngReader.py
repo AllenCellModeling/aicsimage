@@ -2,9 +2,10 @@
 
 # Author: Zach Crabtree zacharyc@alleninstitute.org
 
-from aicsimagetools import pngReader
 import os
 import unittest
+
+from aics.image.io import pngReader
 
 
 class PngReaderTestGroup(unittest.TestCase):
