@@ -1,4 +1,4 @@
-from aicsimageio_version import AICSIMAGEIO_VERSION
+from aicsimage_version import AICSIMAGE_VERSION
 
 import cziReader
 import omeTifReader
@@ -6,6 +6,7 @@ import omeTifWriter
 import pngReader
 import pngWriter
 import tifReader
+
 
 def init():
     pass
@@ -16,4 +17,4 @@ def close():
 
 
 def get_version():
-    return AICSIMAGEIO_VERSION
+    return AICSIMAGE_VERSION

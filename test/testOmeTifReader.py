@@ -8,17 +8,17 @@ import unittest
 
 import numpy as np
 
-import io
-from io import omeTifReader
+import imageio
+from imageio.omeTifReader import OmeTifReader
 
 
 class OmeTifReaderTestGroup(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        io.init()
+        imageio.init()
         cls.dir_path = os.path.dirname(os.path.realpath(__file__))
-        with omeTifReader.OmeTifReader(os.path.join(cls.dir_path, 'img', 'img40_1.ome.tif')) as reader:
+        with OmeTifReader(os.path.join(cls.dir_path, 'img', 'img40_1.ome.tif')) as reader:
             cls.load = reader.load()
             cls.slice = reader.load_slice()
             cls.load_image = np.ndarray([reader.size_t(), reader.size_z(), reader.size_c(), reader.size_y(),
@@ -30,7 +30,7 @@ class OmeTifReaderTestGroup(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        io.close()
+        imageio.close()
 
     def test_omeTifLoadShapeCorrectDimensions(self):
         self.assertEqual(len(self.load.shape), 5)
@@ -43,10 +43,10 @@ class OmeTifReaderTestGroup(unittest.TestCase):
 
     def test_omeTifEmptyFileError(self):
         with self.assertRaises(Exception):
-            with omeTifReader.OmeTifReader('fakefile') as reader:
+            with OmeTifReader('fakefile') as reader:
                 reader.load()
 
     def test_notOmeTifFile(self):
         with self.assertRaises(Exception):
-            with omeTifReader.OmeTifReader(os.path.join(self.dir_path, 'img', 'T=5_Z=3_CH=2_CZT_All_CH_per_Slice.czi')) as reader:
+            with OmeTifReader(os.path.join(self.dir_path, 'img', 'T=5_Z=3_CH=2_CZT_All_CH_per_Slice.czi')) as reader:
                 reader.load()

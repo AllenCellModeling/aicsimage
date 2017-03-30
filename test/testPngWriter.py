@@ -5,10 +5,9 @@
 import os
 import unittest
 
-from aics.image.io import pngReader
-
-from io import pngWriter
-from iotest.transformation import *
+from imageio import pngReader
+from imageio import pngWriter
+from test.transformation import *
 
 
 class PngWriterTestGroup(unittest.TestCase):

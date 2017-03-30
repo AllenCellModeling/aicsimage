@@ -15,7 +15,7 @@ import xml.etree.ElementTree as ElementTree
 
 import sys
 if sys.version_info.major == 3:
-    from io import StringIO
+    from imageio import StringIO
     uenc = 'unicode'
 else:
     from cStringIO import StringIO
