@@ -1,7 +1,5 @@
 build/
 dist/
 .idea/
-.image/
-.processing/
 *.egg-info/
 *.pyc
