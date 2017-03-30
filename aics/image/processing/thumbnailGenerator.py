@@ -264,6 +264,8 @@ class ThumbnailGenerator:
                 # inject color.  careful of type mismatches.
                 rgb_out *= self.colors[i]
 
+                rgb_out /= np.max(rgb_out)
+
                 rgb_out = resize_cyx_image(rgb_out.transpose((2, 1, 0)), shape_out_rgb).astype(np.float32)
                 composite += rgb_out
             # renormalize
@@ -306,6 +308,8 @@ class ThumbnailGenerator:
 
                 # inject color.  careful of type mismatches.
                 rgb_out *= self.colors[i]
+
+                rgb_out /= np.max(rgb_out)
 
                 rgb_out = resize_cyx_image(rgb_out.transpose((2, 1, 0)), shape_out_rgb)
                 composite += rgb_out
