@@ -1,15 +1,15 @@
 import unittest
-from test import testImgToProjection
-from test import testThumbnailGenerator
+from processingtest import testImgToProjection
+from processingtest import testThumbnailGenerator
 
 """
-To test all modules with the command line, use:
-    python setup.py test
+To processingtest all modules with the command line, use:
+    python setup.py processingtest
 
-To test individual modules with the command line, use:
+To processingtest individual modules with the command line, use:
     python -m unittest discover --pattern=test_module.py
 
-It is a possibility to test a few modules at a time with a regex pattern:
+It is a possibility to processingtest a few modules at a time with a regex pattern:
     python -m unittest discover --pattern=*Reader.py
 However, this can cause issues with the **bioformats** implementation because the JVM
 will crash after one or more instantiations

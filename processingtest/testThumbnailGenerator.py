@@ -3,8 +3,10 @@
 # author: Zach Crabtree zacharyc@alleninstitute.org
 
 import unittest
+
 import numpy as np
-from aics.image.processing.thumbnailGenerator import ThumbnailGenerator
+
+from processing.thumbnailGenerator import ThumbnailGenerator
 
 
 class ThumbnailGeneratorTestGroup(unittest.TestCase):

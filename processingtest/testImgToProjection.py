@@ -1,7 +1,9 @@
 import unittest
-import numpy as np
-from aics.image.processing.imgtoprojection import imgtoprojection
 from random import randrange
+
+import numpy as np
+
+from processing import imgtoprojection
 
 
 class Img2ProjectionTestGroup(unittest.TestCase):
