@@ -1,14 +1,15 @@
 import unittest
 
 from imageio import init, close
-from test import testCziReader
-from test import testOmeTifReader
-from test import testOmeTifWriter
-from test import testPngReader
-from test import testPngWriter
-from test import testTifReader
-from test import testImgToProjection, testTifReader
-from test import testThumbnailGenerator
+import testCziReader
+import testOmeTifReader
+import testOmeTifWriter
+import testPngReader
+import testPngWriter
+import testTifReader
+import testImgToProjection
+import testTifReader
+import testThumbnailGenerator
 
 """
 To test all modules with the command line, use:
