@@ -1,11 +1,11 @@
-# Author Evan Wiederspan evanw@alleninstitute.org
+# Author Evan Wiederspan <evanw@alleninstitute.org>
 
 import numpy as np
 from scipy.ndimage.interpolation import rotate
 from math import ceil
 
 
-def getMajorMinorAxis(img):
+def get_major_minor_axis(img):
     """
     Finds the major and minor axis as 3d vectors of the passed in image
     :param img: CZYX numpy array
@@ -20,7 +20,7 @@ def getMajorMinorAxis(img):
     return (evecs[:, order[-1]], evecs[:, order[0]])
 
 
-def unitVector(v):
+def unit_vector(v):
     """
     Return unit vector of v
     :param v: vector as numpy array
@@ -32,7 +32,7 @@ def unitVector(v):
         return np.array([0] * v.ndim)
 
 
-def angleBetween(v1, v2):
+def angle_between(v1, v2):
     """
     Finds angle between two 2d vectors
     :param v1: first vector as a numpy array
@@ -41,14 +41,14 @@ def angleBetween(v1, v2):
     """
     if getattr(v1, 'ndim', 0) != 1 or getattr(v2, 'ndim', 0) != 1:
         raise ValueError("v1 and v2 must be 1d numpy arrays")
-    dot_prod = np.dot(unitVector(v1), unitVector(v2))
+    dot_prod = np.dot(unit_vector(v1), unit_vector(v2))
     # happens if of one the passed in vectors has length 0
     if np.isnan(dot_prod):
         return 0
     return np.degrees(np.arccos(dot_prod))
 
 
-def alignMajor(img, axis="zyx", reshape=False):
+def align_major(img, axis="zyx", reshape=False):
     """
     Rotates a CZYX image so that its major, minor-ish, and minor axis are aligned with
     the axis specified in the 'axis' parameter
@@ -68,25 +68,25 @@ def alignMajor(img, axis="zyx", reshape=False):
     axis_map = {'x': 0, 'y': 1, 'z': 2}
     if not isinstance(axis, str) or len(axis) != 3 or not all(a in axis_map for a in axis):
         raise ValueError("axis must be an arrangement of 'xyz'")
-    axis = [axis_map[a] for a in axis]
+    axis_list = [axis_map[a] for a in axis]
     # unit vectors for x, y, and z axis
     axis_vectors = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
     # slices for selecting yz, xz, and xy components from vectors
     slices = (slice(1, 3), slice(0, 3, 2), slice(0, 2))
     rotate_axis = ((1, 2), (1, 3), (2, 3))
     # index of the major axis (0, 1, or 2)
-    maj_axis_i = axis[0]
-    maj_axis = axis_vectors[axis[0]]
-    min_axis = axis_vectors[axis[-1]]
-    img_maj_axis, img_min_axis = getMajorMinorAxis(img)
+    maj_axis_i = axis_list[0]
+    maj_axis = axis_vectors[axis_list[0]]
+    min_axis = axis_vectors[axis_list[-1]]
+    img_maj_axis, img_min_axis = get_major_minor_axis(img)
     # rotate around other two axis (e.g if aligning major to Z axis, rotate around Y and X to get there)
     out = img.copy()
     for a in range(3):
         if a == maj_axis_i:
             # final rotation goes around major axis to align the minor axis properly
-            angle = angleBetween(min_axis[slices[maj_axis_i]], img_min_axis[slices[maj_axis_i]])
+            angle = angle_between(min_axis[slices[maj_axis_i]], img_min_axis[slices[maj_axis_i]])
         else:
-            angle = angleBetween(maj_axis[slices[a]], img_maj_axis[slices[a]])
+            angle = angle_between(maj_axis[slices[a]], img_maj_axis[slices[a]])
         out = rotate(out, angle, reshape=reshape, order=1, axes=rotate_axis[a], cval=(np.nan if reshape else 0))
     if reshape:
         # cropping necessary as each resize makes the image bigger
@@ -99,7 +99,7 @@ def alignMajor(img, axis="zyx", reshape=False):
 def crop(img, val=None):
     """
     Crops image based on background color val
-    This should eventually be made more modular and moved to 
+    This should eventually be made more modular and moved to its own file
     :param img: CZYX image as numpy array
     :param val: value to use as background color. Default is None, in which case np.nan is used
     :return: CZYX image as numpy array
