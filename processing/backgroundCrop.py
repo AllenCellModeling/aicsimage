@@ -30,7 +30,7 @@ def crop(img, val=0, axis=(-3, -2, -1), padding=0, get_slices=False):
         for i in axis:
             # axis to search
             try:
-                a = i if i >= 0 else ndim - i
+                a = i if i >= 0 else ndim + i
             except TypeError:
                 # if i isn't a number
                 raise ValueError("axis must only contain integers")
@@ -40,13 +40,13 @@ def crop(img, val=0, axis=(-3, -2, -1), padding=0, get_slices=False):
             axis_length = img.shape[a] - 1
             # loop from front to find min
             for s_i in range(axis_length):
-                axis_slice[a + 1] = s_i
+                axis_slice[a] = s_i
                 if not np.all(np.isnan(img[axis_slice]) if np.isnan(val) else img[axis_slice] == val):
                     ends_map[a][0] = max(s_i - padding, 0)
                     break
             # loop from back to find max
             for s_i in range(axis_length, 0, -1):
-                axis_slice[a + 1] = s_i
+                axis_slice[a] = s_i
                 if not np.all(np.isnan(img[axis_slice]) if np.isnan(val) else img[axis_slice] == val):
                     ends_map[a][1] = min(s_i + padding + 1, img.shape[a])
                     break
