@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
 <project name="aicsimage" basedir="."
-         default="deploy" unless="ant:unless"
+         default="clean" unless="ant:unless"
          if="ant:if" ivy="antlib:org.apache.ivy.ant">
 
     <property environment="env"/>
