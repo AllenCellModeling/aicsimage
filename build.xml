@@ -1,8 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
-<project name="aicsimage" basedir="."
-         default="clean" unless="ant:unless"
-         if="ant:if" ivy="antlib:org.apache.ivy.ant">
+<project name="aicsimage" basedir="." default="clean">
 
     <property environment="env"/>
     <!--
