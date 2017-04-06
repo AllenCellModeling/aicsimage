@@ -5,7 +5,6 @@ node {
             git branch: 'feature/jenkins-testing', url: 'http://zacharyc@stash.corp.alleninstitute.org/scm/aics/aicsimage.git'
         }
         stage ("Cleaning") {
-
             sh 'ant -f build.xml clean'
         }
     }
