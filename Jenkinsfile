@@ -2,7 +2,7 @@ node {
 
     try {
         stage ("Artifactory and Git configuration") {
-            git url: 'http://zacharyc@stash.corp.alleninstitute.org/scm/aics/aicsimage.git'
+            git branch: 'feature/jenkins-testing', url: 'http://zacharyc@stash.corp.alleninstitute.org/scm/aics/aicsimage.git'
         }
         stage ("Cleaning") {
             sh 'ant -f build.xml clean'
