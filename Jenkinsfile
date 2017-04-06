@@ -6,8 +6,8 @@ node {
             def server = Artifactory.server "SERVER_ID"
             git url: 'http://zacharyc@stash.corp.alleninstitute.org/scm/aics/aicsimage.git'
         }
-        stage ("Testing") {
-            sh 'python setup.py test'
+        stage ("Cleaning") {
+            sh 'ant -f build.xml clean'
         }
     }
     catch(e) {

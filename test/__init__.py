@@ -49,8 +49,6 @@ class TotalTestGroup(unittest.TestCase):
         exitcode = unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
         print('\n')
         self.assertTrue(exitcode)
-        with open("success.txt", 'w') as w:
-            w.write(str(int(exitcode)))
 
     def tearDown(self):
         close()

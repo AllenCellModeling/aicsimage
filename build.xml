@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<project name="aicsimage" basedir="."
+         default="deploy" unless="ant:unless"
+         if="ant:if" ivy="antlib:org.apache.ivy.ant">
+
+    <property environment="env"/>
+    <!--
+        CREDENTIALS FOR PUBLISHING TO ARTIFACTORY
+        Required only on Jenkins
+    -->
+
+    <target name="init">
+        <property name="module.build.dir" location="${module.src.dir}/build"/>
+        <property name="module.config.dir" location="${module.src.dir}/config" />
+        <property name="module.egg_info.dir" location="${module.src.dir}/aicsimage.egg-info"/>
+    </target>
+
+    <target name="testing" failonerror="true">
+        <exec dir="." executable="python">
+            <arg line='setup.py test'/>
+        </exec>
+    </target>
+
+
+    <!-- ================================== -->
+    <!-- TOP LEVEL TARGETS -->
+    <!-- ================================== -->
+
+    <target name="clean" depends="init">
+        <delete dir="${module.dist.dir}" />
+        <delete dir="${module.config.dir}" />
+        <delete dir="${module.egg_info.dir}"/>
+        <echo message="clean complete!"/>
+    </target>
+
+    <target name="publish-snapshot" depends="testing">
+        <echo message="testing complete!"/>
+    </target>
+
+</project>
