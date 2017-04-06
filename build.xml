@@ -12,7 +12,7 @@
 
     <target name="init">
         <property name="module.build.dir" location="${module.src.dir}/build"/>
-        <property name="module.config.dir" location="${module.src.dir}/config" />
+        <property name="module.config.dir" location="${module.src.dir}/config"/>
         <property name="module.egg_info.dir" location="${module.src.dir}/aicsimage.egg-info"/>
     </target>
 
@@ -28,8 +28,8 @@
     <!-- ================================== -->
 
     <target name="clean" depends="init">
-        <delete dir="${module.dist.dir}" />
-        <delete dir="${module.config.dir}" />
+        <delete dir="${module.build.dir}"/>
+        <delete dir="${module.config.dir}"/>
         <delete dir="${module.egg_info.dir}"/>
         <echo message="clean complete!"/>
     </target>
