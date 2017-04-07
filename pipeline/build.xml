@@ -24,7 +24,7 @@
         <echoproperties prefix="module."/>
     </target>
 
-    <target name="testing">
+    <target name="testing" failonerror="true">
         <echo>${user.dir}</echo>
         <exec dir="." executable="python">
             <arg line='../setup.py test'/>
