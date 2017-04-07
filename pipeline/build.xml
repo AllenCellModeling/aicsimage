@@ -11,6 +11,8 @@
     <property file="${env.HOME}/.ivy2/.ant-credentials"/>
 
     <target name="init">
+        <property name="module.build.dir" location="${basedir}" />
+        <property name="module.src.dir" location="${basedir}/.."/>
         <property name="module.build.dir" location="${module.src.dir}/build"/>
         <property name="module.dist.dir" location="${module.src.dir}/dist"/>
         <property name="module.egg_info.dir" location="${module.src.dir}/aicsimage.egg-info"/>
