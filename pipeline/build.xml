@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
-<project name="aicsimage" basedir="." default="clean"
-         xmlns:ivy="antlib:org.apache.ivy.ant">
+<project name="aicsimage" basedir="." default="clean">
 
     <property environment="env"/>
     <!--
@@ -13,22 +12,13 @@
     <target name="init">
         <property name="module.build.dir" location="${basedir}" />
         <property name="module.src.dir" location="${basedir}/.."/>
-        <property name="module.build.dir" location="${module.src.dir}/build"/>
+        <property name="module.buildfolder.dir" location="${module.src.dir}/build"/>
         <property name="module.dist.dir" location="${module.src.dir}/dist"/>
         <property name="module.egg_info.dir" location="${module.src.dir}/aicsimage.egg-info"/>
-
-        <ivy:settings file="ivysettings.xml">
-            <credentials host="${publish.host}" realm="${publish.realm}"
-                username="${publish.username}" passwd="${publish.passwd}"/>
-        </ivy:settings>
-        <ivy:resolve file="ivy.xml"/>
-
         <echoproperties prefix="module."/>
     </target>
 
     <target name="testing">
-        <echo>${user.dir}</echo>
-        <echo>${module.src.dir}</echo>
         <exec dir="." executable="python">
             <arg line='${module.src.dir}/setup.py test'/>
         </exec>
@@ -39,7 +29,7 @@
     <!-- ================================== -->
 
     <target name="clean" depends="init">
-        <delete dir="${module.build.dir}"/>
+        <delete dir="${module.buildfolder.dir}"/>
         <delete dir="${module.config.dir}"/>
         <delete dir="${module.egg_info.dir}"/>
         <echo message="clean complete!"/>
