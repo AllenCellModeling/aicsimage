@@ -25,6 +25,7 @@
     </target>
 
     <target name="testing">
+        <echo>${user.dir}</echo>
         <exec dir="." executable="python">
             <arg line='../setup.py test'/>
         </exec>
