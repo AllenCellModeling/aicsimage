@@ -19,7 +19,7 @@
 
     <target name="testing">
         <echo>${env.VENV_ROOT}</echo>
-        <exec dir="${env.VENV_ROOT}/aicsimage/bin" executable="source">
+        <exec dir="${env.VENV_ROOT}/aicsimage/bin" executable=".">
             <arg value="activate"/>
         </exec>
         <exec dir="module.src.dir" executable="python">
