@@ -26,6 +26,7 @@
 
     <target name="testing">
         <echo>${user.dir}</echo>
+        <echo>${module.src.dir}</echo>
         <exec dir="." executable="python">
             <arg line='${module.src.dir}/setup.py test'/>
         </exec>
