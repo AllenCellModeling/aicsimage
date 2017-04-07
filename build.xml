@@ -18,10 +18,15 @@
     </target>
 
     <target name="testing">
-        <exec dir="." executable="python">
+        <echo>${env.VENV_ROOT}</echo>
+        <exec dir="${env.VENV_ROOT}/aicsimage/bin" executable="source">
+            <arg value="activate"/>
+        </exec>
+        <exec dir="module.src.dir" executable="python">
             <arg value='setup.py'/>
             <arg value='test'/>
         </exec>
+        <exec dir="module.src.dir" executable="deactivate"/>
     </target>
 
     <!-- ================================== -->
