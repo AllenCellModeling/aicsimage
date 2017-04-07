@@ -12,7 +12,7 @@
 
     <target name="init">
         <property name="module.build.dir" location="${module.src.dir}/build"/>
-        <property name="module.config.dir" location="${module.src.dir}/config"/>
+        <property name="module.dist.dir" location="${module.src.dir}/dist"/>
         <property name="module.egg_info.dir" location="${module.src.dir}/aicsimage.egg-info"/>
 
         <ivy:settings file="ivysettings.xml">
@@ -26,7 +26,7 @@
 
     <target name="testing">
         <exec dir="." executable="python">
-            <arg line='setup.py test'/>
+            <arg line='../setup.py test'/>
         </exec>
     </target>
 
