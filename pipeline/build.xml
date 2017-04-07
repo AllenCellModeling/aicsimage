@@ -14,7 +14,7 @@
         <property name="module.build_folder.dir" location="${module.src.dir}/build"/>
         <property name="module.dist.dir" location="${module.src.dir}/dist"/>
         <property name="module.egg_info.dir" location="${module.src.dir}/aicsimage.egg-info"/>
-        <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/aicsimage/bin"/>
+        <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
         <echoproperties prefix="module."/>
     </target>
 
