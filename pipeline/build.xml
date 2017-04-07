@@ -14,11 +14,12 @@
         <property name="module.build_folder.dir" location="${module.src.dir}/build"/>
         <property name="module.dist.dir" location="${module.src.dir}/dist"/>
         <property name="module.egg_info.dir" location="${module.src.dir}/aicsimage.egg-info"/>
+        <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/aicsimage/bin"/>
         <echoproperties prefix="module."/>
     </target>
 
     <target name="testing" depends="init">
-        <exec dir="${module.src.dir}" executable="${env.VENV_ROOT}/aicsimage/bin/python" failonerror="true">
+        <exec dir="${module.src.dir}" executable="${module.virtualenv.dir}/python" failonerror="true">
             <arg value='setup.py'/>
             <arg value='test'/>
         </exec>
