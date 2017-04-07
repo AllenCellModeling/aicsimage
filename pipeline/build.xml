@@ -20,7 +20,9 @@
         <property name="module.egg_info.dir" location="${module.src.dir}/${ant.project.name}.egg-info"/>
         <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
         <echoproperties prefix="module."/>
+    </target>
 
+    <target name="ivy-init">
         <ivy:settings file="${module.pipeline.dir}/ivysettings.xml">
             <credentials host="${publish.host}" realm="${publish.realm}"
                 username="${publish.username}" passwd="${publish.passwd}" />
@@ -46,7 +48,7 @@
         <echo message="clean complete!"/>
     </target>
 
-    <target name="publish-snapshot" depends="testing">
+    <target name="publish-snapshot" depends="testing,ivy-init">
         <publish resolver="pypi-snapshot-local" revision="${build.version}"
                  status="testing" dist.dir="${module.dist.dir}"/>
     </target>

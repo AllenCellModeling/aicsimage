@@ -12,6 +12,9 @@ node ("python2.7") {
         stage ("Testing") {
             sh 'ant -f pipeline/build.xml testing'
         }
+        stage ("Publish") {
+
+        }
     }
     catch(e) {
         currentBuild.result = "FAILED"
