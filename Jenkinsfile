@@ -1,4 +1,4 @@
-node {
+node ("python2.7") {
     try {
         // Set path for custom management tools on jenkins
         env.PATH = "${env.PATH}:/local1/svchome/jenkins-version-control/bin"
