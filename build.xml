@@ -10,7 +10,7 @@
     <property file="${env.HOME}/.ivy2/.ant-credentials"/>
 
     <target name="init">
-        <property name="module.src.dir" location="${basedir}/.."/>
+        <property name="module.src.dir" location="${basedir}"/>
         <property name="module.buildfolder.dir" location="${module.src.dir}/build"/>
         <property name="module.dist.dir" location="${module.src.dir}/dist"/>
         <property name="module.egg_info.dir" location="${module.src.dir}/aicsimage.egg-info"/>
@@ -19,7 +19,7 @@
 
     <target name="testing">
         <exec dir="." executable="python">
-            <arg value='../setup.py'/>
+            <arg value='setup.py'/>
             <arg value='test'/>
         </exec>
     </target>
