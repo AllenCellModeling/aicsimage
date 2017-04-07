@@ -7,11 +7,20 @@
         CREDENTIALS FOR PUBLISHING TO ARTIFACTORY
         Required only on Jenkins
     -->
+    <property file="${env.HOME}/.ivy2/.ant-credentials"/>
 
     <target name="init">
         <property name="module.build.dir" location="${module.src.dir}/build"/>
         <property name="module.config.dir" location="${module.src.dir}/config"/>
         <property name="module.egg_info.dir" location="${module.src.dir}/aicsimage.egg-info"/>
+
+        <ivy:settings file="ivysettings.xml">
+            <credentials host="${publish.host}" realm="${publish.realm}"
+                username="${publish.username}" passwd="${publish.passwd}" />
+        </ivy:settings>
+        <ivy:resolve file="${module.src.dir}/ivy.xml" />
+
+        <echoproperties prefix="module."/>
     </target>
 
     <target name="testing">
@@ -19,7 +28,6 @@
             <arg line='setup.py test'/>
         </exec>
     </target>
-
 
     <!-- ================================== -->
     <!-- TOP LEVEL TARGETS -->

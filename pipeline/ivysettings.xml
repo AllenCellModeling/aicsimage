@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivysettings>
+    <settings defaultResolver="main" />
+
+    <caches defaultCacheDir="${user.home}/.ivy2/cache"
+            ivyPattern="[organisation]/[module]/ivy-[revision].xml"
+            artifactPattern="[organisation]/[module]/[artifact]-[revision].[ext]">
+        <cache name="internal-cache" useOrigin="true"
+               basedir="${user.home}/.ivy2/internal-cache/" />
+    </caches>
+
+    <property name="m2pattern" value="[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"/>
+    <property name="aics.repo.url" value="https://artifactory.corp.alleninstitute.org:443/artifactory"/>
+
+
+    <resolvers>
+        <!-- Local cache -->
+        <filesystem name="localhost" changingPattern=".*" cache="internal-cache">
+            <ivy pattern="${user.home}/.ivy2/m2/[organisation]/[module]/[revision]/ivy-[revision].xml" />
+            <artifact pattern="${user.home}/.ivy2/m2/${m2pattern}" />
+        </filesystem>
+
+        <!-- AICS maven release repo -->
+        <url name="maven-release" m2compatible="true" changingPattern=".*">
+            <artifact pattern="${aics.repo.url}/maven-release-local/${m2pattern}" />
+        </url>
+
+        <!-- AICS maven snapshot repo -->
+        <url name="maven-snapshot" m2compatible="true" changingPattern=".*">
+            <artifact pattern="${aics.repo.url}/maven-snapshot-local/${m2pattern}" />
+        </url>
+
+
+        <!-- Allow 3rd party read-only repository -->
+        <ibiblio name="public" m2compatible="true" root="${aics.repo.url}/ivy-virtual" />
+
+        <chain name="main">
+            <resolver ref="localhost"/>
+            <resolver ref="maven-release"/>
+            <resolver ref="maven-snapshot"/>
+            <resolver ref="public"/>
+        </chain>
+    </resolvers>
+</ivysettings>
