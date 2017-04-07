@@ -2,7 +2,8 @@
 
 <!--the project name, python package name, and venv name in Jenkins-01 must match-->
 <project name="aicsimage" basedir="." default="clean"
-         xmlns:ivy="antlib:org.apache.ivy.ant">
+         xmlns:ivy="antlib:org.apache.ivy.ant"
+         xmlns:if="ant:if">
 
     <property environment="env"/>
     <!--
@@ -46,7 +47,8 @@
     </target>
 
     <target name="publish-snapshot" depends="testing">
-        <echo message="testing complete!"/>
+        <publish resolver="pypi-snapshot-local" revision="${build.version}"
+                 status="testing" dist.dir="${module.dist.dir}"/>
     </target>
 
 </project>
