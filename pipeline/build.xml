@@ -19,7 +19,7 @@
             <credentials host="${publish.host}" realm="${publish.realm}"
                 username="${publish.username}" passwd="${publish.passwd}" />
         </ivy:settings>
-        <ivy:resolve file="${module.src.dir}/ivy.xml" />
+        <ivy:resolve file="ivy.xml" />
 
         <echoproperties prefix="module."/>
     </target>
