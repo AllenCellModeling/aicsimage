@@ -9,25 +9,19 @@
                basedir="${user.home}/.ivy2/internal-cache/" />
     </caches>
 
-    <property name="m2pattern" value="[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"/>
+    <property name="wheelpattern" value="[module]-[revision]-py2.py3-none-any.[ext]"/>
     <property name="aics.repo.url" value="https://artifactory.corp.alleninstitute.org:443/artifactory"/>
 
 
     <resolvers>
-        <!-- Local cache -->
-        <filesystem name="localhost" changingPattern=".*" cache="internal-cache">
-            <ivy pattern="${user.home}/.ivy2/m2/[organisation]/[module]/[revision]/ivy-[revision].xml" />
-            <artifact pattern="${user.home}/.ivy2/m2/${m2pattern}" />
-        </filesystem>
-
-        <!-- AICS maven release repo -->
+        <!-- AICS pypi release repo -->
         <url name="pypi-release-local" m2compatible="true" changingPattern=".*">
-            <artifact pattern="${aics.repo.url}/pypi-release-local/${m2pattern}" />
+            <artifact pattern="${aics.repo.url}/pypi-release-local/${wheelpattern}" />
         </url>
 
         <!-- AICS pypi snapshot repo -->
         <url name="pypi-snapshot-local" m2compatible="true" changingPattern=".*">
-            <artifact pattern="${aics.repo.url}/pypi-snapshot-local/${m2pattern}" />
+            <artifact pattern="${aics.repo.url}/pypi-snapshot-local/${wheelpattern}" />
         </url>
 
         <!-- Allow 3rd party read-only repository -->

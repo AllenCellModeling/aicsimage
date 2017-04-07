@@ -4,7 +4,7 @@
             xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
 
     <info
-        organisation="org.alleninstitute.aics.animatedcell"
+        organisation="org.alleninstitute.aics.software"
         module="aicsimage"
         revision='0.0.1'
     />
