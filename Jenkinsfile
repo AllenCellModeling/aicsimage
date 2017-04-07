@@ -7,10 +7,10 @@ node ("python2.7") {
             git branch: 'feature/jenkins-testing', url: 'http://zacharyc@stash.corp.alleninstitute.org/scm/aics/aicsimage.git'
         }
         stage ("Cleaning") {
-            sh 'ant -f build.xml clean'
+            sh 'ant -f pipeline/build.xml clean'
         }
         stage ("Testing") {
-            sh 'ant -f build.xml testing'
+            sh 'ant -f pipeline/build.xml testing'
         }
     }
     catch(e) {

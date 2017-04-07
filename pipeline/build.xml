@@ -10,15 +10,15 @@
     <property file="${env.HOME}/.ivy2/.ant-credentials"/>
 
     <target name="init">
-        <property name="module.src.dir" location="${basedir}"/>
+        <property name="module.src.dir" location="${basedir}/.."/>
         <property name="module.build_folder.dir" location="${module.src.dir}/build"/>
         <property name="module.dist.dir" location="${module.src.dir}/dist"/>
         <property name="module.egg_info.dir" location="${module.src.dir}/aicsimage.egg-info"/>
         <echoproperties prefix="module."/>
     </target>
 
-    <target name="testing">
-        <exec dir="${basedir}" executable="${env.VENV_ROOT}/aicsimage/bin/python" failonerror="true">
+    <target name="testing" depends="init">
+        <exec dir="${module.src.dir}" executable="${env.VENV_ROOT}/aicsimage/bin/python" failonerror="true">
             <arg value='setup.py'/>
             <arg value='test'/>
         </exec>
