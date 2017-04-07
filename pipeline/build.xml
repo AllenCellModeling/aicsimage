@@ -26,7 +26,7 @@
 
     <target name="testing">
         <exec dir="." executable="python">
-            <arg line='setup.py test'/>
+            <arg line='../setup.py test'/>
         </exec>
     </target>
 
