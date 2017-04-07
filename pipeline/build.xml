@@ -15,11 +15,11 @@
         <property name="module.config.dir" location="${module.src.dir}/config"/>
         <property name="module.egg_info.dir" location="${module.src.dir}/aicsimage.egg-info"/>
 
-        <ivy:settings file="pipeline/ivysettings.xml">
+        <ivy:settings file="ivysettings.xml">
             <credentials host="${publish.host}" realm="${publish.realm}"
                 username="${publish.username}" passwd="${publish.passwd}"/>
         </ivy:settings>
-        <ivy:resolve file="pipeline/ivy.xml"/>
+        <ivy:resolve file="ivy.xml"/>
 
         <echoproperties prefix="module."/>
     </target>
