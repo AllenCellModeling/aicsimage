@@ -19,7 +19,8 @@
 
     <target name="testing">
         <exec dir="." executable="python">
-            <arg line='setup.py test'/>
+            <arg value='${module.src.dir}/setup.py'/>
+            <arg value='test'/>
         </exec>
     </target>
 
