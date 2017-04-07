@@ -23,6 +23,7 @@
     </target>
 
     <target name="ivy-init">
+        <!--This is needed for artifactory publication-->
         <ivy:settings file="${module.pipeline.dir}/ivysettings.xml">
             <credentials host="${publish.host}" realm="${publish.realm}"
                 username="${publish.username}" passwd="${publish.passwd}" />
@@ -37,6 +38,41 @@
         </exec>
     </target>
 
+    <target name="build" depends="testing">
+        <exec dir="${module.src.dir}" executable="${module.virtualenv.dir}/python" failonerror="true">
+            <arg line='setup.py bdist_wheel --universal'/>
+        </exec>
+    </target>
+
+    <!-- ================================== -->
+    <!-- MACROS -->
+    <!-- ================================== -->
+
+     <macrodef name="publish">
+        <attribute name="resolver"/>
+        <attribute name="revision"/>
+        <attribute name="dist.dir"/>
+        <attribute name="status"/>
+        <sequential>
+            <echo>Macrodef "publish" called with resolver=@{resolver}, revision=@{revision}</echo>
+
+            <ivy:deliver deliverpattern="@{dist.dir}/ivy-@{revision}.xml"
+                         pubrevision="@{revision}"
+                         status="@{status}"/>
+
+            <ivy:makepom ivyfile="@{dist.dir}/ivy-@{revision}.xml"
+                         pomfile="@{dist.dir}/${ivy.module}-@{revision}.pom"/>
+
+            <ivy:publish artifactspattern="@{dist.dir}/[artifact]-@{revision}(-[classifier]).[ext]"
+                         resolver="@{resolver}"
+                         pubrevision="@{revision}"
+                         status="@{status}"
+                         overwrite="true"/>
+
+            <echo>Published "${module.name}-@{revision}.module" @{status} to repo @{resolver}</echo>
+        </sequential>
+    </macrodef>
+
     <!-- ================================== -->
     <!-- TOP LEVEL TARGETS -->
     <!-- ================================== -->
@@ -48,7 +84,7 @@
         <echo message="clean complete!"/>
     </target>
 
-    <target name="publish-snapshot" depends="testing,ivy-init">
+    <target name="publish-snapshot" depends="build,ivy-init">
         <publish resolver="pypi-snapshot-local" revision="${build.version}"
                  status="testing" dist.dir="${module.dist.dir}"/>
     </target>

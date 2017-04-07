@@ -21,23 +21,22 @@
         </filesystem>
 
         <!-- AICS maven release repo -->
-        <url name="maven-release" m2compatible="true" changingPattern=".*">
-            <artifact pattern="${aics.repo.url}/maven-release-local/${m2pattern}" />
+        <url name="pypi-release-local" m2compatible="true" changingPattern=".*">
+            <artifact pattern="${aics.repo.url}/pypi-release-local/${m2pattern}" />
         </url>
 
-        <!-- AICS maven snapshot repo -->
-        <url name="maven-snapshot" m2compatible="true" changingPattern=".*">
-            <artifact pattern="${aics.repo.url}/maven-snapshot-local/${m2pattern}" />
+        <!-- AICS pypi snapshot repo -->
+        <url name="pypi-snapshot-local" m2compatible="true" changingPattern=".*">
+            <artifact pattern="${aics.repo.url}/pypi-snapshot-local/${m2pattern}" />
         </url>
-
 
         <!-- Allow 3rd party read-only repository -->
         <ibiblio name="public" m2compatible="true" root="${aics.repo.url}/ivy-virtual" />
 
         <chain name="main">
             <resolver ref="localhost"/>
-            <resolver ref="maven-release"/>
-            <resolver ref="maven-snapshot"/>
+            <resolver ref="pypi-release-local"/>
+            <resolver ref="pypi-snapshot-local"/>
             <resolver ref="public"/>
         </chain>
     </resolvers>
