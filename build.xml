@@ -18,7 +18,7 @@
     </target>
 
     <target name="testing">
-        <exec dir="${module.src.dir}" executable="${env.VENV_ROOT}/aicsimage/bin/python" failonerror="true">
+        <exec dir="." executable="${env.VENV_ROOT}/aicsimage/bin/python" failonerror="true">
             <arg value='setup.py'/>
             <arg value='test'/>
         </exec>
