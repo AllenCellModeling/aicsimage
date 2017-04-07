@@ -6,14 +6,8 @@ node ("python2.7") {
         stage ("Artifactory and Git configuration") {
             git branch: 'feature/jenkins-testing', url: 'http://zacharyc@stash.corp.alleninstitute.org/scm/aics/aicsimage.git'
         }
-        stage ("Cleaning") {
-            sh 'ant -f pipeline/build.xml clean'
-        }
-        stage ("Testing") {
-            sh 'ant -f pipeline/build.xml testing'
-        }
         stage ("Publish") {
-
+            sh 'ant -f pipeline/build.xml clean publish-snapshot'
         }
     }
     catch(e) {
