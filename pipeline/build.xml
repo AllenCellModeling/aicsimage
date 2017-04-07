@@ -10,11 +10,12 @@
     <property file="${env.HOME}/.ivy2/.ant-credentials"/>
 
     <target name="init">
-        <property name="module.build.dir" location="${basedir}" />
-        <property name="module.src.dir" location="${basedir}/.."/>
-        <property name="module.buildfolder.dir" location="${module.src.dir}/build"/>
-        <property name="module.dist.dir" location="${module.src.dir}/dist"/>
-        <property name="module.egg_info.dir" location="${module.src.dir}/aicsimage.egg-info"/>
+        <property name="basedir" location="${basedir}/../../"/>
+        <property name="pipelinedir" location="${basedir}/pipeline"/>
+        <property name="module.work.dir" location="${basedir}"/>
+        <property name="module.buildfolder.dir" location="${module.work.dir}/build"/>
+        <property name="module.dist.dir" location="${module.work.dir}/dist"/>
+        <property name="module.egg_info.dir" location="${module.work.dir}/aicsimage.egg-info"/>
         <echoproperties prefix="module."/>
     </target>
 
