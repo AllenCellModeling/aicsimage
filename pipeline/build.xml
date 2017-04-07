@@ -13,17 +13,18 @@
 
     <target name="init">
         <property name="module.src.dir" location="${basedir}/.."/>
+        <property name="module.pipeline.dir" location="${basedir}"/>
         <property name="module.build_folder.dir" location="${module.src.dir}/build"/>
         <property name="module.dist.dir" location="${module.src.dir}/dist"/>
         <property name="module.egg_info.dir" location="${module.src.dir}/${ant.project.name}.egg-info"/>
         <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
         <echoproperties prefix="module."/>
 
-        <ivy:settings file="ivysettings.xml">
+        <ivy:settings file="${module.pipeline.dir}/ivysettings.xml">
             <credentials host="${publish.host}" realm="${publish.realm}"
                 username="${publish.username}" passwd="${publish.passwd}" />
         </ivy:settings>
-        <ivy:resolve file="${module.src.dir}/ivy.xml" />
+        <ivy:resolve file="${module.pipeline.dir}/ivy.xml" />
     </target>
 
     <target name="testing" depends="init">
