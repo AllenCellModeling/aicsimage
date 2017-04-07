@@ -11,14 +11,14 @@
 
     <target name="init">
         <property name="module.src.dir" location="${basedir}"/>
-        <property name="module.buildfolder.dir" location="${module.src.dir}/build"/>
+        <property name="module.build_folder.dir" location="${module.src.dir}/build"/>
         <property name="module.dist.dir" location="${module.src.dir}/dist"/>
         <property name="module.egg_info.dir" location="${module.src.dir}/aicsimage.egg-info"/>
         <echoproperties prefix="module."/>
     </target>
 
     <target name="testing">
-        <exec dir="." executable="${env.VENV_ROOT}/aicsimage/bin/python" failonerror="true">
+        <exec dir="${basedir}" executable="${env.VENV_ROOT}/aicsimage/bin/python" failonerror="true">
             <arg value='setup.py'/>
             <arg value='test'/>
         </exec>
@@ -29,7 +29,7 @@
     <!-- ================================== -->
 
     <target name="clean" depends="init">
-        <delete dir="${module.buildfolder.dir}"/>
+        <delete dir="${module.build_folder.dir}"/>
         <delete dir="${module.config.dir}"/>
         <delete dir="${module.egg_info.dir}"/>
         <echo message="clean complete!"/>
