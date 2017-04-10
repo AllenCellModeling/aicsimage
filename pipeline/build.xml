@@ -15,6 +15,7 @@
     <task if:set="${module.virtualenv.dir}">
         <property name="python_executable" location="${module.virtualenv.dir}/python"/>
     </task>
+    <echo message="${python_executable}"/>
 
     <target name="testing">
         <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
