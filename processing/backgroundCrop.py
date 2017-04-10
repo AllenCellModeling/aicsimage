@@ -4,7 +4,7 @@ import numpy as np
 
 def crop(img, val=0, axis=(-3, -2, -1), padding=0, get_slices=False):
     """
-    Crops an image to remove the background color val
+    Crops an image to remove the background color val along arbitrary axis
     :param img: numpy array to crop
     :param val: value to crop out. default is 0
     :param axis: tuple or list of axis indices to crop along. Can be either positive or negative values.
