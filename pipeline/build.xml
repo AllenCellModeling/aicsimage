@@ -2,76 +2,26 @@
 
 <!--the project name, python package name, and venv name in Jenkins-01 must match-->
 <project name="aicsimage" basedir="." default="clean"
-         xmlns:ivy="antlib:org.apache.ivy.ant"
          xmlns:if="ant:if">
 
     <property environment="env"/>
-    <!--
-        CREDENTIALS FOR PUBLISHING TO ARTIFACTORY
-        Required only on Jenkins
-    -->
-    <property file="${env.HOME}/.ivy2/.ant-credentials"/>
+    <property name="module.src.dir" location="${basedir}/.."/>
+    <property name="module.pipeline.dir" location="${basedir}"/>
+    <property name="module.build_folder.dir" location="${module.src.dir}/build"/>
+    <property name="module.dist.dir" location="${module.src.dir}/dist"/>
+    <property name="module.egg_info.dir" location="${module.src.dir}/${ant.project.name}.egg-info"/>
+    <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
+    <property name="python_executable" location="python"/>
+    <task if:set="${module.virtualenv.dir}">
+        <property name="python_executable" location="${module.virtualenv.dir}/python"/>
+    </task>
 
-    <target name="init">
-        <property name="module.src.dir" location="${basedir}/.."/>
-        <property name="module.pipeline.dir" location="${basedir}"/>
-        <property name="module.build_folder.dir" location="${module.src.dir}/build"/>
-        <property name="module.dist.dir" location="${module.src.dir}/dist"/>
-        <property name="module.egg_info.dir" location="${module.src.dir}/${ant.project.name}.egg-info"/>
-        <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
-        <echoproperties prefix="module."/>
-    </target>
-
-    <target name="ivy-init">
-        <!--This is needed for artifactory publication-->
-        <ivy:settings file="${module.pipeline.dir}/ivysettings.xml">
-            <credentials host="${publish.host}" realm="${publish.realm}"
-                username="${publish.username}" passwd="${publish.passwd}" />
-        </ivy:settings>
-        <ivy:resolve file="${module.pipeline.dir}/ivy.xml" />
-    </target>
-
-    <target name="testing" depends="init">
-        <exec dir="${module.src.dir}" executable="${module.virtualenv.dir}/python" failonerror="true">
+    <target name="testing">
+        <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
             <arg value='setup.py'/>
             <arg value='test'/>
         </exec>
     </target>
-
-    <target name="build" depends="testing">
-        <exec dir="${module.src.dir}" executable="${module.virtualenv.dir}/python" failonerror="true">
-            <arg line='setup.py bdist_wheel --universal'/>
-        </exec>
-    </target>
-
-    <!-- ================================== -->
-    <!-- MACROS -->
-    <!-- ================================== -->
-
-     <macrodef name="publish">
-        <attribute name="resolver"/>
-        <attribute name="revision"/>
-        <attribute name="dist.dir"/>
-        <attribute name="status"/>
-        <sequential>
-            <echo>Macrodef "publish" called with resolver=@{resolver}, revision=@{revision}</echo>
-
-            <ivy:deliver deliverpattern="@{dist.dir}/ivy-@{revision}.xml"
-                         pubrevision="@{revision}"
-                         status="@{status}"/>
-
-            <ivy:makepom ivyfile="@{dist.dir}/ivy-@{revision}.xml"
-                         pomfile="@{dist.dir}/${ivy.module}-@{revision}.pom"/>
-
-            <ivy:publish artifactspattern="@{dist.dir}/[artifact]-@{revision}(-[classifier]).[ext]"
-                         resolver="@{resolver}"
-                         pubrevision="@{revision}"
-                         status="@{status}"
-                         overwrite="true"/>
-
-            <echo>Published "${module.name}-@{revision}.module" @{status} to repo @{resolver}</echo>
-        </sequential>
-    </macrodef>
 
     <!-- ================================== -->
     <!-- TOP LEVEL TARGETS -->
@@ -84,9 +34,22 @@
         <echo message="clean complete!"/>
     </target>
 
-    <target name="publish-snapshot" depends="build,ivy-init">
-        <publish resolver="pypi-snapshot-local" revision="${build.version}"
-                 status="testing" dist.dir="${module.dist.dir}"/>
+    <target name="build-local" depends="testing">
+        <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
+            <arg line='setup.py bdist_wheel --universal'/>
+        </exec>
+    </target>
+
+    <target name="publish-snapshot" depends="testing">
+        <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
+            <arg line='setup.py bdist_wheel --universal upload -r snapshot-local'/>
+        </exec>
+    </target>
+
+    <target name="publish-release" depends="testing">
+        <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
+            <arg line='setup.py bdist_wheel --universal upload -r release-local'/>
+        </exec>
     </target>
 
 </project>
