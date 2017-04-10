@@ -11,7 +11,7 @@
     <property name="module.dist.dir" location="${module.src.dir}/dist"/>
     <property name="module.egg_info.dir" location="${module.src.dir}/${ant.project.name}.egg-info"/>
     <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
-    <property name="python_executable" location="python"/>
+    <property name="python_executable" value="python"/>
     <task if:set="${module.virtualenv.dir}">
         <property name="python_executable" location="${module.virtualenv.dir}/python"/>
     </task>
