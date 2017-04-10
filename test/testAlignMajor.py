@@ -37,10 +37,3 @@ class AlignMajorTestGroup(unittest.TestCase):
         self.assertTrue(np.argmax(np.abs(minor)) == 0, "Minor aligned with X axis after rotation")
         # check reshaping
         self.assertEqual(testCube.shape, res.shape, "Shape stays constant when not reshaping")
-        # compare output shape to input shape element-wise
-        # output shape should be greater than or equal to input shape for 
-        # every dimension
-        res_reshaped = align_major(testCube, "zyx", reshape=True)
-        # There are cases where reshaping could result in the same output shape
-        # as the input, but this isn't one of those
-        self.assertTrue(res_reshaped.shape != testCube.shape, "Shape changes with reshaping")
