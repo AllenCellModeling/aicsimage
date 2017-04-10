@@ -27,7 +27,7 @@
     <!-- TOP LEVEL TARGETS -->
     <!-- ================================== -->
 
-    <target name="clean" depends="init">
+    <target name="clean">
         <delete dir="${module.build_folder.dir}"/>
         <delete dir="${module.config.dir}"/>
         <delete dir="${module.egg_info.dir}"/>
