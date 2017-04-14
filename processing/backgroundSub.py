@@ -33,6 +33,12 @@ def _median(img):
 
 
 def background_sub(img, mask=None, method="mean"):
+    """
+    Performs background subtraction on image using chosen method with optional mask
+    :param img: numpy array, image to perform subtraction on
+    :param mask: numpy mask, subtraction is calculated and performed on the area specified by the mask
+    :param method: string, selects the subtraction method to use. Default is 'mean'
+    """
     # apply mask if there is one
     if mask is not None:
         img = img[mask]
