@@ -3,6 +3,7 @@
 import numpy as np
 from scipy.ndimage.interpolation import rotate
 from math import ceil
+from backgroundCrop import crop
 
 
 def get_major_minor_axis(img):
@@ -108,38 +109,9 @@ def align_major(img, axis="zyx", angles=None, reshape=False):
     if reshape:
         # cropping necessary as each resize makes the image bigger
         # np.nan used as fill value when reshaping in order to make cropping easy
-        out = crop(out)
+        out = crop(out, np.nan)
         out[np.isnan(out)] = 0
     if return_tuple:
         return (out, angles)
     else:
         return out
-
-
-def crop(img, val=None):
-    """
-    Crops image based on background color val
-    This should eventually be made more modular and moved to its own file
-    :param img: CZYX image as numpy array
-    :param val: value to use as background color. Default is None, in which case np.nan is used
-    :return: CZYX image as numpy array
-    """
-    # minz, maxz, miny, maxy, minx, maxx
-    ends = [0] * 6
-    for i in range(3):
-        # axis to search
-        axis_slice = [slice(None, None)] * 4
-        axis_length = img.shape[i + 1] - 1
-        # loop from front to find min
-        for s_i in range(axis_length):
-            axis_slice[i + 1] = s_i
-            if not np.all(np.isnan(img[axis_slice]) if val is None else img[axis_slice] == val):
-                ends[i * 2] = s_i
-                break
-        # loop from back to find max
-        for s_i in range(axis_length, 0, -1):
-            axis_slice[i + 1] = s_i
-            if not np.all(np.isnan(img[axis_slice]) if val is None else img[axis_slice] == val):
-                ends[i * 2 + 1] = s_i + 1
-                break
-    return img[:, ends[4]:ends[5], ends[2]:ends[3], ends[0]:ends[1]].copy()
