@@ -11,6 +11,11 @@ node ("python2.7")
             git branch: 'feature/jenkins-testing', url: 'http://zacharyc@stash.corp.alleninstitute.org/scm/aics/aicsimage.git'
         }
 
+        stage ("Clean") {
+            env.PATH = "${tool 'ant 1.9.7'}/bin:${env.PATH}"
+            sh 'ant -f pipeline/build.xml clean'
+        }
+
         stage ("Prepare Version") {
             sh 'manage_python_build.py prepare_release_version'
         }
@@ -18,10 +23,10 @@ node ("python2.7")
         stage ("Build and Publish") {
             env.PATH = "${tool 'ant 1.9.7'}/bin:${env.PATH}"
             if (is_release) {
-                sh 'ant -f pipeline/build.xml clean publish-release'
+                sh 'ant -f pipeline/build.xml publish-release'
             }
             else {
-                sh 'ant -f pipeline/build.xml clean publish-snapshot'
+                sh 'ant -f pipeline/build.xml publish-snapshot'
             }
         }
 
