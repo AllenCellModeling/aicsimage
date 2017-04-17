@@ -1,11 +1,11 @@
 node ("python2.7") {
     try {
         // Set path for custom management tools on jenkins
-        env.PATH = "${env.PATH}:/local1/svchome/jenkins-version-control/bin"
+        env.PATH = "${env.PATH}:/local1/svchome/jenkins-scripts/bin"
         echo "${env.PATH}"
-        def is_release=params.create_release
+        def is_release=(params.create_release)
         echo "BUILDTYPE: " + (is_release ? "Release" : "Integration")
-        stage ("Artifactory and Git configuration") {
+        stage ("Git configuration") {
             git branch: 'feature/jenkins-testing', url: 'http://zacharyc@stash.corp.alleninstitute.org/scm/aics/aicsimage.git'
         }
         stage ("Prepare Version") {
@@ -29,7 +29,6 @@ node ("python2.7") {
         throw e
     }
     finally {
-        println currentBuild.result
         notifyBuildOnSlack(currentBuild.result, is_release)
         // Email
         step([$class: 'Mailer',
