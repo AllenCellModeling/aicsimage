@@ -2,8 +2,6 @@ node ("python2.7")
 {
 
     // Set path for custom management tools on jenkins
-    env.PATH = "${env.PATH}:/local1/svchome/jenkins-scripts/bin"
-    echo "${env.PATH}"
     def is_release=(params.create_release)
     echo "BUILDTYPE: " + (is_release ? "Release" : "Integration")
 
