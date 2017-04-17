@@ -1,5 +1,6 @@
 # Author: Evan Wiederspan <evanw@alleninstitute.org>
 import numpy as np
+from scipy.stats import mode
 
 
 def _mean_sub(img):
@@ -15,10 +16,8 @@ def _most_common(img):
     """
     Subtract the most common value from the whole image
     """
-    # this may need to be changed, only really works if the array is all integers
-    histo, bin_edges = np.histogram(img, bins=256)
-    mode = bin_edges[np.argmax(histo)]
-    res = img - mode
+    common = mode(img, axis=None).mode[0]
+    res = img - common
     res[res < 0] = 0
     return res
 
@@ -37,16 +36,18 @@ def background_sub(img, mask=None, method="mean"):
     Performs background subtraction on image using chosen method with optional mask
     :param img: numpy array, image to perform subtraction on
     :param mask: numpy mask, subtraction is calculated and performed on the area specified by the mask
+    i.e. the mask should specify the background of the image
     :param method: string, selects the subtraction method to use. Default is 'mean'
+    :return: numpy array, copy of input image with background subtracted out
     """
     # apply mask if there is one
-    if mask is not None:
-        img = img[mask]
-    if method == "mean":
-        return _mean_sub(img)
-    elif method == "common":
-        return _most_common(img)
-    elif method == "median":
-        return _median(img)
-    else:
+    func_map = {'mean': _mean_sub, 'common': _most_common, 'median': _median}
+    if method not in func_map:
         raise ValueError("Invalid method")
+    sub_method = func_map[method]
+    if mask is not None:
+        res = img.copy()
+        res[mask] = sub_method(img[mask])
+        return res
+    else:
+        return sub_method(img)
