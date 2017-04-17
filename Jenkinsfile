@@ -2,7 +2,6 @@ node ("python2.7") {
     try {
         // Set path for custom management tools on jenkins
         env.PATH = "${env.PATH}:/local1/svchome/jenkins-version-control/bin"
-        env.PATH = "${tool 'ant 1.9.7'}/bin:${env.PATH}"
         echo "${env.PATH}"
         def is_release=params.create_release
         echo "BUILDTYPE: " + (is_release ? "Release" : "Integration")
@@ -13,6 +12,7 @@ node ("python2.7") {
             sh 'manage_python_build.py prepare_release_version'
         }
         stage ("Build and Publish") {
+            env.PATH = "${tool 'ant 1.9.7'}/bin:${env.PATH}"
             if (is_release) {
                 sh 'ant -f pipeline/build.xml clean publish-release'
             }
