@@ -28,7 +28,7 @@ class BackgroundSubTestGroup(unittest.TestCase):
         n = 9
         testImage = np.arange(n + 1)
         res = bg_sub(testImage, method="median")
-        self.assertTrue(np.max(res) == n - n // 2, "Median background subtraction")
+        self.assertTrue(np.max(res) == n - (n + 1) // 2, "Median background subtraction")
 
     def test_common(self):
         n = 9

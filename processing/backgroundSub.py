@@ -26,7 +26,7 @@ def _median(img):
     """
     Subtract the median value
     """
-    res = img - np.sort(img.flatten())[img // 2]
+    res = img - np.sort(img.flatten())[img.size // 2]
     res[res < 0] = 0
     return res
 
