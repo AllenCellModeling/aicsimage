@@ -1,16 +1,22 @@
-node ("python2.7") {
+node ("python2.7")
+{
+
+    // Set path for custom management tools on jenkins
+    env.PATH = "${env.PATH}:/local1/svchome/jenkins-scripts/bin"
+    echo "${env.PATH}"
+    def is_release=(params.create_release)
+    echo "BUILDTYPE: " + (is_release ? "Release" : "Integration")
+
     try {
-        // Set path for custom management tools on jenkins
-        env.PATH = "${env.PATH}:/local1/svchome/jenkins-scripts/bin"
-        echo "${env.PATH}"
-        def is_release=(params.create_release)
-        echo "BUILDTYPE: " + (is_release ? "Release" : "Integration")
+
         stage ("Git configuration") {
             git branch: 'feature/jenkins-testing', url: 'http://zacharyc@stash.corp.alleninstitute.org/scm/aics/aicsimage.git'
         }
+
         stage ("Prepare Version") {
             sh 'manage_python_build.py prepare_release_version'
         }
+
         stage ("Build and Publish") {
             env.PATH = "${tool 'ant 1.9.7'}/bin:${env.PATH}"
             if (is_release) {
@@ -20,6 +26,7 @@ node ("python2.7") {
                 sh 'ant -f pipeline/build.xml clean publish-snapshot'
             }
         }
+
         stage ("Tag and Push Version") {
             sh 'manage_python_build.py tag_and_push_version'
         }
