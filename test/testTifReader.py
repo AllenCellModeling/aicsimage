@@ -6,10 +6,9 @@
 import math as m
 import os
 import unittest
-
 import numpy as np
 
-from imageio import tifReader
+from aicsimage.io import tifReader
 
 
 class TifReaderTestGroup(unittest.TestCase):

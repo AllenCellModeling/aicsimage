@@ -5,8 +5,7 @@
 import os
 import unittest
 
-from imageio import pngReader
-from imageio import pngWriter
+from aicsimage.io import pngReader, pngWriter
 from test.transformation import *
 
 
