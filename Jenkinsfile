@@ -36,7 +36,7 @@ node ("python2.7")
         currentBuild.result = "SUCCESS"
     }
     catch(e) {
-        currentBuild.result = "FAIL"
+        currentBuild.result = "FAILURE"
         throw e
     }
     finally {
@@ -51,7 +51,7 @@ node ("python2.7")
 
 def notifyBuildOnSlack(String buildStatus = 'STARTED', Boolean is_release) {
     // build status of null means successful
-    buildStatus =  buildStatus ?: 'SUCCESSFUL'
+    buildStatus =  buildStatus ?: 'SUCCESS'
     buildType = is_release ? 'RELEASE' : 'SNAPSHOT'
 
     // Default values
@@ -61,7 +61,7 @@ def notifyBuildOnSlack(String buildStatus = 'STARTED', Boolean is_release) {
     def summary = "${subject} (${env.BUILD_URL})"
 
     // Override default values based on build status
-    if (buildStatus == 'SUCCESSFUL') {
+    if (buildStatus == 'SUCCESS') {
         color = 'GREEN'
         // colorCode = '#00FF00'
         colorCode = is_release ? '#008000' : '#00FF00'
