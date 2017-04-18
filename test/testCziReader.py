@@ -8,7 +8,7 @@ import unittest
 
 import imageio
 from imageio.cziReader import CziReader
-from test.transformation import *
+from transformation import *
 
 
 class CziReaderTestGroup(unittest.TestCase):

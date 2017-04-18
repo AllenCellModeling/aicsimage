@@ -7,7 +7,7 @@ import unittest
 
 from imageio import pngReader
 from imageio import pngWriter
-from test.transformation import *
+from transformation import *
 
 
 class PngWriterTestGroup(unittest.TestCase):
