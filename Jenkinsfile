@@ -55,19 +55,14 @@ def notifyBuildOnSlack(String buildStatus = 'STARTED', Boolean is_release) {
     buildType = is_release ? 'RELEASE' : 'SNAPSHOT'
 
     // Default values
-    def colorName = 'RED'
     def colorCode = '#FF0000'
     def subject = "${buildStatus} ${buildType}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
     def summary = "${subject} (${env.BUILD_URL})"
 
     // Override default values based on build status
     if (buildStatus == 'SUCCESS') {
-        color = 'GREEN'
-        // colorCode = '#00FF00'
         colorCode = is_release ? '#008000' : '#00FF00'
     } else {
-        color = 'RED'
-        // colorCode = '#FF0000'
         colorCode = is_release ? '#800000' : '#FF0000'
     }
 
