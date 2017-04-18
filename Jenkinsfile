@@ -33,9 +33,10 @@ node ("python2.7")
         stage ("Tag and Push Version") {
             sh 'manage_python_build.py tag_and_push_version'
         }
+        currentBuild.result = "SUCCESS"
     }
     catch(e) {
-        currentBuild.result = "FAILED"
+        currentBuild.result = "FAIL"
         throw e
     }
     finally {
