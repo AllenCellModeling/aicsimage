@@ -3,7 +3,7 @@ import numpy as np
 from scipy.stats import mode
 
 
-def _mean_sub(img):
+def _mean(img):
     """
     Subtract the mean value from the whole image
     """
@@ -37,15 +37,17 @@ def background_sub(img, mask=None, method="mean"):
     :param img: numpy array, image to perform subtraction on
     :param mask: numpy mask, subtraction is calculated and performed on the area specified by the mask
     i.e. the mask should specify the background of the image
-    :param method: string, selects the subtraction method to use. Default is 'mean'
+    :param method: string, selects the subtraction method to use. Default is 'mean'. Options are: mean, median, common.
     :return: numpy array, copy of input image with background subtracted out
     """
     # apply mask if there is one
-    func_map = {'mean': _mean_sub, 'common': _most_common, 'median': _median}
+    func_map = {'mean': _mean, 'common': _most_common, 'median': _median}
     if method not in func_map:
         raise ValueError("Invalid method")
     sub_method = func_map[method]
     if mask is not None:
+        if mask.size != img.size:
+            raise ValueError("Invalid mask shape " + mask.shape)
         res = img.copy()
         res[mask] = sub_method(img[mask])
         return res

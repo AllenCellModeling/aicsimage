@@ -36,7 +36,6 @@ class BackgroundSubTestGroup(unittest.TestCase):
         testImage = np.arange(n + 1)
         testImage[4:7] = c_val
         res = bg_sub(testImage, method="common")
-        print(res)
         self.assertTrue(np.max(res) == n - c_val, "Common background subtraction")
 
     def test_mask(self):
