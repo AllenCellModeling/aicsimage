@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
+<!-- author: Zach Crabtree zacharyc@alleninstitute.org -->
 
-<!--the project name, python package name, and venv name in Jenkins-01 must match-->
+<!-- the project name, python package name, and venv name in Jenkins-01 must match! -->
 <project name="aicsimage" basedir="." default="clean"
          xmlns:if="ant:if">
 
