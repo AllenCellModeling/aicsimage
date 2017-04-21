@@ -8,7 +8,7 @@ node ("python2.7")
     try {
 
         stage ("Git configuration") {
-            git branch: 'master', url: 'ssh://git@stash.corp.alleninstitute.org:7999/aics/aicsimage.git'
+            git branch: 'dev/thushara/testreports', url: 'ssh://git@stash.corp.alleninstitute.org:7999/aics/aicsimage.git'
         }
 
         stage ("Clean") {
