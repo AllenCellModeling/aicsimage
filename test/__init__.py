@@ -2,13 +2,15 @@ import unittest
 
 from aicsimage.io import init, close
 import testCziReader
-import testImgToProjection, testTifReader
+import testImgToProjection
 import testOmeTifReader
 import testOmeTifWriter
 import testPngReader
 import testPngWriter
 import testThumbnailGenerator
 import testTifReader
+import testBackgroundCrop
+import testBackgroundSub
 
 """
 To test all modules with the command line, use:
@@ -45,6 +47,8 @@ class TotalTestGroup(unittest.TestCase):
         suite.addTest(loader.loadTestsFromModule(testPngReader))
         suite.addTest(loader.loadTestsFromModule(testPngWriter))
         suite.addTest(loader.loadTestsFromModule(testTifReader))
+        suite.addTest(loader.loadTestsFromModule(testBackgroundCrop))
+        suite.addTest(loader.loadTestsFromModule(testBackgroundSub))
         exitcode = unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
         print('\n')
         self.assertTrue(exitcode)

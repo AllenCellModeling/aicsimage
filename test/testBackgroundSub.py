@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from processing.backgroundSub import background_sub as bg_sub
+from aicsimage.processing.backgroundSub import background_sub as bg_sub
 
 
 class BackgroundSubTestGroup(unittest.TestCase):
