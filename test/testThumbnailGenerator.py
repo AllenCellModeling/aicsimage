@@ -6,7 +6,7 @@ import unittest
 
 import numpy as np
 
-from processing.thumbnailGenerator import ThumbnailGenerator
+from aicsimage.processing.thumbnailGenerator import ThumbnailGenerator
 
 
 class ThumbnailGeneratorTestGroup(unittest.TestCase):

@@ -1,6 +1,8 @@
 import unittest
+
 import numpy as np
-from processing.alignMajor import align_major, get_major_minor_axis, angle_between
+
+from aicsimage.processing.alignMajor import align_major, get_major_minor_axis, angle_between
 
 
 class AlignMajorTestGroup(unittest.TestCase):
