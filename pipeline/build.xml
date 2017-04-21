@@ -12,18 +12,26 @@
     <property name="module.egg_info.dir" location="${module.src.dir}/${ant.project.name}.egg-info"/>
     <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
     <property name="python_executable" value="python"/>
+    <property name="nosetests_executable" value="nosetests"/>
+    <property name="junit_executable" value="junit"/>
     <task if:set="${module.virtualenv.dir}">
-        <property name="python_executable" location="${module.virtualenv.dir}/python"/>
+        <property name="nosetests_executable" location="${module.virtualenv.dir}/nosetests"/>
     </task>
     <echo message="${python_executable}"/>
 
     <target name="testing">
-        <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
-            <arg value='setup.py'/>
-            <arg value='test'/>
+        <exec dir="${module.src.dir}" executable="${nosetests_executable}" failonerror="true">
+            <arg value='--with-xunit'/>
         </exec>
     </target>
 
+    <target name="test-report" depends="testing">
+        <exec dir="${module.src.dir}" executable="${junit_executable}" failonerror="true">
+            <arg value='nosetests.xml'/>
+        </exec>
+    </target>
+
+    
     <!-- ================================== -->
     <!-- TOP LEVEL TARGETS -->
     <!-- ================================== -->
@@ -41,13 +49,13 @@
         </exec>
     </target>
 
-    <target name="publish-snapshot" depends="testing">
+    <target name="publish-snapshot" depends="test-report">
         <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
             <arg line='setup.py bdist_wheel --universal upload -r snapshot-local'/>
         </exec>
     </target>
 
-    <target name="publish-release" depends="testing">
+    <target name="publish-release" depends="test-report">
         <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
             <arg line='setup.py bdist_wheel --universal upload -r release-local'/>
         </exec>
