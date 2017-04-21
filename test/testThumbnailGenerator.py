@@ -48,7 +48,7 @@ class ThumbnailGeneratorTestGroup(unittest.TestCase):
 
     def test_MakeValidThumbnail(self):
         # arrange
-        valid_image = np.random.rand(10, 7, 2, 2)
+        valid_image = np.random.rand(10, 7, 256, 256)
         generator = ThumbnailGenerator(size=128)
 
         # act

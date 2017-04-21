@@ -6,7 +6,7 @@ import os
 import unittest
 
 from aicsimage.io import pngReader, pngWriter
-from test.transformation import *
+from transformation import *
 
 
 class PngWriterTestGroup(unittest.TestCase):
