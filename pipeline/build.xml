@@ -13,7 +13,6 @@
     <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
     <property name="python_executable" value="python"/>
     <property name="nosetests_executable" value="nosetests"/>
-    <property name="junit_executable" value="junit"/>
     <task if:set="${module.virtualenv.dir}">
         <property name="nosetests_executable" location="${module.virtualenv.dir}/nosetests"/>
     </task>
@@ -25,13 +24,6 @@
         </exec>
     </target>
 
-    <target name="test-report" depends="testing">
-        <exec dir="${module.src.dir}" executable="${junit_executable}" failonerror="true">
-            <arg value='nosetests.xml'/>
-        </exec>
-    </target>
-
-    
     <!-- ================================== -->
     <!-- TOP LEVEL TARGETS -->
     <!-- ================================== -->
@@ -49,13 +41,13 @@
         </exec>
     </target>
 
-    <target name="publish-snapshot" depends="test-report">
+    <target name="publish-snapshot" depends="testing">
         <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
             <arg line='setup.py bdist_wheel --universal upload -r snapshot-local'/>
         </exec>
     </target>
 
-    <target name="publish-release" depends="test-report">
+    <target name="publish-release" depends="testing">
         <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
             <arg line='setup.py bdist_wheel --universal upload -r release-local'/>
         </exec>
