@@ -6,11 +6,11 @@ from aicsimage.io import omeTifReader, cziReader
 
 
 # TODO if this is good, we should refactor the other processing modules to use it
-class CellImage:
+class AICSImage:
     default_dims = "TCZYX"
 
     def __init__(self, data, **kwargs):
-        self.dims = CellImage.default_dims
+        self.dims = AICSImage.default_dims
         if isinstance(data, str):
             # input is a filepath
             self.file_path = data
@@ -62,7 +62,7 @@ class CellImage:
         self.shape = []
         # create a map of dimensions -> value in the data array that was passed in originally
         dim_map = {self.dims[i]: self.data.shape[i] for i in range(len(self.dims))}
-        for dim in CellImage.default_dims:
+        for dim in AICSImage.default_dims:
             self.shape.append(dim_map.get(dim, 1))
         self.size_t, self.size_c, self.size_z, self.size_y, self.size_x = tuple(self.shape)
 
