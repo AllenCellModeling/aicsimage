@@ -11,11 +11,10 @@
 
 from __future__ import absolute_import, unicode_literals
 
-import xml.etree.ElementTree as ElementTree
-
 import sys
+import xml.etree.ElementTree as ElementTree
 if sys.version_info.major == 3:
-    from imageio import StringIO
+    from aicsimage.io import StringIO
     uenc = 'unicode'
 else:
     from cStringIO import StringIO

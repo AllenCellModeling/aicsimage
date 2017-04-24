@@ -1,8 +1,10 @@
 # Author: Evan Wiederspan <evanw@alleninstitute.org>
 
-import numpy as np
 import unittest
-from processing.backgroundCrop import crop
+
+import numpy as np
+
+from aicsimage.processing.backgroundCrop import crop
 
 
 class BackgroundCropTestGroup(unittest.TestCase):

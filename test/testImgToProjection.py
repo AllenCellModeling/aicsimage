@@ -3,7 +3,7 @@ from random import randrange
 
 import numpy as np
 
-from processing.imgToProjection import imgtoprojection
+from aicsimage.processing.imgToProjection import imgtoprojection
 
 
 class Img2ProjectionTestGroup(unittest.TestCase):
