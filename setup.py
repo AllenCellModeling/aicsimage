@@ -3,6 +3,9 @@ from setuptools import setup, find_packages
 with open('version.value', 'r') as f:
     version = f.readline().strip()
 
+with open('./aicsimage/aicsimage_version.py', 'w') as f:
+    f.writelines('AICSIMAGE_VERSION = "{}"'.format(version))
+
 
 setup(name='aicsimage',
       version=version,
