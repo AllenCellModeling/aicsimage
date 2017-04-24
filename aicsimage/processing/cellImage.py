@@ -22,7 +22,8 @@ class CellImage:
             else:
                 raise ValueError("CellImage can only accept OME-TIFF and CZI file formats!")
 
-            self.data = self.reader.load()
+            # TODO remove this transpose call once readers are fixed
+            self.data = self.reader.load().transpose(0, 2, 1, 3, 4)
             self.metadata = self.reader.get_metadata()
             # internal data should always be stored as TCZYX
             self._generate_size()
@@ -65,7 +66,14 @@ class CellImage:
         self.size_t, self.size_c, self.size_z, self.size_y, self.size_x = tuple(self.shape)
 
 
-    def get_image_data(self, out_orientation="TCZYX"):
+    def get_image_data(self, out_orientation="TCZYX", **kwargs):
+        """
+
+        :param out_orientation:
+        :param kwargs: These will contain the dims you exclude from out_orientation. If you all ZYX at T = 0 and C = 3, you will
+        add a kwarg with C=3 and T=0 (each dimension not included will default to 0)
+        :return:
+        """
         image_data = self.data
         if out_orientation != self.dims and self.is_valid_dimension(out_orientation):
             # map each dimension (TCZYX) to its index in out_orientation
@@ -73,8 +81,13 @@ class CellImage:
             slicer, transposer = [], []
             for dim in self.dims:
                 if match_map[dim] == -1:
-                    slicer.append(0)
+                    # only get the bottom slice of this dimension, unless the user specified another in the args
+                    slice_value = kwargs.get(dim, 0)
+                    if slice_value >= self.shape[self.dims.find(dim)] or slice_value < 0:
+                        raise ValueError("{} is not a valid index for the {} dimension".format(slice_value, dim))
+                    slicer.append(slice_value)
                 else:
+                    # append all slices of this dimension
                     slicer.append(slice(None, None))
                     transposer.append(match_map[dim])
             image_data = image_data[slicer].transpose(transposer)
