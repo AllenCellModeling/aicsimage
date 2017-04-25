@@ -42,29 +42,18 @@ class CellMesh:
     def save_as_obj(self, file_path):
         with open(file_path, "w") as writer:
             writer.write("# OBJ file\n")
+            writer.write("o Name\n")
             for v in mesh.verts:
                 writer.write("v {} {} {}\n".format(v[0], v[1], v[2]))
             for n in mesh.normals:
-                writer.write("vn {} {} {}\n".format(n[0], n[1], n[2]))
+                writer.write("vn {} {} {}\n".format(-n[0], -n[1], -n[2]))
             for f in mesh.faces:
                 writer.write("f {} {} {}\n".format(f[0], f[1], f[2]))
 
-def generate_mesh(cellimage, channel=0, scaling=1):
-    cell = zoom(cellimage.get_image_data(out_orientation="ZYX", C=channel), [1, scaling, scaling])
-    new_image = aicsImage.AICSImage(cell, dims="ZYX")
-
+def generate_mesh(image, channel=0, scaling=1):
+    # image must be an AICSImage object
+    image_stack = image.get_image_data("ZYX", C=channel)
     # Use marching cubes to obtain the surface mesh of the membrane wall
-    # Use the spacing parameter to "zoom" the size of the mesh
-    verts, faces, normals, values = measure.marching_cubes(cell, 0)
+    verts, faces, normals, values = measure.marching_cubes(image_stack, 1, allow_degenerate=False, use_classic=True)
+    return CellMesh(verts, faces, normals, values, image)
 
-    return CellMesh(verts, faces, normals, values, new_image)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="generate meshes for a cell")
-    parser.add_argument("input", type=str, help="the ometif file that contains the necessary cell data")
-
-    args = parser.parse_args()
-    cell_image = aicsImage.AICSImage(args.input)
-    mesh = generate_mesh(cell_image, channel=3, scaling=.1)
-    mesh.save_as_obj("./test_file.obj")
