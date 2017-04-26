@@ -1,13 +1,10 @@
 # author: Zach Crabtree zacharyc@alleninstitute.org
 
 from skimage import measure
-from scipy.ndimage.interpolation import zoom
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-import argparse
 
 import aicsImage
-import thumbnailGenerator
 
 
 class CellMesh:
@@ -43,14 +40,15 @@ class CellMesh:
         with open(file_path, "w") as writer:
             writer.write("# OBJ file\n")
             writer.write("o Name\n")
-            for v in mesh.verts:
-                writer.write("v {} {} {}\n".format(v[0], v[1], v[2]))
-            for n in mesh.normals:
-                writer.write("vn {} {} {}\n".format(-n[0], -n[1], -n[2]))
-            for f in mesh.faces:
+            for v in self.verts:
+                writer.write("v {:.6f} {:.6f} {:.6f}\n".format(v[0], v[1], v[2]))
+            for n in self.normals:
+                writer.write("vn {:.6f} {:.6f} {:.6f}\n".format(n[0], n[1], n[2]))
+            for f in self.faces:
                 writer.write("f {} {} {}\n".format(f[0], f[1], f[2]))
 
-def generate_mesh(image, channel=0, scaling=1):
+
+def generate_mesh(image, isovalue=0, channel=0):
     # image must be an AICSImage object
     image_stack = image.get_image_data("ZYX", C=channel)
     # Use marching cubes to obtain the surface mesh of the membrane wall

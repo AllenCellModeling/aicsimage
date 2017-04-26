@@ -66,16 +66,16 @@ class AICSImage:
             self.shape.append(dim_map.get(dim, 1))
         self.size_t, self.size_c, self.size_z, self.size_y, self.size_x = tuple(self.shape)
 
-
+    # TODO get_reference_data if user is not going to manipulate data
     def get_image_data(self, out_orientation="TCZYX", **kwargs):
         """
 
         :param out_orientation:
-        :param kwargs: These will contain the dims you exclude from out_orientation. If you all ZYX at T = 0 and C = 3, you will
+        :param kwargs: These will contain the dims you exclude from out_orientation. If you want all ZYX at T = 0 and C = 3, you will
         add a kwarg with C=3 and T=0 (each dimension not included will default to 0).
         :return: ndarray with dimension ordering that was specified with out_orientation
         """
-        image_data = self.data
+        image_data = self.data.copy()
         if out_orientation != self.dims and self.is_valid_dimension(out_orientation):
             # map each dimension (TCZYX) to its index in out_orientation
             match_map = {dim: out_orientation.find(dim) for dim in self.dims}
