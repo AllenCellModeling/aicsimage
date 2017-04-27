@@ -1,19 +1,21 @@
 import unittest
 
-from imageio import init, close
+from aicsimage.io import init, close
+import testAlignMajor
+import testBackgroundCrop
+import testBackgroundSub
 import testCziReader
+import testImgToProjection
 import testOmeTifReader
 import testOmeTifWriter
 import testPngReader
 import testPngWriter
-import testTifReader
-import testImgToProjection
-import testTifReader
 import testThumbnailGenerator
 import testAlignMajor
 import testBackgroundCrop
 import testBackgroundSub
 import testImgCenter
+
 
 """
 To test all modules with the command line, use:
@@ -50,10 +52,16 @@ class TotalTestGroup(unittest.TestCase):
         suite.addTest(loader.loadTestsFromModule(testPngReader))
         suite.addTest(loader.loadTestsFromModule(testPngWriter))
         suite.addTest(loader.loadTestsFromModule(testTifReader))
+<<<<<<< HEAD
         suite.addTest(loader.loadTestsFromModule(testAlignMajor))
         suite.addTest(loader.loadTestsFromModule(testBackgroundCrop))
         suite.addTest(loader.loadTestsFromModule(testBackgroundSub))
         suite.addTest(loader.loadTestsFromModule(testImgCenter))
+=======
+        suite.addTest(loader.loadTestsFromModule(testBackgroundCrop))
+        suite.addTest(loader.loadTestsFromModule(testBackgroundSub))
+        suite.addTest(loader.loadTestsFromModule(testAlignMajor))
+>>>>>>> master
         exitcode = unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
         print('\n')
         self.assertTrue(exitcode)

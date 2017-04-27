@@ -12,15 +12,17 @@
     <property name="module.egg_info.dir" location="${module.src.dir}/${ant.project.name}.egg-info"/>
     <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
     <property name="python_executable" value="python"/>
+    <property name="nosetests_executable" value="nosetests"/>
     <task if:set="${module.virtualenv.dir}">
         <property name="python_executable" location="${module.virtualenv.dir}/python"/>
+        <property name="nosetests_executable" location="${module.virtualenv.dir}/nosetests"/>
     </task>
     <echo message="${python_executable}"/>
+    <echo message="${nosetests_executable}"/>
 
     <target name="testing">
-        <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
-            <arg value='setup.py'/>
-            <arg value='test'/>
+        <exec dir="${module.src.dir}" executable="${nosetests_executable}" failonerror="true">
+            <arg value='--with-xunit'/>
         </exec>
     </target>
 

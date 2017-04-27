@@ -1,7 +1,10 @@
 from __future__ import print_function
-import omexml
+
 import os
+
 import tifffile
+
+import omexml
 
 
 class OmeTifWriter:
@@ -43,11 +46,8 @@ class OmeTifWriter:
     def close(self):
         pass
 
-    def save(self, data, omexml=None, channel_names=None, image_name="IMAGE0",
-             pixels_physical_size=None, channel_colors=None):
+    def save(self, data, omexml=None, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
         """Save an image with the proper OME xml metadata.
-        It is crucial that the data passed into this is converted to integer values. TiffWriter squashes all of the
-        dimensions into the T dimension if floating point numbers are used.
 
         :param data: An array of dimensions TZCYX, ZCYX, or CYX to be written out to a file.
         :param channel_names: The names for each channel to be put into the OME metadata
