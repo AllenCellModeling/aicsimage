@@ -2,7 +2,6 @@ import unittest
 import numpy as np
 import math as m
 import mcubes
-import skimage.measure
 
 from aicsimage.processing import isosurfaceGenerator
 from aicsimage.processing.aicsImage import AICSImage
@@ -36,12 +35,15 @@ class IsosurfaceGeneratorTestGroup(unittest.TestCase):
         mesh.save_as_obj("img/test_sphere.obj")
         # mesh.display()
 
-    def testCube(self):
-        cube = np.zeros((4, 4, 4))
+    @staticmethod
+    def testCube(size=4):
+        # these cubes appear to have strangely beveled edges but I think that is an artifact of the
+        # linear interpolation between values of the marching cubes algorithm.
+        cube = np.zeros((size, size, size))
         for x in range(cube.shape[0]):
             for y in range(cube.shape[1]):
                 for z in range(cube.shape[2]):
-                    if x != 0 and y != 0 and z != 0 and x != 3 and y != 3 and z != 3:
+                    if x != 0 and y != 0 and z != 0 and x != size-1 and y != size-1 and z != size-1:
                         cube[x, y, z] = 1
         cube = AICSImage(cube, dims="XYZ")
         mesh = isosurfaceGenerator.generate_mesh(cube, isovalue=.5)
