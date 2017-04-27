@@ -23,13 +23,13 @@ def _get_edges(img, bg_val=0):
             axis_slice[a] = s_i
             # iterate through until we find a slice that contains values other than bg_val,
             if not np.all(img[axis_slice] == bg_val):
-                ends_list[a][0] = s_i
+                ends_list[a-1][0] = s_i
                 break
         # loop from back to find max
         for s_i in range(axis_length, 0, -1):
             axis_slice[a] = s_i
             if not np.all(img[axis_slice] == bg_val):
-                ends_list[a][1] = s_i + 1
+                ends_list[a-1][1] = s_i + 1
                 break
     return ends_list
 
@@ -80,7 +80,7 @@ def crop_all(images):
     try:
         edges = [_get_edges(img) for img in images]
         shape = images[0].shape
-    except IndexError, AttributeError, TypeError:
+    except (IndexError, AttributeError, TypeError):
         raise ValueError("images must be a list of numpy arrays")
     slices = [slice(None, None)]
     for axis_index, axis_edges in enumerate(zip(*edges), start=1):
@@ -110,7 +110,7 @@ def center_image(image, moves=None, fill=0):
         # calculate how far off center the image is in each direction
         # slice with [1:] to skip the color axis
         try:
-            moves = tuple(int(m) - (l // 2) for l, m in zip(img.shape[1:], center_of_mass(img)[1:]))
+            moves = tuple(int(m) - (l // 2) for l, m in zip(image.shape[1:], center_of_mass(image)[1:]))
         except AttributeError:
             raise ValueError("image must be a numpy")
     # add padding to image to put center of mass in center
