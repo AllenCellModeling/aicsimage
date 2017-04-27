@@ -18,5 +18,11 @@
 # PyCharm files
 /.idea/*
 
+# VSCode files
+.vscode/
+
 # stackdump files
 python2.7.exe*
+
+# hidden branch file for detaching git heads within jenkins
+.branch

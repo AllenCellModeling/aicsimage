@@ -1,7 +1,10 @@
 from __future__ import print_function
-import omexml
+
 import os
+
 import tifffile
+
+import omexml
 
 
 class OmeTifWriter:
@@ -70,6 +73,7 @@ class OmeTifWriter:
         dims = len(shape)
         if dims == 5 or dims == 4 or dims == 3:
             # minisblack instructs TiffWriter to not try to infer rgb color within the data array
+            # metadata param fixes the double image description bug
             tif.save(data, compress=9, description=xml, photometric='minisblack', metadata=None)
 
         tif.close()

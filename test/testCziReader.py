@@ -6,16 +6,16 @@
 import os
 import unittest
 
-import imageio
-from imageio.cziReader import CziReader
-from test.transformation import *
+from aicsimage import io
+from aicsimage.io.cziReader import CziReader
+from transformation import *
 
 
 class CziReaderTestGroup(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        imageio.init()
+        io.init()
         dir_path = os.path.dirname(os.path.realpath(__file__))
         with CziReader(os.path.join(dir_path, 'img', 'T=5_Z=3_CH=2_CZT_All_CH_per_Slice.czi')) as reader:
             z_index = m.floor(reader.size_z() / 2)
@@ -32,7 +32,7 @@ class CziReaderTestGroup(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        imageio.close()
+        io.close()
 
     """
     Test to check the dimensionality of the array loaded by CziReader
