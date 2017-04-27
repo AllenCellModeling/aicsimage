@@ -17,7 +17,7 @@ class OmeTifWriterTestGroup(unittest.TestCase):
         io.init()
         cls.dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'img')
         cls.file = os.path.join(cls.dir_path, 'ometif_test_output.ome.tif')
-        cls.image = np.random.rand(1, 40, 3, 128, 256).astype('int')
+        cls.image = np.random.rand(1, 40, 3, 128, 256).astype(np.uint16)
         cls.writer = omeTifWriter.OmeTifWriter(cls.file, overwrite_file=True)
         if not os.path.isfile(cls.file):
             open(cls.file, 'a').close()
