@@ -1,7 +1,7 @@
 # Author: Evan Wiederspan <evanw@alleninstitute.org>
 import unittest
 import numpy as np
-from processing.imgCenter import _get_edges as get_edges, crop_all, center_image
+from aicsimage.processing.imgCenter import get_edges, crop_all, center_image
 from random import sample, randrange
 from scipy.ndimage.measurements import center_of_mass
 
@@ -19,20 +19,8 @@ class ImgCenterTestGroup(unittest.TestCase):
         return (test, moves)
 
     def test_getEdgesInput(self):
-        with self.assertRaises(ValueError, msg="Must take in a 4d numpy array"):
-            get_edges(np.ones((3, 3, 3)))
-        with self.assertRaises(ValueError, msg="Must take in a 4d numpy array"):
+        with self.assertRaises(ValueError, msg="Must take in a numpy array"):
             get_edges([[[[1]]]])
-
-    def test_getEdges(self):
-        # run test 5 times
-        for _ in range(5):
-            test = np.zeros((3, 11, 11, 11))
-            # put in random blob of 1's
-            ends = tuple(sorted(sample(range(0, 10), 2)) for _ in range(3))
-            test[[slice(None, None)] + list(slice(*e) for e in ends)] = 1
-            edges = get_edges(test)
-            self.assertEqual(ends, edges, "Edges " + str(edges) + " found for " + str(ends))
 
     def test_imgCenterCalc(self):
         test, moves = self.getRandTest()

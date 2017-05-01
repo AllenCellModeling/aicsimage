@@ -1,10 +1,9 @@
 # Author: Evan Wiederspan <evanw@alleninstitute.org>
 
 import unittest
-
+from random import sample
 import numpy as np
-
-from aicsimage.processing.backgroundCrop import crop
+from aicsimage.processing.backgroundCrop import crop, get_edges
 
 
 class BackgroundCropTestGroup(unittest.TestCase):
@@ -25,6 +24,18 @@ class BackgroundCropTestGroup(unittest.TestCase):
     def test_cropOutputs(self):
         self.assertEqual(crop(self.testImage, 2).shape, (3, 10, 10, 10), "Nothing cropped when crop value not found")
         self.assertEqual(crop(self.testImage).shape, (3, 3, 3, 3), "Cropped output is in expected shape")
+
+    def test_getEdges(self):
+        # run test 5 times
+        for _ in range(5):
+            test = np.zeros((3, 11, 11, 11))
+            # put in random blob of 1's
+            ends = tuple(sorted(sample(range(0, 10), 2)) for _ in range(3))
+            if not all(r - l > 1 for l, r in ends):
+                continue
+            test[[slice(None, None)] + list(slice(*e) for e in ends)] = 1
+            edges = get_edges(test)
+            self.assertEqual(ends, edges, "Edges " + str(edges) + " found for " + str(ends))
 
     def test_getCropSlices(self):
         cropped, slice_indices = crop(self.testImage, 0, get_slices=True)
