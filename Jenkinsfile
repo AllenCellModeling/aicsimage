@@ -1,3 +1,5 @@
+// author: Zach Crabtree zacharyc@alleninstitute.org
+
 node ("python2.7")
 {
 

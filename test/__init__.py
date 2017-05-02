@@ -1,6 +1,7 @@
 import unittest
 
 from aicsimage.io import init, close
+import testAICSImage
 import testAlignMajor
 import testBackgroundCrop
 import testBackgroundSub
@@ -52,6 +53,7 @@ class TotalTestGroup(unittest.TestCase):
         suite.addTest(loader.loadTestsFromModule(testBackgroundCrop))
         suite.addTest(loader.loadTestsFromModule(testBackgroundSub))
         suite.addTest(loader.loadTestsFromModule(testImgCenter))
+        suite.addTest(loader.loadTestsFromModule(testAICSImage))
         exitcode = unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
         print('\n')
         self.assertTrue(exitcode)
