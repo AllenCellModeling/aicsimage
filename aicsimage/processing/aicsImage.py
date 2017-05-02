@@ -43,14 +43,16 @@ class AICSImage:
             self.file_path = data
 
             # check for compatible data types
-            if data.endswith(".czi"):
+            czi_types = (".czi", ".CZI")
+            ome_types = (".ome.tif", ".ome.tiff", ".OME.TIF", ".OME.TIFF")
+            if data.endswith(czi_types):
                 self.reader = cziReader.CziReader(self.file_path)
-            elif data.endswith(".ome.tif") or data.endswith(".ome.tiff"):
+            elif data.endswith(ome_types):
                 self.reader = omeTifReader.OmeTifReader(self.file_path)
             else:
                 raise ValueError("CellImage can only accept OME-TIFF and CZI file formats!")
 
-            # TODO remove this transpose call once readers are fixed
+            # TODO remove this transpose call once reader output is changed
             self.data = self.reader.load().transpose(0, 2, 1, 3, 4)
             self.metadata = self.reader.get_metadata()
             # internal data should always be stored as TCZYX
