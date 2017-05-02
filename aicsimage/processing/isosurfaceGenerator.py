@@ -1,42 +1,39 @@
 # author: Zach Crabtree zacharyc@alleninstitute.org
 
 from skimage import measure
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import os
+from aicsImage import AICSImage
 
-import aicsImage
+class Mesh:
+    """
 
+    A cell mesh class contains the necessary information to generate a display a 3D isosurface.
 
-class CellMesh:
+    Example:
+        image = AICSImage("some/bio/image.ome.tif")
+        mesh0 = generate_mesh(image, isovalue=0, channel=0)
+        # will generate a different mesh due to the different isovalue
+        mesh1 = generate_mesh(image, isovalue=1, channel=0)
+        mesh0.save_as_obj("some/bio/image/mesh.obj")
+        # mesh.obj can be imported into 3D viewers and represents a 3D rendering of image.ome.tif
+    """
 
-    def __init__(self, verts, faces, normals, values, base_image):
+    def __init__(self, verts, faces, normals, values):
         self.verts = verts
         self.faces = faces
         self.normals = normals
         self.values = values
-        if not isinstance(base_image, aicsImage.AICSImage):
-            raise ValueError("CellMesh only accepts a CellImage as its base_image parameter")
-        self.image_stack = base_image
-
-    def display(self):
-        # Display resulting triangular mesh using Matplotlib. This can also be done
-        # with mayavi (see skimage.measure.marching_cubes docstring).
-        fig = plt.figure(figsize=(10, 10))
-        ax = fig.add_subplot(111, projection='3d')
-
-        # Fancy indexing: `verts[faces]` to generate a collection of triangles
-        mesh = Poly3DCollection(self.verts[self.faces])
-        mesh.set_edgecolor('k')
-        ax.add_collection3d(mesh)
-
-        ax.set_xlim(0, self.image_stack.size_x)
-        ax.set_ylim(0, self.image_stack.size_y)
-        ax.set_zlim(0, self.image_stack.size_z)
-
-        plt.tight_layout()
-        plt.show()
 
     def save_as_obj(self, file_path):
+        """
+        Save a mesh object as an .obj file
+        :param file_path: The filepath to the saved file
+        """
+        if not file_path.endswith(".obj"):
+            if file_path.rfind('.') != -1:
+                file_path = os.path.splitext(file_path)[0] + ".obj"
+            else:
+                file_path += ".obj"
         with open(file_path, "w") as writer:
             writer.write("# OBJ file\n")
             writer.write("g Object001\n")
@@ -50,10 +47,20 @@ class CellMesh:
 
 
 def generate_mesh(image, isovalue=0, channel=0):
-    # image must be an AICSImage object
+    """
+    Creates and returns a Mesh object
+    :param image: an AICSImage object
+    :param isovalue: The value that is used to pick the isosurface returned by the marching cubes algorithm
+                     For more info: https://www.youtube.com/watch?v=5fNbCFjqWao @ 40:00 mins
+    :param channel: The channel in the image that is used to extract the isosurface
+    :return: A Mesh object
+    """
+    if not isinstance(image, AICSImage):
+        raise ValueError("Meshes can only be generated with AICSImage objects!")
+    if channel >= image.size_c():
+        raise IndexError("Channel provided for mesh generation is out of bounds for image data!")
     image_stack = image.get_image_data("ZYX", C=channel)
     # Use marching cubes to obtain the surface mesh of the membrane wall
-    verts, faces, normals, values = measure.marching_cubes(image_stack, isovalue, allow_degenerate=False, use_classic=True)
-    # verts, faces = mcubes.marching_cubes(image_stack, isovalue)
-    return CellMesh(verts, faces, normals, values, image)
+    verts, faces, normals, values = measure.marching_cubes(image_stack, isovalue, allow_degenerate=False)
+    return Mesh(verts, faces, normals, values)
 

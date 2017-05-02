@@ -1,7 +1,6 @@
 import unittest
 import numpy as np
 import math as m
-import mcubes
 
 from aicsimage.processing import isosurfaceGenerator
 from aicsimage.processing.aicsImage import AICSImage
@@ -31,28 +30,22 @@ class IsosurfaceGeneratorTestGroup(unittest.TestCase):
                         bounding_cube[x, y, z] = 1
         sphere = AICSImage(bounding_cube, dims="XYZ")
         mesh = isosurfaceGenerator.generate_mesh(sphere, isovalue=.99)
-        mcubes.export_mesh(mesh.verts, mesh.faces, "img/test_sphere.dae", "sphere")
         mesh.save_as_obj("img/test_sphere.obj")
-        # mesh.display()
 
     @staticmethod
-    def testCube(size=4):
+    def testCube(size=3):
         # these cubes appear to have strangely beveled edges but I think that is an artifact of the
         # linear interpolation between values of the marching cubes algorithm.
         cube = np.zeros((size, size, size))
-        for x in range(cube.shape[0]):
-            for y in range(cube.shape[1]):
-                for z in range(cube.shape[2]):
-                    if x != 0 and y != 0 and z != 0 and x != size-1 and y != size-1 and z != size-1:
-                        cube[x, y, z] = 1
+        # set all pixels/voxels between 1 and size-1 to 1
+        # (leave a single row/col buffer around entire cube shape)
+        cube[1:-1, 1:-1, 1:-1] = 1
         cube = AICSImage(cube, dims="XYZ")
-        mesh = isosurfaceGenerator.generate_mesh(cube, isovalue=.5)
-        mcubes.export_mesh(mesh.verts, mesh.faces, "img/test_cube.dae", "cube")
+        mesh = isosurfaceGenerator.generate_mesh(cube, isovalue=0)
         mesh.save_as_obj("img/test_cube.obj")
 
     @staticmethod
     def testCellImage():
         cell_image = AICSImage("/home/zacharyc/Development/aicsimage/test/img/img40_1.ome.tif")
         mesh = isosurfaceGenerator.generate_mesh(cell_image, channel=4)
-        mcubes.export_mesh(mesh.verts, mesh.faces, "img/test_cell.dae", "cell")
         mesh.save_as_obj("img/test_file.obj")
