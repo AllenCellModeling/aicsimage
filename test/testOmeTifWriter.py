@@ -24,6 +24,7 @@ class OmeTifWriterTestGroup(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.writer.close()
         os.remove(cls.file)
         io.close()
 
