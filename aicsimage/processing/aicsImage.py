@@ -101,9 +101,15 @@ class AICSImage:
                        If you want all slices of ZYX, but only one from T and C, you can enter:
                        >>> image.get_image_data("ZYX", T=1, C=3)
                        Unspecified dimensions that are left of out the out_orientation default to 0.
+                       :param reference: boolean value to get image data by reference or by value
         :return: ndarray with dimension ordering that was specified with out_orientation
         """
-        image_data = self.data.copy()
+        if kwargs.get("reference", False):
+            # get data by reference
+            image_data = self.data
+        else:
+            # make a copy of the data
+            image_data = self.data.copy()
         if out_orientation != self.dims and self.is_valid_dimension(out_orientation):
             # map each dimension (TCZYX) to its index in out_orientation
             match_map = {dim: out_orientation.find(dim) for dim in self.dims}

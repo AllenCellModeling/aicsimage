@@ -8,6 +8,11 @@ from aicsimage.processing.textureAtlas import generate_texture_atlas
 
 class TextureAtlasTestGroup(unittest.TestCase):
 
+    def test_Save(self):
+        image = AICSImage("img/img40_1.ome.tif")
+        atlas = generate_texture_atlas(im=image, prefix="test_Sizing")
+        atlas.save("img/atlas")
+
     def test_Sizing(self):
         # arrange
         image = AICSImage("img/img40_1.ome.tif")
