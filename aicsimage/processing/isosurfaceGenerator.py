@@ -57,7 +57,7 @@ def generate_mesh(image, isovalue=0, channel=0):
     """
     if not isinstance(image, AICSImage):
         raise ValueError("Meshes can only be generated with AICSImage objects!")
-    if channel >= image.size_c():
+    if channel >= image.size_c:
         raise IndexError("Channel provided for mesh generation is out of bounds for image data!")
     image_stack = image.get_image_data("ZYX", C=channel)
     # Use marching cubes to obtain the surface mesh of the membrane wall
