@@ -9,6 +9,13 @@ from scipy.ndimage.interpolation import zoom
 from aicsimage.io.pngWriter import PngWriter
 from aicsImage import AICSImage
 
+# The design here is not great - there are lots of redundant variables passed from function to function
+# The TextureAtlasGroup is helpful but doesn't do much besides encapsulate the save() function.
+# There should be a smaller unit here which contains the necessary dimensions of tiles and atlases
+# In the main call to get a TextureAtlasGroup, the code would go something like this:
+#       atlas = TextureAtlas(image, pack_order[0])
+#       atlas would contain metadata and actual png array
+#       add TextureAtlas to group with metadata
 
 class TextureAtlasGroup:
     def __init__(self, atlas_list, metadata, prefix):
@@ -70,7 +77,7 @@ def _calc_atlas_dimensions(tile_width, tile_height, stack_height, max_edge):
     atlas_width, atlas_height = int(atlas_width * scale), int(atlas_height * scale)
     return rows, cols, atlas_width, atlas_height, scale
 
-
+# TODO get rid of the constant passing of tile_width, atlas_width, etc.
 def generate_texture_atlas(im, prefix="atlas", max_edge=2048, pack_order=None):
     """
     Creates a TextureAtlasGroup object
