@@ -12,7 +12,7 @@ import testOmeTifWriter
 import testPngReader
 import testPngWriter
 import testThumbnailGenerator
-import testTifReader
+import testImgCenter
 
 
 """
@@ -49,10 +49,10 @@ class TotalTestGroup(unittest.TestCase):
         suite.addTest(loader.loadTestsFromModule(testOmeTifWriter))
         suite.addTest(loader.loadTestsFromModule(testPngReader))
         suite.addTest(loader.loadTestsFromModule(testPngWriter))
-        suite.addTest(loader.loadTestsFromModule(testTifReader))
+        suite.addTest(loader.loadTestsFromModule(testAlignMajor))
         suite.addTest(loader.loadTestsFromModule(testBackgroundCrop))
         suite.addTest(loader.loadTestsFromModule(testBackgroundSub))
-        suite.addTest(loader.loadTestsFromModule(testAlignMajor))
+        suite.addTest(loader.loadTestsFromModule(testImgCenter))
         suite.addTest(loader.loadTestsFromModule(testAICSImage))
         exitcode = unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
         print('\n')
