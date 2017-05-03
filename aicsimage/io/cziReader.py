@@ -1,4 +1,4 @@
-import czifile
+from . import czifile
 import numpy as np
 
 

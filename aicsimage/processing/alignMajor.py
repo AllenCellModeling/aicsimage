@@ -3,7 +3,7 @@
 import numpy as np
 from scipy.ndimage.interpolation import rotate
 from math import ceil
-from backgroundCrop import crop
+from .backgroundCrop import crop
 
 
 def get_major_minor_axis(img):
