@@ -1,6 +1,7 @@
 import unittest
 
 from aicsimage.io import init, close
+<<<<<<< HEAD
 import testAICSImage
 import testAlignMajor
 import testBackgroundCrop
@@ -13,6 +14,20 @@ import testPngReader
 import testPngWriter
 import testThumbnailGenerator
 import testImgCenter
+=======
+from . import testAICSImage
+from . import testAlignMajor
+from . import testBackgroundCrop
+from . import testBackgroundSub
+from . import testCziReader
+from . import testImgToProjection
+from . import testOmeTifReader
+from . import testOmeTifWriter
+from . import testPngReader
+from . import testPngWriter
+from . import testThumbnailGenerator
+from . import testTifReader
+>>>>>>> feature/python3
 
 
 """
