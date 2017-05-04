@@ -1,7 +1,7 @@
 # Author: Evan Wiederspan <evanw@alleninstitute.org>
 
 import numpy as np
-from backgroundCrop import crop, get_edges
+from .backgroundCrop import crop, get_edges
 from scipy.ndimage.measurements import center_of_mass
 
 

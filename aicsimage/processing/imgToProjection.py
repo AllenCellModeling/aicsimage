@@ -78,8 +78,7 @@ def imgtoprojection(im1, proj_all=False, proj_method='max', colors=lambda i: [1,
     else:
         #                                 y + z,                     x + z
         img_final = np.zeros((3, im.shape[2] + im.shape[1], im.shape[3] + im.shape[1]))
-
-    img_piece = np.empty(img_final.shape)
+    img_piece = np.zeros(img_final.shape)
     # loop through all channels
     for i, img_c in enumerate(im):
         try:
