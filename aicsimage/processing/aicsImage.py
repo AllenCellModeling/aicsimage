@@ -55,8 +55,7 @@ class AICSImage:
             # TODO remove this transpose call once reader output is changed
             self.data = self.reader.load().transpose(0, 2, 1, 3, 4)
             self.metadata = self.reader.get_metadata()
-            # internal data should always be stored as TCZYX
-            self._generate_size()
+            self.shape = self.data.shape
 
         elif isinstance(data, np.ndarray):
             # input is a data array
