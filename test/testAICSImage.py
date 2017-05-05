@@ -41,6 +41,12 @@ class AicsImageTestGroup(unittest.TestCase):
         # assert
         self.assertEqual(output_array.all(), 1)
 
+    def test_fewDimensions(self):
+        input_shape = random.sample(range(1, 20), 3)
+        stack = np.zeros(input_shape)
+        image = aicsImage.AICSImage(stack, dims="CTX")
+        self.assertEqual(image.data.shape, image.shape)
+
     def test_fromFileName(self):
         # arrange and act
         dir_path = os.path.dirname(os.path.realpath(__file__))

@@ -66,8 +66,8 @@ class AICSImage:
 
             if len(self.dims) != len(self.data.shape):
                 raise ValueError("Number of dimensions must match dimensions of array provided!")
-
-            self._generate_size()
+            self._reshape_data()
+            self.shape = self.data.shape
         self.size_t, self.size_c, self.size_z, self.size_y, self.size_x = tuple(self.shape)
 
     def is_valid_dimension(self, dimensions):
@@ -84,12 +84,25 @@ class AICSImage:
 
         return True
 
-    def _generate_size(self):
-        self.shape = []
-        # create a map of dimensions -> value in the data array that was passed in originally
-        dim_map = {self.dims[i]: self.data.shape[i] for i in range(len(self.dims))}
-        for dim in AICSImage.default_dims:
-            self.shape.append(dim_map.get(dim, 1))
+    def _transpose_to_defaults(self):
+        match_map = {dim: self.default_dims.find(dim) for dim in self.dims}
+        transposer = []
+        dim_list = list(self.dims)
+        for dim in self.dims:
+            if not match_map[dim] == -1:
+                transposer.append(match_map[dim])
+        # self.dims = str(np.transpose(dim_list, transposer))
+        self.data = self.data.transpose(transposer)
+        self.dims = self.default_dims
+
+    def _reshape_data(self):
+        # this function will add in the missing dimensions in order to make a complete 5d array
+        # get each dimension not included in original data
+        excluded_dims = self.default_dims.strip(self.dims)
+        for dim in excluded_dims:
+            self.data = np.expand_dims(self.data, axis=0)
+            self.dims = dim + self.dims
+        self._transpose_to_defaults()
 
     # TODO get_reference_data if user is not going to manipulate data
     # TODO (minor) allow uppercase and lowercase kwargs
