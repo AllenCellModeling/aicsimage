@@ -9,19 +9,133 @@ from scipy.ndimage.interpolation import zoom
 from aicsimage.io.pngWriter import PngWriter
 from aicsImage import AICSImage
 
-# The design here is not great - there are lots of redundant variables passed from function to function
-# The TextureAtlasGroup is helpful but doesn't do much besides encapsulate the save() function.
-# There should be a smaller unit here which contains the necessary dimensions of tiles and atlases
-# In the main call to get a TextureAtlasGroup, the code would go something like this:
-#       atlas = TextureAtlas(image, pack_order[0])
-#       atlas would contain metadata and actual png array
-#       add TextureAtlas to group with metadata
+class TextureAtlas:
+    def __init__(self, aics_image, filename, pack_order, max_edge):
+        self.max_edge = max_edge
+
+        if not isinstance(aics_image, AICSImage):
+            raise ValueError("Texture atlases can only be generated with AICSImage objects!")
+        self.aics_image = aics_image
+
+        if len(pack_order) > 4:
+            raise ValueError("An atlas with more than 4 channels ({}) cannot be created!".format(pack_order))
+        if any(channel > self.aics_image.size_c for channel in pack_order):
+            raise IndexError("A channel specified in the ordering {} is out-of-bounds in the AICSImage object!".format(pack_order))
+
+        self.pack_order = pack_order
+        self.metadata = {
+            "name": filename,
+            "channels": self.pack_order
+        }
+        self.stack_height = self.aics_image.size_z
+        self.tile_width, self.tile_height, self.rows, self.cols, self.atlas_width, self.atlas_height = self._calc_atlas_dimensions()
+        self.atlas = self.generate_atlas()
+
+    def _calc_atlas_dimensions(self):
+        tile_width, tile_height, stack_height = self.aics_image.size_x, self.aics_image.size_y, self.aics_image.size_z
+        # maintain aspect ratio of images
+        # initialize atlas with one row of all slices
+        atlas_width = tile_width * stack_height
+        atlas_height = tile_height
+        ratio = float(atlas_width) / float(atlas_height)
+        # these next steps attempt to optimize the atlas into a square shape
+        # TODO - there must be a way to do this with a single calculation
+        for r in range(2, stack_height):
+            new_rows = m.ceil(float(stack_height) / r)
+            adjusted_width = int(tile_width * new_rows)
+            adjusted_height = int(tile_height * r)
+            new_ratio = float(max(adjusted_width, adjusted_height)) / float(min(adjusted_width, adjusted_height))
+            if new_ratio < ratio:
+                ratio = new_ratio
+                atlas_width = adjusted_width
+                atlas_height = adjusted_height
+            else:
+                # we've found the rows and columns that make this the most square image
+                break
+        cols = int(atlas_width // tile_width)
+        rows = int(atlas_height // tile_height)
+        atlas_edge = max(atlas_width, atlas_height)
+        scale = float(self.max_edge) / atlas_edge
+        atlas_width, atlas_height = int(atlas_width * scale), int(atlas_height * scale)
+        tile_width, tile_height = int(tile_width * scale), int(tile_height * scale)
+        return tile_width, tile_height, rows, cols, atlas_width, atlas_height
+
+    def generate_atlas(self):
+        atlas = np.zeros((len(self.pack_order), self.atlas_height, self.atlas_width))
+        layer = 0
+        for channel in self.pack_order:
+            atlas[layer] = self._atlas_single_channel(channel)
+            layer += 1
+        return atlas
+
+    def _atlas_single_channel(self, channel):
+        atlas = np.zeros((self.atlas_width, self.atlas_height))
+        i = 0
+        for row in range(self.rows):
+            top_bound, bottom_bound = (self.tile_height * row), (self.tile_height * (row + 1))
+            for col in range(self.cols):
+                if i < self.aics_image.size_z:
+                    left_bound, right_bound = (self.tile_width * col), (self.tile_width * (col + 1))
+                    # TODO fix scaling being off by one pixel due to rounding
+                    tile = zoom(self.aics_image.get_image_data("XY", Z=i, C=channel), scale)
+                    atlas[left_bound:right_bound, top_bound:bottom_bound] = tile
+                    i += 1
+        # transpose to YX for input into CYX arrays
+        return atlas.transpose((1, 0))
+
 
 class TextureAtlasGroup:
-    def __init__(self, atlas_list, metadata, prefix):
+    def __init__(self, atlas_list=None, prefix="texture_atlas"):
         self.atlas_list = atlas_list
         self.prefix = prefix
-        self.metadata = metadata
+        self.metadata = self._create_metadata()
+
+    def _create_metadata(self):
+        # if there are atlases in atlas list
+        if self.atlas_list:
+            # all atlases in atlas_list will contain the same data necessary for this metadata
+            atlas_template = self.atlas_list[0]
+            metadata = {
+                "rows": atlas_template.rows,
+                "cols": atlas_template.cols,
+                "tiles": atlas_template.stack_height,
+                "tile_width": atlas_template.tile_width,
+                "tile_height": atlas_template.tile_height,
+                "atlas_width": atlas_template.atlas_width,
+                "atlas_height": atlas_template.atlas_height
+            }
+            image_list = []
+            for atlas in self.atlas_list:
+                image_list.append(atlas.metadata)
+            metadata["images"] = image_list
+        else:
+            # if there are no atlases in the group, then metadata shouldn't contain anything
+            metadata = None
+        return metadata
+
+    def _is_valid_atlas(self, atlas):
+        if self.atlas_list:
+            element_list = ["rows", "cols", "tiles", "tile_width", "tile_height", "atlas_width", "atlas_height"]
+            atlas_elements = [atlas.rows, atlas.cols, atlas.stack_height, atlas.tile_width, atlas.tile_height, atlas.atlas_width, atlas.atlas_height]
+            matching = zip(element_list, atlas_elements)
+            for key, atlas_val in matching:
+                if self.metadata[key] != atlas_val:
+                    return False
+            return True
+        else:
+            # if there are no atlases in the group, the first atlas will determine validity of others
+            return True
+
+
+    def append(self, atlas):
+        if not isinstance(atlas, TextureAtlas):
+            raise ValueError("TextureAtlasGroup can only append TextureAtlas objects!")
+        if self._is_valid_atlas(atlas):
+            self.atlas_list.append(atlas)
+            if self.metadata is None:
+                self.metadata = self._create_metadata()
+        else:
+            raise ValueError("Attempted to add atlas that doesn't match the rest of atlasGroup")
 
     def save(self, output_dir):
         if not os.path.exists(output_dir):
@@ -30,55 +144,12 @@ class TextureAtlasGroup:
         for atlas in self.atlas_list:
             full_path = os.path.join(output_dir, self.prefix + "_" + str(i) + ".png")
             with PngWriter(full_path, overwrite_file=True) as writer:
-                writer.save(atlas)
+                writer.save(atlas.atlas)
             i += 1
         with open(os.path.join(output_dir, "atlas_meta.json"), 'w') as json_output:
             json.dump(self.metadata, json_output)
 
-def _atlas_single_channel(im, channel, tile_width, tile_height, stack_height, atlas_width, atlas_height, rows, cols, scale):
-    atlas = np.zeros((atlas_width, atlas_height))
-    i = 0
-    for row in range(rows):
-        top_bound, bottom_bound = (tile_height * row), (tile_height * (row + 1))
-        for col in range(cols):
-            if i < stack_height:
-                left_bound, right_bound = (tile_width * col), (tile_width * (col + 1))
-                tile = zoom(im.get_image_data("XY", Z=i, C=channel), scale)
-                atlas[left_bound:right_bound, top_bound:bottom_bound] = tile
-                i += 1
-    # transpose to YX for input into CYX arrays
-    return atlas.transpose((1, 0))
-
-
-def _calc_atlas_dimensions(tile_width, tile_height, stack_height, max_edge):
-    # maintain aspect ratio of images
-    # initialize atlas with one row of all slices
-    atlas_width = tile_width * stack_height
-    atlas_height = tile_height
-    ratio = float(atlas_width) / float(atlas_height)
-    # these next steps attempt to optimize the atlas into a square shape
-    # TODO - there must be a way to do this with a single calculation
-    for r in range(2, stack_height):
-        new_rows = m.ceil(float(stack_height) / r)
-        adjusted_width = int(tile_width * new_rows)
-        adjusted_height = int(tile_height * r)
-        new_ratio = float(max(adjusted_width, adjusted_height)) / float(min(adjusted_width, adjusted_height))
-        if new_ratio < ratio:
-            ratio = new_ratio
-            atlas_width = adjusted_width
-            atlas_height = adjusted_height
-        else:
-            # we've found the rows and columns that make this the most square image
-            break
-    cols = int(atlas_width // tile_width)
-    rows = int(atlas_height // tile_height)
-    atlas_edge = max(atlas_width, atlas_height)
-    scale = float(max_edge) / atlas_edge
-    atlas_width, atlas_height = int(atlas_width * scale), int(atlas_height * scale)
-    return rows, cols, atlas_width, atlas_height, scale
-
-# TODO get rid of the constant passing of tile_width, atlas_width, etc.
-def generate_texture_atlas(im, prefix="atlas", max_edge=2048, pack_order=None):
+def generate_texture_atlas(im, prefix="texture_atlas", max_edge=2048, pack_order=None):
     """
     Creates a TextureAtlasGroup object
     :param im: aicsImage object
@@ -90,55 +161,20 @@ def generate_texture_atlas(im, prefix="atlas", max_edge=2048, pack_order=None):
                        where the first texture atlas will code channel 0 as r, channel 1 as g, and so on.
     :return: TextureAtlasGroup object
     """
-    if not isinstance(im, AICSImage):
-        raise ValueError("Texture atlases can only be generated with AICSImage objects!")
+
     if pack_order is None:
         # if no pack order is specified, pack 4 channels per png and move on
         channel_list = [c for c in range(im.shape[1])]
         pack_order = [channel_list[x:x+4] for x in xrange(0, len(channel_list), 4)]
-    # this var generates the right suffix for each image
-    atlas_list, image_meta_list = [], []
-    tile_width, tile_height, stack_height = im.size_x, im.size_y, im.size_z
-    rows, cols, atlas_width, atlas_height, scale = _calc_atlas_dimensions(tile_width, tile_height, stack_height, max_edge)
-    tile_width, tile_height = int(tile_width * scale), int(tile_height * scale)
+    atlas_group = TextureAtlasGroup()
     png_count = 0
     for png in pack_order:
-        if len(png) > 4:
-            raise ValueError("An atlas with more than 4 channels ({}) cannot be created!".format(png))
-        for channel in png:
-            if channel > im.size_c:
-                raise IndexError("A channel with value {} is out-of-bounds in the AICSImage object!".format(channel))
-
-        # atlas is a CYX png
-        atlas = np.ndarray((len(png), atlas_height, atlas_width))
-        layer = 0
-        for channel in png:
-            atlas[layer] = _atlas_single_channel(im, channel,
-                                                 tile_width, tile_height, stack_height,
-                                                 atlas_width, atlas_height,
-                                                 rows, cols, scale)
-            layer += 1
-
-        atlas_list.append(atlas)
-        image_meta = {
-            "name": prefix + "_" + str(png_count) + ".png",
-            "channels": png
-        }
+        file_path = prefix + "_" + str(png_count) + ".png"
+        atlas = TextureAtlas(im, filename=file_path, pack_order=png, max_edge=max_edge)
+        atlas_group.append(atlas)
         png_count += 1
-        image_meta_list.append(image_meta)
 
-    metadata = {
-        "rows": rows,
-        "cols": cols,
-        "tiles": stack_height,
-        "tile_width": tile_width,
-        "tile_height": tile_height,
-        "atlas_width": atlas_width,
-        "atlas_height": atlas_height,
-        "images": image_meta_list
-    }
-
-    return TextureAtlasGroup(atlas_list, metadata=metadata, prefix=prefix)
+    return atlas_group
 
 
 

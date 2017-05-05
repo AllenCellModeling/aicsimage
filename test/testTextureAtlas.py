@@ -10,8 +10,8 @@ class TextureAtlasTestGroup(unittest.TestCase):
 
     def test_Save(self):
         image = AICSImage("img/img40_1.ome.tif")
-        atlas = generate_texture_atlas(im=image, prefix="test_Sizing")
-        atlas.save("img/atlas")
+        atlas = generate_texture_atlas(im=image, pack_order=[[0, 1, 2], [3], [4]], prefix="test_Sizing", max_edge=1024)
+        atlas.save("img/atlas_max")
 
     def test_Sizing(self):
         # arrange
