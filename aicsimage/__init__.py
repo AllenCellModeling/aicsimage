@@ -1,4 +1,4 @@
-from aicsimage_version import AICSIMAGE_VERSION
+from aicsimage.aicsimage_version import AICSIMAGE_VERSION
 
 
 def get_version():

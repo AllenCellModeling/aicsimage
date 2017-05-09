@@ -4,7 +4,7 @@ import os
 
 import tifffile
 
-import omexml
+from . import omexml
 
 
 class OmeTifWriter:
