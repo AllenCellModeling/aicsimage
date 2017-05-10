@@ -13,9 +13,9 @@ class ImgCenterTestGroup(unittest.TestCase):
         Helper function to get a random test image for centering testing
         """
         test = np.zeros((3, 10, 10, 10))
-        moves = tuple(randrange(-3, 4) for _ in range(3))
+        moves = [0] + [randrange(-3, 4) for _ in range(3)]
         # create random 3 x 3 x 3 cube of 1's somewhere in the test image
-        test[[slice(None, None)] + [slice(4 + m, 7 + m) for m in moves]] = 1
+        test[[slice(None, None)] + [slice(4 + m, 7 + m) for m in moves[1:]]] = 1
         return (test, moves)
 
     def test_getEdgesInput(self):
@@ -36,12 +36,26 @@ class ImgCenterTestGroup(unittest.TestCase):
     def test_cropAllInputs(self):
         with self.assertRaises(ValueError, msg="crop_all requires an iterable as input"):
             crop_all(self.getRandTest()[0])
+        with self.assertRaises(ValueError, msg="axis must be in range"):
+            crop_all([self.getRandTest()[0] for _ in range(3)], axis=(-3, -2, 5))
+        with self.assertRaises(ValueError, msg="Image shapes must be equal"):
+            images = [self.getRandTest()[0] for _ in range(2)] + np.empty([randrange(1, 10) for _ in range(4)])
+            crop_all(images)
 
     def test_cropAllOutSize(self):
         test_images = [self.getRandTest()[0] for _ in range(3)]
         out_images = crop_all(test_images)
         shape = out_images[0].shape
         self.assertTrue(all(shape == img.shape for img in out_images[1:]), "Images are same size after cropping")
+
+    def test_cropAllAxis(self):
+        for t in range(3):
+            test_images = [self.getRandTest()[0] for _ in range(3)]
+            a = randrange(1, 4)
+            axis = [1, 2, 3]
+            del axis[a - 1]
+            out_images = crop_all(test_images, axis=axis)
+            self.assertTrue(test_images[0].shape[a] == out_images[0].shape[a], "Does not crop on non-specified axis")
 
     def test_cropAllOutCOM(self):
         test_images = [self.getRandTest()[0] for _ in range(randrange(2, 6))]
