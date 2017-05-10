@@ -53,7 +53,7 @@ def crop_all(images, axis=(-3, -2, -1)):
     :return: List of cropped images, in the same order as they were passed in
     """
     try:
-        if not isinstance(images, (type(tuple()), type([]))):
+        if not isinstance(images, (tuple, list)):
             raise ValueError("images must be an iterable")
         shape = images[0].shape
         if not all(img.shape == shape for img in images):
@@ -88,7 +88,7 @@ def center_image(image, moves=None, axis=(-3, -2, -1), fill=0):
     future function calls. If moves is specified, it returns just the moved image
     """
     if not isinstance(image, np.ndarray):
-        raise ValueError("image must be a 4d numpy array")
+        raise ValueError("image must be a numpy array")
     return_tuple = moves is None
     if moves is None:
         # calculate how far off center the image is in each direction
