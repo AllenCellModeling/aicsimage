@@ -82,9 +82,9 @@ def imgtoprojection(im1, proj_all=False, proj_method='max', colors=lambda i: [1,
     # loop through all channels
     for i, img_c in enumerate(im):
         try:
-            proj_z = matproj(img_c, 0, proj_method, im.shape[0] // 2)
+            proj_z = matproj(img_c, 0, proj_method, img_c.shape[0] // 2)
             if proj_all:
-                proj_y, proj_x = (matproj(img_c, axis, proj_method, im.shape[axis] // 2) for axis in range(1, 3))
+                proj_y, proj_x = (matproj(img_c, axis, proj_method, img_c.shape[axis] // 2) for axis in range(1, 3))
                 # flipping to get them facing the right way
                 proj_x = np.fliplr(np.transpose(proj_x, (1, 0)))
                 proj_y = np.flipud(proj_y)
