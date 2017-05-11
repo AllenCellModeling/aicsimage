@@ -55,6 +55,7 @@ class TotalTestGroup(unittest.TestCase):
         suite.addTest(loader.loadTestsFromModule(testBackgroundSub))
         suite.addTest(loader.loadTestsFromModule(testImgCenter))
         suite.addTest(loader.loadTestsFromModule(testAICSImage))
+        suite.addTest(loader.loadTestsFromModule(testTifReader))
         exitcode = unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
         print('\n')
         self.assertTrue(exitcode)
