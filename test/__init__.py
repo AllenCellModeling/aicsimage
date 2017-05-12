@@ -1,18 +1,19 @@
 import unittest
 
 from aicsimage.io import init, close
-import testAICSImage
-import testAlignMajor
-import testBackgroundCrop
-import testBackgroundSub
-import testCziReader
-import testImgToProjection
-import testOmeTifReader
-import testOmeTifWriter
-import testPngReader
-import testPngWriter
-import testThumbnailGenerator
-import testTifReader
+from . import testAICSImage
+from . import testAlignMajor
+from . import testBackgroundCrop
+from . import testBackgroundSub
+from . import testCziReader
+from . import testImgCenter
+from . import testImgToProjection
+from . import testOmeTifReader
+from . import testOmeTifWriter
+from . import testPngReader
+from . import testPngWriter
+from . import testThumbnailGenerator
+from . import testTifReader
 
 
 """
@@ -49,11 +50,12 @@ class TotalTestGroup(unittest.TestCase):
         suite.addTest(loader.loadTestsFromModule(testOmeTifWriter))
         suite.addTest(loader.loadTestsFromModule(testPngReader))
         suite.addTest(loader.loadTestsFromModule(testPngWriter))
-        suite.addTest(loader.loadTestsFromModule(testTifReader))
+        suite.addTest(loader.loadTestsFromModule(testAlignMajor))
         suite.addTest(loader.loadTestsFromModule(testBackgroundCrop))
         suite.addTest(loader.loadTestsFromModule(testBackgroundSub))
-        suite.addTest(loader.loadTestsFromModule(testAlignMajor))
+        suite.addTest(loader.loadTestsFromModule(testImgCenter))
         suite.addTest(loader.loadTestsFromModule(testAICSImage))
+        suite.addTest(loader.loadTestsFromModule(testTifReader))
         exitcode = unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
         print('\n')
         self.assertTrue(exitcode)

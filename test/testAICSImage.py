@@ -3,6 +3,8 @@
 import unittest
 import numpy as np
 import random
+import os
+
 from aicsimage.processing import aicsImage
 
 
@@ -39,22 +41,16 @@ class AicsImageTestGroup(unittest.TestCase):
         # assert
         self.assertEqual(output_array.all(), 1)
 
-    def test_slicedAndTransposed(self):
-        # arrange
-        input_shape = random.sample(range(1, 20), 5)
-        t_max, y_max = input_shape[0], input_shape[1]
-        t_rand, y_rand = random.randint(0, t_max - 1), random.randint(0, y_max - 1)
+    def test_fewDimensions(self):
+        input_shape = random.sample(range(1, 20), 3)
         stack = np.zeros(input_shape)
-        stack[t_rand, :, :, y_rand] = 1
-        image = aicsImage.AICSImage(stack, dims="TCZYX")
-        # act
-        output_array = image.get_image_data("XZC", Y=y_rand, T=t_rand)
-        # assert
-        self.assertEqual(output_array.all(), 1)
+        image = aicsImage.AICSImage(stack, dims="CTX")
+        self.assertEqual(image.data.shape, image.shape)
 
     def test_fromFileName(self):
         # arrange and act
-        image = aicsImage.AICSImage("img/img40_1.ome.tif")
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        image = aicsImage.AICSImage(os.path.join(dir_path, 'img', 'img40_1.ome.tif'))
         # assert
         self.assertIsNotNone(image)
 
