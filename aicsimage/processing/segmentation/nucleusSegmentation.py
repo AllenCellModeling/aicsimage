@@ -27,7 +27,6 @@ def keep_connected_components(image, low_threshold, high_threshold=None):
     return output
 
 
-
 def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
     """
     This function is built to fill in the holes of the nucleus segmentation channel
@@ -67,31 +66,32 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
 
             # this is a 3D Gaussian filter with size of [41, 41, 11]
             # corresponds to a sigma array of [41, 41, 11]/(4*sqrt(2*log(2)))
-            filter_correction = gaussian_filter(cropped_cell_seg, [41, 41, 11])
-            OmeTifWriter("./img/segmentation/correction.ome.tif", overwrite_file=True).save(filter_correction)
+            filter_correction = gaussian_filter(cropped_cell_seg[cropped_cell_seg > 0], 41)
+            cropped_cell_seg[cropped_cell_seg > 0] = filter_correction
+            OmeTifWriter("./img/segmentation/correction.ome.tif", overwrite_file=True).save(cropped_cell_seg)
+
             output = gaussian_filter(output, [41, 41, 11])
             OmeTifWriter("./img/segmentation/filtered.ome.tif", overwrite_file=True).save(output)
 
             # this indexing assures that no values in output are divided by zero
-            output[filter_correction > 0] /= filter_correction[filter_correction > 0]
+            output[cropped_cell_seg > 0] /= cropped_cell_seg[cropped_cell_seg > 0]
+            output[cropped_cell_seg == 0] = 0
             OmeTifWriter("./img/segmentation/filter_corrected.ome.tif", overwrite_file=True).save(output)
 
             otsu_threshold = threshold_otsu(output[output > 0])
             output[output <= otsu_threshold] = 0
             output[output > otsu_threshold] = cell_value
             OmeTifWriter("./img/segmentation/threshold.ome.tif", overwrite_file=True).save(output)
-
             output = output.astype(np.int)
-
             output = morphology.remove_small_objects(output)
-            # OmeTifWriter("./img/segmentation/opening.ome.tif", overwrite_file=True).save(output)
+            OmeTifWriter("./img/segmentation/opening.ome.tif", overwrite_file=True).save(output)
 
             # fill holes for each slice
             # for z in range(output.shape[0]):
             #     output[z, binary_fill_holes(output[z])] = 1
             output = morphology.remove_small_holes(output)
-            # OmeTifWriter("./img/segmentation/slices_filled.ome.tif", overwrite_file=True).save(output)
-            total_area = np.prod(output.shape)
-            output = keep_connected_components(output,  total_area // 4, total_area * 2)
+            OmeTifWriter("./img/segmentation/slices_filled.ome.tif", overwrite_file=True).save(output)
+            # total_area = np.prod(output.shape)
+            # output = keep_connected_components(output,  total_area // 4, total_area * 2)
 
 
