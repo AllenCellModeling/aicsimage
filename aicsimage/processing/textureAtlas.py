@@ -54,11 +54,14 @@ class TextureAtlas:
                 break
         cols = int(atlas_width // tile_width)
         rows = int(atlas_height // tile_height)
-        atlas_edge = max(atlas_width, atlas_height)
-        scale = float(self.max_edge) / atlas_edge
-        atlas_width, atlas_height = int(atlas_width * scale), int(atlas_height * scale)
-        tile_width, tile_height = int(tile_width * scale), int(tile_height * scale)
-        return tile_width, tile_height, rows, cols, atlas_width, atlas_height
+
+        if self.max_edge < atlas_width or self.max_edge < atlas_height:
+            tile_width = m.floor(self.max_edge/cols)
+            tile_height = m.floor(self.max_edge/rows)
+            atlas_width = tile_width * cols
+            atlas_height = tile_height * rows
+
+        return int(tile_width), int(tile_height), int(rows), int(cols), int(atlas_width), int(atlas_height)
 
     def generate_atlas(self):
         atlas = np.zeros((len(self.pack_order), self.atlas_height, self.atlas_width))
@@ -69,6 +72,8 @@ class TextureAtlas:
         return atlas
 
     def _atlas_single_channel(self, channel):
+        scale = (float(self.tile_width) / float(self.aics_image.size_x), float(self.tile_height) / float(self.aics_image.size_y))
+
         atlas = np.zeros((self.atlas_width, self.atlas_height))
         i = 0
         for row in range(self.rows):
@@ -92,10 +97,14 @@ class TextureAtlasGroup:
 
     def _create_metadata(self):
         # if there are atlases in atlas list
-        if self.atlas_list:
+        if self.atlas_list is not None:
             # all atlases in atlas_list will contain the same data necessary for this metadata
             atlas_template = self.atlas_list[0]
             metadata = {
+                "width": atlas_template.aics_image.size_x,
+                "height": atlas_template.aics_image.size_y,
+                "channels": atlas_template.aics_image.size_c,
+                "channel_names": ['CH_'+str(i) for i in range(atlas_template.aics_image.size_c)],
                 "rows": atlas_template.rows,
                 "cols": atlas_template.cols,
                 "tiles": atlas_template.stack_height,
@@ -114,7 +123,7 @@ class TextureAtlasGroup:
         return metadata
 
     def _is_valid_atlas(self, atlas):
-        if self.atlas_list:
+        if self.atlas_list is not None:
             element_list = ["rows", "cols", "tiles", "tile_width", "tile_height", "atlas_width", "atlas_height"]
             atlas_elements = [atlas.rows, atlas.cols, atlas.stack_height, atlas.tile_width, atlas.tile_height, atlas.atlas_width, atlas.atlas_height]
             matching = zip(element_list, atlas_elements)
@@ -131,9 +140,14 @@ class TextureAtlasGroup:
         if not isinstance(atlas, TextureAtlas):
             raise ValueError("TextureAtlasGroup can only append TextureAtlas objects!")
         if self._is_valid_atlas(atlas):
-            self.atlas_list.append(atlas)
+            if self.atlas_list:
+                self.atlas_list.append(atlas)
+            else:
+                self.atlas_list = [atlas]
             if self.metadata is None:
                 self.metadata = self._create_metadata()
+            else:
+                self.metadata["images"].append(atlas.metadata)
         else:
             raise ValueError("Attempted to add atlas that doesn't match the rest of atlasGroup")
 
@@ -146,7 +160,7 @@ class TextureAtlasGroup:
             with PngWriter(full_path, overwrite_file=True) as writer:
                 writer.save(atlas.atlas)
             i += 1
-        with open(os.path.join(output_dir, "atlas_meta.json"), 'w') as json_output:
+        with open(os.path.join(output_dir, self.prefix + "_atlas.json"), 'w') as json_output:
             json.dump(self.metadata, json_output)
 
 def generate_texture_atlas(im, prefix="texture_atlas", max_edge=2048, pack_order=None):
@@ -166,7 +180,7 @@ def generate_texture_atlas(im, prefix="texture_atlas", max_edge=2048, pack_order
         # if no pack order is specified, pack 4 channels per png and move on
         channel_list = [c for c in range(im.shape[1])]
         pack_order = [channel_list[x:x+4] for x in xrange(0, len(channel_list), 4)]
-    atlas_group = TextureAtlasGroup()
+    atlas_group = TextureAtlasGroup(prefix=prefix)
     png_count = 0
     for png in pack_order:
         file_path = prefix + "_" + str(png_count) + ".png"
