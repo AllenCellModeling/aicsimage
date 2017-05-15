@@ -180,11 +180,11 @@ def generate_texture_atlas(im, prefix="texture_atlas", max_edge=2048, pack_order
                        where the first texture atlas will code channel 0 as r, channel 1 as g, and so on.
     :return: TextureAtlasGroup object
     """
-
+    max_channels_per_png = 3
     if pack_order is None:
         # if no pack order is specified, pack 4 channels per png and move on
         channel_list = [c for c in range(im.shape[1])]
-        pack_order = [channel_list[x:x+4] for x in xrange(0, len(channel_list), 4)]
+        pack_order = [channel_list[x:x+max_channels_per_png] for x in xrange(0, len(channel_list), max_channels_per_png)]
     atlas_group = TextureAtlasGroup(prefix=prefix)
     png_count = 0
     for png in pack_order:
