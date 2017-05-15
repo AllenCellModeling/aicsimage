@@ -74,6 +74,11 @@ class TextureAtlas:
     def _atlas_single_channel(self, channel):
         scale = (float(self.tile_width) / float(self.aics_image.size_x), float(self.tile_height) / float(self.aics_image.size_y))
 
+        chandata = self.aics_image.get_image_data("XYZ", C=channel)
+        # renormalize
+        chandata = chandata.astype(np.float32)
+        chandata *= 255.0/chandata.max()
+
         atlas = np.zeros((self.atlas_width, self.atlas_height))
         i = 0
         for row in range(self.rows):
@@ -82,8 +87,8 @@ class TextureAtlas:
                 if i < self.aics_image.size_z:
                     left_bound, right_bound = (self.tile_width * col), (self.tile_width * (col + 1))
                     # TODO fix scaling being off by one pixel due to rounding
-                    tile = zoom(self.aics_image.get_image_data("XY", Z=i, C=channel), scale)
-                    atlas[left_bound:right_bound, top_bound:bottom_bound] = tile
+                    tile = zoom(chandata[:,:,i], scale)
+                    atlas[left_bound:right_bound, top_bound:bottom_bound] = tile.astype(np.uint8)
                     i += 1
         # transpose to YX for input into CYX arrays
         return atlas.transpose((1, 0))
