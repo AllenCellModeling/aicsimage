@@ -6,26 +6,35 @@ from skimage.filters import threshold_otsu
 from scipy.ndimage.measurements import label
 from skimage.measure import regionprops
 from skimage import morphology
+import os
+
 from aicsimage.io.omeTifWriter import OmeTifWriter
 
 def keep_connected_components(image, low_threshold, high_threshold=None):
 
     if high_threshold is None:
-        high_threshold = len(image)
+        high_threshold = np.prod(image.shape)
 
-    labels = label(image)
-    object_areas = [ob_region.area for ob_region in regionprops(labels[0])]
+    # label objects in image and get total number of objects detected
+    labels, num_objects = label(image)
     output = np.zeros(image.shape)
 
-    if len(object_areas) > 1:
-        indices = np.where(low_threshold < object_areas <= high_threshold)
-        for index in indices:
-            output = output or labels[0] == index
+    if num_objects > 1:
+        # get the area of each object
+        object_areas = [ob_region.area for ob_region in regionprops(labels)]
+
+        for component in object_areas:
+            if low_threshold < component <= high_threshold:
+                output = output or (labels == component)
     else:
         output = image.copy()
 
     return output
 
+# helpful debugging function
+def _save_inter_image(image, index, name):
+    file_path = os.path.join("img/segmentation", name + "_" + str(index) + ".ome.tif")
+    OmeTifWriter(file_path, overwrite_file=True).save(image)
 
 def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
     """
@@ -39,6 +48,7 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
     original_max = np.max(nuc_original_img)
     original_min = np.min(nuc_original_img)
     nuc_original_img = (nuc_original_img - original_min) / (original_max - original_min) * 255
+    total_out = np.zeros(nuc_original_img.shape)
 
     for cell_value in range(1, cell_index_img.max()):
         # get indices of cell with cell_value as its ID
@@ -53,6 +63,7 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
             # crop and mask the whole cell segmentation
             cropped_cell_seg = cell_index_img[z_slice, y_slice, x_slice].astype(np.float64)
             cropped_cell_seg[cropped_cell_seg != cell_value] = 0
+            _save_inter_image(cropped_cell_seg, cell_value, "cropped_cell_seg")
             # crop and mask the nucleus channel
             output = nuc_original_img[z_slice, y_slice, x_slice]
             output[cropped_cell_seg != cell_value] = 0
@@ -63,19 +74,26 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
             # this indexing assures that no values in output are divided by zero
             output[cropped_cell_seg > 0] /= cropped_cell_seg[cropped_cell_seg > 0]
             output[cropped_cell_seg == 0] = 0
-            # threshold and mask to get the new nuclear segmentation
-            otsu_threshold = threshold_otsu(output[output > 0])
-            output[output <= otsu_threshold] = 0
-            output[output > otsu_threshold] = 1
-            OmeTifWriter("./img/segmentation/threshold.ome.tif", overwrite_file=True).save(output)
+            # threshold and mask to get the new nuclear segmentation\
+            if len(output[output > 0]) > 0:
+                otsu_threshold = threshold_otsu(output[output > 0])
+                output[output <= otsu_threshold] = 0
+                output[output > otsu_threshold] = 1
+                _save_inter_image(output, cell_value, "threshold")
 
-            # clean the images of objects and holes
-            for z in range(output.shape[0]):
-                output[z] = morphology.remove_small_objects(output[z].astype(np.int))
-                output[z] = morphology.remove_small_holes(output[z].astype(np.int))
-            OmeTifWriter("./img/segmentation/removal.ome.tif", overwrite_file=True).save(output)
+                # clean the images of objects and holes
+                for z in range(output.shape[0]):
+                    image_slice = output[z].astype(np.bool)
+                    output[z] = morphology.remove_small_objects(image_slice)
+                    output[z] = morphology.remove_small_holes(image_slice)
+                _save_inter_image(output, cell_value, "removal")
+                # get the total volume and ignore components less than a quarter of that volume
+                total_volume = np.prod(output.shape)
+                output = keep_connected_components(output,  total_volume // 4, total_volume * 2)
+                _save_inter_image(output, cell_value, "connected_components")
+            # change boolean value back to original segmentation value
+            output[output == 1] = cell_value
+            total_out[z_slice, y_slice, x_slice] = output
 
-            total_area = np.prod(output.shape)
-            output = keep_connected_components(output,  total_area // 4, total_area * 2)
-
+    _save_inter_image(total_out, 0, "total_out")
 
