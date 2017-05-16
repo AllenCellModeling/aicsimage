@@ -45,20 +45,16 @@ class TextureAtlas:
         self.atlas = self.generate_atlas(dims)
 
     def generate_atlas(self, dims):
-        atlas = np.zeros((len(self.pack_order), dims.atlas_height, dims.atlas_width))
-        layer = 0
-        for channel in self.pack_order:
-            atlas[layer] = self._atlas_single_channel(channel, dims)
-            layer += 1
+        atlas = np.stack([self._atlas_single_channel(image_channel, dims) for image_channel in self.pack_order])
         return atlas
 
     def _atlas_single_channel(self, channel, dims):
         scale = (float(dims.tile_width) / float(self.aics_image.size_x), float(dims.tile_height) / float(self.aics_image.size_y))
 
-        chandata = self.aics_image.get_image_data("XYZ", C=channel)
+        channel_data = self.aics_image.get_image_data("XYZ", C=channel)
         # renormalize
-        chandata = chandata.astype(np.float32)
-        chandata *= 255.0/chandata.max()
+        channel_data = channel_data.astype(np.float32)
+        channel_data *= 255.0/channel_data.max()
 
         atlas = np.zeros((dims.atlas_width, dims.atlas_height))
         i = 0
@@ -67,10 +63,11 @@ class TextureAtlas:
             for col in range(dims.cols):
                 if i < self.aics_image.size_z:
                     left_bound, right_bound = (dims.tile_width * col), (dims.tile_width * (col + 1))
-                    # TODO fix scaling being off by one pixel due to rounding
-                    tile = zoom(chandata[:,:,i], scale)
+                    tile = zoom(channel_data[:,:,i], scale)
                     atlas[left_bound:right_bound, top_bound:bottom_bound] = tile.astype(np.uint8)
                     i += 1
+                else:
+                    break
         # transpose to YX for input into CYX arrays
         return atlas.transpose((1, 0))
 
@@ -87,7 +84,7 @@ class TextureAtlasGroup:
         if pack_order is None:
             # if no pack order is specified, pack 4 channels per png and move on
             channel_list = [c for c in range(aics_image.shape[1])]
-            pack_order = [channel_list[x:x+max_channels_per_png] for x in xrange(0, len(channel_list), max_channels_per_png)]
+            pack_order = [channel_list[x:x+max_channels_per_png] for x in range(0, len(channel_list), max_channels_per_png)]
         png_count = 0
         for png in pack_order:
             file_path = prefix + "_" + str(png_count) + ".png"
@@ -166,9 +163,7 @@ class TextureAtlasGroup:
 
     def get_metadata(self):
         metadata = self.dims.__dict__
-        metadata["images"] = []
-        for atlas in self.atlas_list:
-            metadata["images"].append(atlas.metadata)
+        metadata["images"] = [atlas.metadata for atlas in self.atlas_list]
         return metadata
 
 
