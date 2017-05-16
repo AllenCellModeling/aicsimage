@@ -9,10 +9,25 @@ from scipy.ndimage.interpolation import zoom
 from aicsimage.io.pngWriter import PngWriter
 from aicsImage import AICSImage
 
-class TextureAtlas:
-    def __init__(self, aics_image, filename, pack_order, max_edge):
-        self.max_edge = max_edge
+class TextureAtlasDims:
+    def __init__(self):
+        self.width = 0
+        self.height = 0
+        self.channels = 0
+        self.channel_names = []
+        self.rows = 0
+        self.cols = 0
+        self.tiles = 0
+        self.tile_width = 0
+        self.tile_height = 0
+        self.atlas_width = 0
+        self.atlas_height = 0
 
+
+class TextureAtlas:
+    def __init__(self, aics_image, filename, pack_order, dims):
+        if not isinstance(dims, TextureAtlasDims):
+            raise ValueError("Texture atlas dimension data must be of type TextureAtlasDims!")
         if not isinstance(aics_image, AICSImage):
             raise ValueError("Texture atlases can only be generated with AICSImage objects!")
         self.aics_image = aics_image
@@ -27,12 +42,60 @@ class TextureAtlas:
             "name": filename,
             "channels": self.pack_order
         }
-        self.stack_height = self.aics_image.size_z
-        self.tile_width, self.tile_height, self.rows, self.cols, self.atlas_width, self.atlas_height = self._calc_atlas_dimensions()
-        self.atlas = self.generate_atlas()
+        self.atlas = self.generate_atlas(dims)
 
-    def _calc_atlas_dimensions(self):
-        tile_width, tile_height, stack_height = self.aics_image.size_x, self.aics_image.size_y, self.aics_image.size_z
+    def generate_atlas(self, dims):
+        atlas = np.zeros((len(self.pack_order), dims.atlas_height, dims.atlas_width))
+        layer = 0
+        for channel in self.pack_order:
+            atlas[layer] = self._atlas_single_channel(channel, dims)
+            layer += 1
+        return atlas
+
+    def _atlas_single_channel(self, channel, dims):
+        scale = (float(dims.tile_width) / float(self.aics_image.size_x), float(dims.tile_height) / float(self.aics_image.size_y))
+
+        chandata = self.aics_image.get_image_data("XYZ", C=channel)
+        # renormalize
+        chandata = chandata.astype(np.float32)
+        chandata *= 255.0/chandata.max()
+
+        atlas = np.zeros((dims.atlas_width, dims.atlas_height))
+        i = 0
+        for row in range(dims.rows):
+            top_bound, bottom_bound = (dims.tile_height * row), (dims.tile_height * (row + 1))
+            for col in range(dims.cols):
+                if i < self.aics_image.size_z:
+                    left_bound, right_bound = (dims.tile_width * col), (dims.tile_width * (col + 1))
+                    # TODO fix scaling being off by one pixel due to rounding
+                    tile = zoom(chandata[:,:,i], scale)
+                    atlas[left_bound:right_bound, top_bound:bottom_bound] = tile.astype(np.uint8)
+                    i += 1
+        # transpose to YX for input into CYX arrays
+        return atlas.transpose((1, 0))
+
+
+class TextureAtlasGroup:
+    def __init__(self, aics_image, prefix="texture_atlas", pack_order=None, max_edge=2048):
+        self.prefix = prefix
+        self.max_edge = max_edge
+        self.stack_height = aics_image.size_z
+        self.dims = self._calc_atlas_dimensions(aics_image)
+        self.atlas_list = []
+
+        max_channels_per_png = 3
+        if pack_order is None:
+            # if no pack order is specified, pack 4 channels per png and move on
+            channel_list = [c for c in range(aics_image.shape[1])]
+            pack_order = [channel_list[x:x+max_channels_per_png] for x in xrange(0, len(channel_list), max_channels_per_png)]
+        png_count = 0
+        for png in pack_order:
+            file_path = prefix + "_" + str(png_count) + ".png"
+            self._append(TextureAtlas(aics_image, filename=file_path, pack_order=png, dims=self.dims))
+            png_count += 1
+
+    def _calc_atlas_dimensions(self, aics_image):
+        tile_width, tile_height, stack_height = aics_image.size_x, aics_image.size_y, aics_image.size_z
         # maintain aspect ratio of images
         # initialize atlas with one row of all slices
         atlas_width = tile_width * stack_height
@@ -61,100 +124,53 @@ class TextureAtlas:
             atlas_width = tile_width * cols
             atlas_height = tile_height * rows
 
-        return int(tile_width), int(tile_height), int(rows), int(cols), int(atlas_width), int(atlas_height)
+        dims = TextureAtlasDims()
+        dims.tile_width = int(tile_width)
+        dims.tile_height = int(tile_height)
+        dims.rows = int(rows)
+        dims.cols = int(cols)
+        dims.atlas_width = int(atlas_width)
+        dims.atlas_height = int(atlas_height)
+        dims.width = aics_image.size_x
+        dims.height = aics_image.size_y
+        dims.channels = aics_image.size_c
+        dims.channel_names = ['CH_'+str(i) for i in range(aics_image.size_c)]
+        dims.tiles = aics_image.size_z
 
-    def generate_atlas(self):
-        atlas = np.zeros((len(self.pack_order), self.atlas_height, self.atlas_width))
-        layer = 0
-        for channel in self.pack_order:
-            atlas[layer] = self._atlas_single_channel(channel)
-            layer += 1
-        return atlas
+        return dims
 
-    def _atlas_single_channel(self, channel):
-        scale = (float(self.tile_width) / float(self.aics_image.size_x), float(self.tile_height) / float(self.aics_image.size_y))
-
-        chandata = self.aics_image.get_image_data("XYZ", C=channel)
-        # renormalize
-        chandata = chandata.astype(np.float32)
-        chandata *= 255.0/chandata.max()
-
-        atlas = np.zeros((self.atlas_width, self.atlas_height))
-        i = 0
-        for row in range(self.rows):
-            top_bound, bottom_bound = (self.tile_height * row), (self.tile_height * (row + 1))
-            for col in range(self.cols):
-                if i < self.aics_image.size_z:
-                    left_bound, right_bound = (self.tile_width * col), (self.tile_width * (col + 1))
-                    # TODO fix scaling being off by one pixel due to rounding
-                    tile = zoom(chandata[:,:,i], scale)
-                    atlas[left_bound:right_bound, top_bound:bottom_bound] = tile.astype(np.uint8)
-                    i += 1
-        # transpose to YX for input into CYX arrays
-        return atlas.transpose((1, 0))
-
-
-class TextureAtlasGroup:
-    def __init__(self, atlas_list=None, prefix="texture_atlas"):
-        self.atlas_list = atlas_list
-        self.prefix = prefix
-        self.metadata = self._create_metadata()
-
-    def _create_metadata(self):
-        # if there are atlases in atlas list
-        if self.atlas_list is not None:
-            # all atlases in atlas_list will contain the same data necessary for this metadata
-            atlas_template = self.atlas_list[0]
-            metadata = {
-                "width": atlas_template.aics_image.size_x,
-                "height": atlas_template.aics_image.size_y,
-                "channels": atlas_template.aics_image.size_c,
-                "channel_names": ['CH_'+str(i) for i in range(atlas_template.aics_image.size_c)],
-                "rows": atlas_template.rows,
-                "cols": atlas_template.cols,
-                "tiles": atlas_template.stack_height,
-                "tile_width": atlas_template.tile_width,
-                "tile_height": atlas_template.tile_height,
-                "atlas_width": atlas_template.atlas_width,
-                "atlas_height": atlas_template.atlas_height
-            }
-            image_list = []
-            for atlas in self.atlas_list:
-                image_list.append(atlas.metadata)
-            metadata["images"] = image_list
-        else:
-            # if there are no atlases in the group, then metadata shouldn't contain anything
-            metadata = None
-        return metadata
 
     def _is_valid_atlas(self, atlas):
-        if self.atlas_list is not None:
-            element_list = ["rows", "cols", "tiles", "tile_width", "tile_height", "atlas_width", "atlas_height"]
-            atlas_elements = [atlas.rows, atlas.cols, atlas.stack_height, atlas.tile_width, atlas.tile_height, atlas.atlas_width, atlas.atlas_height]
-            matching = zip(element_list, atlas_elements)
-            for key, atlas_val in matching:
-                if self.metadata[key] != atlas_val:
-                    return False
-            return True
-        else:
-            # if there are no atlases in the group, the first atlas will determine validity of others
-            return True
+        if atlas is None:
+            return False
+        if atlas.atlas is None:
+            return False
+        if atlas.atlas.shape is None:
+            return False
+        shape = atlas.atlas.shape
+        if self.dims.atlas_width != shape[2]:
+            return False
+        if self.dims.atlas_height != shape[1]:
+            return False
+        return True
 
 
-    def append(self, atlas):
+    def _append(self, atlas):
         if not isinstance(atlas, TextureAtlas):
             raise ValueError("TextureAtlasGroup can only append TextureAtlas objects!")
         if self._is_valid_atlas(atlas):
-            if self.atlas_list:
-                self.atlas_list.append(atlas)
-            else:
-                self.atlas_list = [atlas]
-            if self.metadata is None:
-                self.metadata = self._create_metadata()
-            else:
-                self.metadata["images"].append(atlas.metadata)
+            self.atlas_list.append(atlas)
         else:
             raise ValueError("Attempted to add atlas that doesn't match the rest of atlasGroup")
+
+
+    def get_metadata(self):
+        metadata = self.dims.__dict__
+        metadata["images"] = []
+        for atlas in self.atlas_list:
+            metadata["images"].append(atlas.metadata)
+        return metadata
+
 
     def save(self, output_dir):
         if not os.path.exists(output_dir):
@@ -165,8 +181,10 @@ class TextureAtlasGroup:
             with PngWriter(full_path, overwrite_file=True) as writer:
                 writer.save(atlas.atlas)
             i += 1
+
+        metadata = self.get_metadata()
         with open(os.path.join(output_dir, self.prefix + "_atlas.json"), 'w') as json_output:
-            json.dump(self.metadata, json_output)
+            json.dump(metadata, json_output)
 
 def generate_texture_atlas(im, prefix="texture_atlas", max_edge=2048, pack_order=None):
     """
@@ -180,19 +198,7 @@ def generate_texture_atlas(im, prefix="texture_atlas", max_edge=2048, pack_order
                        where the first texture atlas will code channel 0 as r, channel 1 as g, and so on.
     :return: TextureAtlasGroup object
     """
-    max_channels_per_png = 3
-    if pack_order is None:
-        # if no pack order is specified, pack 4 channels per png and move on
-        channel_list = [c for c in range(im.shape[1])]
-        pack_order = [channel_list[x:x+max_channels_per_png] for x in xrange(0, len(channel_list), max_channels_per_png)]
-    atlas_group = TextureAtlasGroup(prefix=prefix)
-    png_count = 0
-    for png in pack_order:
-        file_path = prefix + "_" + str(png_count) + ".png"
-        atlas = TextureAtlas(im, filename=file_path, pack_order=png, max_edge=max_edge)
-        atlas_group.append(atlas)
-        png_count += 1
-
+    atlas_group = TextureAtlasGroup(im, prefix=prefix, max_edge=max_edge, pack_order=pack_order)
     return atlas_group
 
 

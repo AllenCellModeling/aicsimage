@@ -21,7 +21,7 @@ class TextureAtlasTestGroup(unittest.TestCase):
         atlas = generate_texture_atlas(im=image,
                                        prefix="test_Sizing", max_edge=max_edge,
                                        pack_order=[[3, 2, 1, 0], [4]])
-        atlas_maxedge = max(atlas.metadata["atlas_width"], atlas.metadata["atlas_height"])
+        atlas_maxedge = max(atlas.dims.atlas_width, atlas.dims.atlas_height)
         # assert
         self.assertTrue(atlas_maxedge <= max_edge)
 
@@ -34,8 +34,8 @@ class TextureAtlasTestGroup(unittest.TestCase):
         # returns as dict
         # metadata = atlas.get_metadata()
         # returns list of dicts
-        image_dicts = atlas.metadata["images"]
-        output_packed = [image['channels'] for image in image_dicts]
+        image_dicts = atlas.atlas_list
+        output_packed = [image.metadata['channels'] for image in image_dicts]
         # assert
         self.assertEqual(packing_list, output_packed)
 
@@ -49,7 +49,8 @@ class TextureAtlasTestGroup(unittest.TestCase):
         atlas = generate_texture_atlas(image, prefix=prefix,
                                        pack_order=packing_list)
         # assert
-        # metadata = atlas.get_metadata()
-        self.assertTrue(all(key in atlas.metadata for key in ("rows", "cols", "atlas_width", "atlas_height", "images")))
+        metadata = atlas.get_metadata()
+        self.assertTrue(all(key in metadata for key in ("tile_width", "tile_height", "width", "height", "channels", "channel_names", "tiles", "rows", "cols", "atlas_width", "atlas_height", "images")))
+        self.assertTrue(len(metadata["channel_names"]) == metadata["channels"])
 
 
