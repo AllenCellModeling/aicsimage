@@ -100,7 +100,7 @@ def center_image(image, moves=None, axis=(-3, -2, -1), fill=0):
         except IndexError:
             raise ValueError("Invalid axis")
     # add padding to image to put center of mass in center
-    padding = [(-p, 0) if p < 0 else (0, p) for p in moves]
+    padding = [(-p * 2, 0) if p < 0 else (0, p * 2) for p in moves]
     if not isinstance(moves, list):
         raise ValueError("Incorrect format for 'moves', should be list returned from previous function call")
     if return_tuple:
