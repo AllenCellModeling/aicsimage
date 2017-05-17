@@ -14,6 +14,7 @@
     <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
     <property name="python_executable" value="python"/>
     <property name="nosetests_executable" value="nosetests"/>
+    <echo message="${module.virtualenv.dir}"/>
     <task if:set="${module.virtualenv.dir}">
         <property name="python_executable" location="${module.virtualenv.dir}/python"/>
         <property name="nosetests_executable" location="${module.virtualenv.dir}/nosetests"/>
