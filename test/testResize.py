@@ -1,8 +1,8 @@
-# Author: Evan Wiederspan
+# Author: Evan Wiederspan <evanw@alleninstitute.org>
 import unittest
-from processing.resize import resize, resize_to
 import numpy as np
 from random import randrange
+from aicsimage.processing.resize import resize, resize_to
 
 
 class ImgResizeTestGroup(unittest.TestCase):
@@ -23,30 +23,36 @@ class ImgResizeTestGroup(unittest.TestCase):
         with self.assertRaises(ValueError, msg="Must take in a numpy array"):
             resize(4, 1)
         test_cube = np.empty((3, 3, 3))
-        with self.assertRaises(ValueError, msg="Resize factor cannot be negative"):
-            resize(test_cube, -1)
-        with self.assertRaises(ValueError, msg="Factor list cannot contain negatives"):
-            resize(test_cube, (2, 2, -1))
         # only accept certain methods
         self.assertEqual(resize(test_cube, 3, method='bilinear').shape, (9, 9, 9), "Resize Bilinear")
         self.assertEqual(resize(test_cube, 3, method='cubic').shape, (9, 9, 9), "Resize Cubic")
         with self.assertRaises(ValueError, msg="Resize method must exist"):
             resize(test_cube, 2, method="not-real")
 
-    def test_resizetoInputs(self):
+    def test_resizeNegatives(self):
+        test_cube = np.empty((3, 3, 3))
+        with self.assertRaises(ValueError, msg="Resize factor cannot be negative"):
+            resize(test_cube, -1)
+        with self.assertRaises(ValueError, msg="Factor list cannot contain negatives"):
+            resize(test_cube, (2, 2, -1))
+
+    def test_resizeToOutSize(self):
         # out_size must be a iterable of same sized
         test_cube = np.empty((3, 3, 3))
-        self.assertEqual(resize_to(test_cube, (9, 9, 9), method="bilinear").shape, (9, 9, 9), "Resize_to Bilinear")
-        self.assertEqual(resize_to(test_cube, (9, 9, 9), method="cubic").shape, (9, 9, 9), "Resize_to Cubic")
         with self.assertRaises(ValueError, msg="out_size must be the same length as the input size"):
             resize_to(test_cube, (3, 3, 3, 3))
         with self.assertRaises(ValueError, msg="out_size cannot contain negatives"):
             resize_to(test_cube, (9, 9, -9))
+
+    def resizeToMethods(self):
+        test_cube = np.empty((3, 3, 3))
+        self.assertEqual(resize_to(test_cube, (9, 9, 9), method="bilinear").shape, (9, 9, 9), "Resize_to Bilinear")
+        self.assertEqual(resize_to(test_cube, (9, 9, 9), method="cubic").shape, (9, 9, 9), "Resize_to Cubic")
         # only accept certain methods
         with self.assertRaises(ValueError, msg="Resize method must exist"):
             resize_to(test_cube, (9, 9, 9), method="not-real")
 
-    def test_resizetoOutput(self):
+    def test_resizeToOutput(self):
         n_dim = 4
         # create ten randomized tests
         for t in range(10):
