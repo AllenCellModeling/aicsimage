@@ -1,7 +1,7 @@
+# Author: Evan Wiederspan <evanw@alleninstitute.org>
 import unittest
-
 import numpy as np
-
+from itertools import permutations
 from aicsimage.processing.alignMajor import align_major, get_major_minor_axis, angle_between
 
 
@@ -42,11 +42,12 @@ class AlignMajorTestGroup(unittest.TestCase):
 
     def test_alignMajorAlignment(self):
         a_map = {'x': 0, 'y': 1, 'z': 2}
-        axes = self.getRandAxes()
-        res = align_major(self.testCube, axes)[0]
-        major, minor = get_major_minor_axis(res)
-        self.assertTrue(np.argmax(np.abs(major)) == a_map[axes[0]], "Major aligned correctly on rotation to " + axes)
-        self.assertTrue(np.argmax(np.abs(minor)) == a_map[axes[-1]], "Minor aligned correctly on rotation to " + axes)
+        # try every alignment possibility
+        for axes in list("".join(p) for p in permutations("xyz")):
+            res = align_major(self.testCube, axes)[0]
+            major, minor = get_major_minor_axis(res)
+            self.assertTrue(np.argmax(np.abs(major)) == a_map[axes[0]], "Major aligned correctly on rotation to " + axes)
+            self.assertTrue(np.argmax(np.abs(minor)) == a_map[axes[-1]], "Minor aligned correctly on rotation to " + axes)
 
     def test_alignMajorReshape(self):
         axes = self.getRandAxes()
@@ -56,5 +57,5 @@ class AlignMajorTestGroup(unittest.TestCase):
     def test_alignMajorAngles(self):
         axes = self.getRandAxes()
         res, angles = align_major(self.testCube, axes)
-        res2 = align_major(self.testCube, angles=angles)
+        res2 = align_major(self.testCube, axes, angles=angles)
         self.assertTrue(np.array_equal(res, res2), "Passing in angles gives same rotation with axes " + axes)
