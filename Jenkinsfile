@@ -9,7 +9,8 @@ node ("python2.7")
 
     try {
 
-        echo "${env.BRANCH_NAME}  or   ${BRANCH_NAME}"
+        echo "*** BRANCH NAME *****"
+        echo ">>  ${env.BRANCH_NAME}"
 
 
         stage ("Git configuration") {
