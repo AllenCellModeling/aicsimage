@@ -103,4 +103,5 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
             print("done")
 
     _save_inter_image(total_out, 0, "total_out")
+    return total_out
 
