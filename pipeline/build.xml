@@ -2,7 +2,8 @@
 <!-- author: Zach Crabtree zacharyc@alleninstitute.org -->
 
 <!-- the project name, python package name, and venv name in Jenkins-01 must match! -->
-<project name="aicsimage" basedir="." default="clean">
+<project name="aicsimage" basedir="." default="clean"
+         xmlns:if="ant:if">
 
     <property environment="env"/>
     <property name="module.src.dir" location="${basedir}/.."/>
