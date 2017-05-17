@@ -2,8 +2,7 @@
 <!-- author: Zach Crabtree zacharyc@alleninstitute.org -->
 
 <!-- the project name, python package name, and venv name in Jenkins-01 must match! -->
-<project name="aicsimage" basedir="." default="clean"
-         xmlns:if="ant:if">
+<project name="aicsimage" basedir="." default="clean">
 
     <property environment="env"/>
     <property name="module.src.dir" location="${basedir}/.."/>
@@ -14,11 +13,8 @@
     <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
     <property name="python_executable" value="python"/>
     <property name="nosetests_executable" value="nosetests"/>
-    <task if:set="${module.virtualenv.dir}">
-        <echo message="${module.virtualenv.dir}"/>
-        <property name="python_executable" location="${module.virtualenv.dir}/python"/>
-        <property name="nosetests_executable" location="${module.virtualenv.dir}/nosetests"/>
-    </task>
+    <property name="python_executable" location="${module.virtualenv.dir}/python"/>
+    <property name="nosetests_executable" location="${module.virtualenv.dir}/nosetests"/>
     <echo message="${python_executable}"/>
     <echo message="${nosetests_executable}"/>
 
