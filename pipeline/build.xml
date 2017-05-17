@@ -13,8 +13,8 @@
     <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
     <property name="python_executable" value="python"/>
     <property name="nosetests_executable" value="nosetests"/>
-    <property name="python_executable" location="${module.virtualenv.dir}/python"/>
-    <property name="nosetests_executable" location="${module.virtualenv.dir}/nosetests"/>
+    <property name="python_executable" value="${module.virtualenv.dir}/python"/>
+    <property name="nosetests_executable" value="${module.virtualenv.dir}/nosetests"/>
     <echo message="${python_executable}"/>
     <echo message="${nosetests_executable}"/>
 
