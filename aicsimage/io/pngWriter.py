@@ -42,7 +42,7 @@ class PngWriter:
 
         # check for rgb, rgba, or r
         if len(data.shape) == 3:
-            assert data.shape[0] == 4 or data.shape[0] == 3 or data.shape[0] == 2 or data.shape[0] == 1
+            assert data.shape[0] in [4, 3, 2, 1]
             # if three dimensions, transpose to YXC (imsave() needs it in these axes)
             data = np.transpose(data, (1, 2, 0))
             # if there's only one channel, repeat across the next two channels
