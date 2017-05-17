@@ -1,4 +1,4 @@
-import czifile
+from . import czifile
 import numpy as np
 
 
@@ -48,7 +48,7 @@ class CziReader:
         """
         self.filePath = file_path
         self.czi = czifile.CziFile(self.filePath)
-        self.hasTimeDimension = 'T' in self.czi.axes
+        self.hasTimeDimension = b'T' in self.czi.axes
 
     def __enter__(self):
         return self
@@ -70,7 +70,7 @@ class CziReader:
         axes = self.czi.axes
         assert(len(image.shape) == len(axes))
 
-        knowndims = 'TZCYX'
+        knowndims = b'TZCYX'
         axisordering = []
         # We want to strip all dimensions away that are not in knowndims
         # and then transpose into the ordering contained in knowndims.
