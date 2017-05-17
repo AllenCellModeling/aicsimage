@@ -9,6 +9,9 @@ node ("python2.7")
 
     try {
 
+        echo "${env.BRANCH_NAME}  or   ${BRANCH_NAME}"
+
+
         stage ("Git configuration") {
             git branch: 'hotfix/fix-failing-tests', url: 'ssh://git@stash.corp.alleninstitute.org:7999/aics/aicsimage.git'
         }
