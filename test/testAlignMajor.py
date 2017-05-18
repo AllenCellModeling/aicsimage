@@ -57,5 +57,5 @@ class AlignMajorTestGroup(unittest.TestCase):
     def test_alignMajorAngles(self):
         axes = self.getRandAxes()
         res, angles = align_major(self.testCube, axes)
-        res2 = align_major(self.testCube, axes, angles=angles)
+        res2 = align_major(self.testCube, angles=angles)
         self.assertTrue(np.array_equal(res, res2), "Passing in angles gives same rotation with axes " + axes)

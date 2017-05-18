@@ -87,27 +87,24 @@ def align_major(img, axis="zyx", angles=None, reshape=False):
         maj_axis = axis_vectors[axis_list[0]]
         min_axis = axis_vectors[axis_list[-1]]
         img_maj_axis, img_min_axis = get_major_minor_axis(img)
-        angles = [None] * 3
+        angles = []
         for a in range(3):
             if a == maj_axis_i:
-                # final rotation goes around major axis to align the minor axis properly
-                angles[a] = angle_between(min_axis[slices[maj_axis_i]], img_min_axis[slices[maj_axis_i]])
+                continue
             else:
                 # rotate around other two axis (e.g if aligning major to Z axis, rotate around Y and X to get there)
-                angles[a] = angle_between(maj_axis[slices[a]], img_maj_axis[slices[a]])
-    else:
-        # check to see that angles is valid
-        try:
-            if len(angles) != 3 or not all(isinstance(a, float) for a in angles):
-                raise ValueError
-        except:
-            raise ValueError("Invalid format for angles")
+                angles.append([a, angle_between(maj_axis[slices[a]], img_maj_axis[slices[a]])])
+        # final rotation goes around major axis to align the minor axis properly
+        # has to be done last
+        angles.append([maj_axis_i, angle_between(min_axis[slices[maj_axis_i]], img_min_axis[slices[maj_axis_i]])])
 
     out = img.copy()
-    rot_axis = list(range(3))
-    rot_axis[maj_axis_i], rot_axis[-1] = rot_axis[-1], rot_axis[maj_axis_i]
-    for a in rot_axis:
-        out = rotate(out, angles[a], reshape=reshape, order=1, axes=rotate_axis[a], cval=(np.nan if reshape else 0))
+    try:
+        for axis, angle in angles:
+            out = rotate(out, angle, reshape=reshape, order=1, axes=rotate_axis[axis], cval=(np.nan if reshape else 0))
+    except:  # should only happen if angles is an invalid object
+        raise ValueError("Invalid format for angles object, should be returned from a previous call to this function")
+
     if reshape:
         # cropping necessary as each resize makes the image bigger
         # np.nan used as fill value when reshaping in order to make cropping easy
