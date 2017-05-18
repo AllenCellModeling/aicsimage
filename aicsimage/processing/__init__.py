@@ -5,4 +5,5 @@ from .backgroundCrop import *
 from .imgCenter import *
 from .imgToProjection import *
 from .isosurfaceGenerator import *
+from .resize import *
 from .thumbnailGenerator import *

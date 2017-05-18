@@ -70,7 +70,7 @@ def imgtoprojection(im1, proj_all=False, proj_method='max', colors=lambda i: [1,
     # else, were assuming it's a list
     # scale colors down to 0-1 range if they're bigger than 1
     if any(v > 1 for v in np.array(colors).flatten()):
-        colors = [[v / 255 for v in c] for c in colors]
+        colors = [[v / 255.0 for v in c] for c in colors]
 
     # create final image
     if not proj_all:
