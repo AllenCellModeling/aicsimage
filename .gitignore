@@ -17,6 +17,7 @@
 
 # PyCharm files
 /.idea/*
+*.iml
 
 # VSCode files
 .vscode/

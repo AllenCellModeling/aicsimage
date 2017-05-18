@@ -12,6 +12,7 @@ from . import testOmeTifReader
 from . import testOmeTifWriter
 from . import testPngReader
 from . import testPngWriter
+from . import testResize
 from . import testThumbnailGenerator
 from . import testTifReader
 
@@ -55,6 +56,7 @@ class TotalTestGroup(unittest.TestCase):
         suite.addTest(loader.loadTestsFromModule(testBackgroundSub))
         suite.addTest(loader.loadTestsFromModule(testImgCenter))
         suite.addTest(loader.loadTestsFromModule(testAICSImage))
+        suite.addTest(loader.loadTestsFromModule(testResize))
         suite.addTest(loader.loadTestsFromModule(testTifReader))
         exitcode = unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
         print('\n')
