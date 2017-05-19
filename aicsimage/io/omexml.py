@@ -14,7 +14,7 @@ from __future__ import absolute_import, unicode_literals
 import sys
 import xml.etree.ElementTree as ElementTree
 if sys.version_info.major == 3:
-    from aicsimage.io import StringIO
+    from io import StringIO
     uenc = 'unicode'
 else:
     from cStringIO import StringIO
