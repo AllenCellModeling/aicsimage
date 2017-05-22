@@ -16,6 +16,9 @@
 /.idea/*
 *.iml
 
+# Build files
+/build/*
+
 # VSCode files
 .vscode/
 
