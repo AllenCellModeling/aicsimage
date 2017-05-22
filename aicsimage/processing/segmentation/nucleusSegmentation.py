@@ -8,6 +8,7 @@ from scipy.ndimage.measurements import label
 from skimage.measure import regionprops
 from skimage import morphology
 import os
+import timeit
 
 from aicsimage.io.omeTifWriter import OmeTifWriter
 
@@ -51,11 +52,14 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
     nuc_original_img = (nuc_original_img - original_min) / (original_max - original_min) * 255
     total_out = np.zeros(nuc_original_img.shape)
 
-    for cell_value in range(1, cell_index_img.max() + 1):
+    # for cell_value in range(1, cell_index_img.max() + 1):
+    for cell_value in range(1, 5):
+
         # get indices of cell with cell_value as its ID
         cell_indices = np.where(cell_index_img == cell_value)
         # if a cell exists with this cell_value
         if len(cell_indices[0]) > 0:
+            start_time = timeit.default_timer()
             print("Processing cell label " + str(cell_value) + "...", end="")
             z_indices, y_indices, x_indices = cell_indices[0], cell_indices[1], cell_indices[2]
             # creates buffer of 10 pixels/slices around the cell, or stops at the boundaries of the original image
@@ -71,9 +75,8 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
             output[cropped_cell_seg != cell_value] = 0
             # _save_inter_image(output, cell_value, "cropped_nuc")
             # filter the membrane segmentation channel
-            sigma = np.divide([36, 36, 6], (4*m.sqrt(2*m.log(2))))
+            sigma = np.divide([41, 41, 11], (4*m.sqrt(2*m.log(2))))
             cropped_cell_seg = gaussian_filter(cropped_cell_seg, sigma)
-
             # filter the nuclear channel
             output = gaussian_filter(output, sigma)
             # _save_inter_image(output, cell_value, "filtered")
@@ -100,10 +103,16 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
                 # _save_inter_image(output, cell_value, "connected_components")
                 # change boolean value back to original segmentation value
                 output *= cell_value
+                # for z in range(z_slice.start, z_slice.stop):
+                #     for y in range(y_slice.start, y_slice.stop):
+                #         for x in range(x_slice.start, x_slice.stop):
+                #             px_weight = output[z-z_slice.start, y-y_slice.start, x-x_slice.start]
+                #             if px_weight != 0:
+                #                 total_out[z, y, x] = px_weight
+
                 total_out[z_slice, y_slice, x_slice] += output
                 _save_inter_image(total_out, cell_value, "total_out")
-            print("done")
-
-    _save_inter_image(total_out, 0, "total_out")
+            elapsed_time = timeit.default_timer() - start_time
+            print("done - elapsed time: " + str(elapsed_time) + " seconds")
     return total_out
 
