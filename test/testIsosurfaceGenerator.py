@@ -5,6 +5,7 @@ import math as m
 from aicsimage.processing import isosurfaceGenerator
 from aicsimage.processing.aicsImage import AICSImage
 
+from nose.tools import nottest
 
 class IsosurfaceGeneratorTestGroup(unittest.TestCase):
 
@@ -33,6 +34,7 @@ class IsosurfaceGeneratorTestGroup(unittest.TestCase):
         mesh.save_as_obj("img/test_sphere.obj")
 
     @staticmethod
+    @nottest
     def testCube(size=3):
         # these cubes appear to have strangely beveled edges but I think that is an artifact of the
         # linear interpolation between values of the marching cubes algorithm.
@@ -45,6 +47,7 @@ class IsosurfaceGeneratorTestGroup(unittest.TestCase):
         mesh.save_as_obj("img/test_cube.obj")
 
     @staticmethod
+    @nottest
     def testCellImage():
         cell_image = AICSImage("./img/img40_1.ome.tif")
         mesh = isosurfaceGenerator.generate_mesh(cell_image, channel=4)
