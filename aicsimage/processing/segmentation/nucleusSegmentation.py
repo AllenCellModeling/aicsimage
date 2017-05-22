@@ -71,16 +71,16 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
             output[cropped_cell_seg != cell_value] = 0
             # _save_inter_image(output, cell_value, "cropped_nuc")
             # filter the membrane segmentation channel
-            sigma = np.divide([41, 41, 11], (4*m.sqrt(2*m.log(2))))
+            sigma = np.divide([36, 36, 6], (4*m.sqrt(2*m.log(2))))
             cropped_cell_seg = gaussian_filter(cropped_cell_seg, sigma)
 
             # filter the nuclear channel
             output = gaussian_filter(output, sigma)
-            _save_inter_image(output, cell_value, "filtered")
+            # _save_inter_image(output, cell_value, "filtered")
             # this indexing assures that no values in output are divided by zero
             output[cropped_cell_seg > 0] /= cropped_cell_seg[cropped_cell_seg > 0]
             output[cropped_cell_seg == 0] = 0
-            _save_inter_image(output, cell_value, "corrected")
+            # _save_inter_image(output, cell_value, "corrected")
             # threshold and mask to get the new nuclear segmentation
             if len(output[output > 0]) > 0:
                 otsu_threshold = threshold_otsu(output[output > 0])
