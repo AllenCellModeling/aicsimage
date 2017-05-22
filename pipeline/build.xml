@@ -14,12 +14,30 @@
     <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
     <property name="python_executable" value="python"/>
     <property name="nosetests_executable" value="nosetests"/>
-    <task if:set="${module.virtualenv.dir}">
-        <property name="python_executable" location="${module.virtualenv.dir}/python"/>
-        <property name="nosetests_executable" location="${module.virtualenv.dir}/nosetests"/>
-    </task>
 
-    <target name="testing">
+    <target name="venv-setup">
+        <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}"/>
+        <!-- create virtual env directory -->
+        <mkdir dir="${module.virtualenv.dir}"/>
+        <!-- create virtual env within directory -->
+        <exec dir="${module.virtualenv.dir}" executable="virtualenv">
+            <arg value="${ant.project.name}"/>
+        </exec>
+        <!-- install all requirements specified in python package-->
+        <exec dir="${module.virtualenv.dir}/bin" executable="pip" failonerror="true">
+            <arg value="install"/>
+            <arg value="-r"/>
+            <arg value="${module.src.dir}/requirements.txt"/>
+        </exec>
+        <!-- use the python executable within the virtualenv -->
+        <property name="python-executable" value="${module.virtualenv.dir}/bin"/>
+    </target>
+
+    <target name="venv-destroy">
+        <delete dir="${module.virtualenv.dir}"/>
+    </target>
+
+    <target name="testing" depends="venv-setup">
         <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
              <arg value='setup.py'/>
              <arg value='test'/>

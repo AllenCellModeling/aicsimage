@@ -9,8 +9,12 @@ node ("python2.7")
 
     try {
 
+        stage ("Virtual Environment Setup") {
+            createVirtualEnv()
+        }
+
         stage ("Git configuration") {
-            git branch: 'master', url: 'ssh://git@stash.corp.alleninstitute.org:7999/aics/aicsimage.git'
+            git branch: 'feature/jenkinsbuild-venv', url: 'ssh://git@stash.corp.alleninstitute.org:7999/aics/aicsimage.git'
         }
 
         stage ("Clean") {
@@ -50,7 +54,16 @@ node ("python2.7")
               notifyEveryUnstableBuild: true,
               recipients: '!AICS_DevOps@alleninstitute.org',
               sendToIndividuals: true])
+        deleteVirtualEnv()
     }
+}
+
+def createVirtualEnv() {
+    sh 'ant -f pipeline/build.xml venv-setup'
+}
+
+def deleteVirtualEnv() {
+    sh 'ant -f pipeline/build.xml venv-destroy'
 }
 
 def notifyBuildOnSlack(String buildStatus = 'STARTED', Boolean is_release) {
