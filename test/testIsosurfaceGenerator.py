@@ -15,6 +15,7 @@ class IsosurfaceGeneratorTestGroup(unittest.TestCase):
         self.assertTrue(True)
 
     @staticmethod
+    @unittest.skip("temporarily disabled")
     def testSphere(radius=30):
         bounding_cube = np.zeros((radius * 2 + 3, radius * 2 + 3, radius * 2 + 3)).astype(np.float32)
         center = bounding_cube.shape[0] // 2
