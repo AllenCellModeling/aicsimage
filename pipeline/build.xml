@@ -20,9 +20,8 @@
     </task>
 
     <target name="testing">
-        <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
-             <arg value='setup.py'/>
-             <arg value='test'/>
+         <exec dir="${module.src.dir}" executable="${nosetests_executable}" failonerror="true">
+            <arg value='--with-xunit'/>
         </exec>
     </target>
 
