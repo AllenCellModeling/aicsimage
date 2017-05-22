@@ -20,7 +20,7 @@
     </task>
 
     <target name="testing">
-         <exec dir="${module.src.dir}" executable="${nosetests_executable}" failonerror="true">
+        <exec dir="${module.src.dir}" executable="${nosetests_executable}" failonerror="true">
             <arg value='--with-xunit'/>
         </exec>
     </target>
