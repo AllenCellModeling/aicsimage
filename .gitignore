@@ -12,9 +12,6 @@
 /*.egg
 /.eggs
 
-# Build files
-/build/*
-
 # PyCharm files
 /.idea/*
 *.iml
