@@ -32,6 +32,10 @@ node ("python2.7")
             }
         }
 
+        stage ("Test Report") {
+            junit 'nosetests.xml'
+        }
+
         stage ("Tag and Push Version") {
             if (is_release) {
                 sh 'manage_python_build.py tag_and_push_version'
