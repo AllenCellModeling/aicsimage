@@ -46,6 +46,6 @@ class IsosurfaceGeneratorTestGroup(unittest.TestCase):
 
     @staticmethod
     def testCellImage():
-        cell_image = AICSImage("/home/zacharyc/Development/aicsimage/test/img/img40_1.ome.tif")
+        cell_image = AICSImage("./img/img40_1.ome.tif")
         mesh = isosurfaceGenerator.generate_mesh(cell_image, channel=4)
         mesh.save_as_obj("img/test_file.obj")
