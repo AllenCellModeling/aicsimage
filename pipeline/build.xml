@@ -23,7 +23,7 @@
         <!-- install all requirements specified in python package-->
         <exec dir="${module.virtualenv.dir}" executable="${module.virtualenv.dir}/bin/pip" failonerror="true">
             <arg value="install"/>
-            <arg value="$(<${module.src.dir}/requirements.txt)"/>
+            <arg value="$(\<${module.src.dir}/requirements.txt)"/>
         </exec>
     </target>
 
