@@ -14,7 +14,7 @@ node ("python2.7")
         }
 
         stage ("Git configuration") {
-            git branch: 'feature/jenkinsbuild-venv', url: 'ssh://git@stash.corp.alleninstitute.org:7999/aics/aicsimage.git'
+            git branch: '${GIT_BRANCH}', url: '${GIT_URL}'
         }
 
         stage ("Clean") {
