@@ -10,16 +10,16 @@ node ("python2.7")
 
     try {
 
-        stage ("Virtual Environment Setup") {
-            createVirtualEnv()
-        }
-
         stage ("Git configuration") {
             git branch: '${GIT_BRANCH}', url: '${GIT_URL}'
         }
 
         stage ("Clean") {
             sh 'ant -f pipeline/build.xml clean'
+        }
+
+        stage ("Virtual Environment Setup") {
+            createVirtualEnv()
         }
 
         stage ("Prepare Version") {
