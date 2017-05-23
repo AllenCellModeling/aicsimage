@@ -21,7 +21,7 @@
             <arg value="${ant.project.name}"/>
         </exec>
         <!-- install all requirements specified in python package-->
-        <exec dir="${module.virtualenv.dir}/${ant.project.name}" executable="${module.virtualenv.dir}/${ant.project.name}/bin/pip" failonerror="true">
+        <exec dir="${module.virtualenv.dir}" executable="${module.virtualenv.dir}/bin/pip" failonerror="true">
             <arg value="install"/>
             <arg value="-r"/>
             <arg value="${module.src.dir}/requirements.txt"/>
