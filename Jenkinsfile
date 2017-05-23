@@ -11,7 +11,7 @@ node ("python2.7")
     try {
 
         stage ("Git configuration") {
-            git branch: '${GIT_BRANCH}', url: '${GIT_URL}'
+            git branch: "${GIT_BRANCH}", url: "${GIT_URL}"
         }
 
         stage ("Clean") {
