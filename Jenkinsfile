@@ -6,6 +6,7 @@ node ("python2.7")
     // Set path for custom management tools on jenkins
     def is_release=(params.create_release)
     echo "BUILDTYPE: " + (is_release ? "Release" : "Integration")
+    env.PATH = "${tool 'ant 1.9.7'}/bin:${env.PATH}"
 
     try {
 
@@ -18,7 +19,6 @@ node ("python2.7")
         }
 
         stage ("Clean") {
-            env.PATH = "${tool 'ant 1.9.7'}/bin:${env.PATH}"
             sh 'ant -f pipeline/build.xml clean'
         }
 
