@@ -16,14 +16,12 @@
     <property name="nosetests_executable" value="${module.virtualenv.dir}/bin/nosetests"/>
 
     <target name="venv-setup">
-        <!-- create virtual env directory -->
-        <mkdir dir="${module.virtualenv.dir}"/>
         <!-- create virtual env within directory -->
-        <exec dir="${module.virtualenv.dir}" executable="virtualenv">
+        <exec dir="${env.VENV_ROOT}" executable="virtualenv">
             <arg value="${ant.project.name}"/>
         </exec>
         <!-- install all requirements specified in python package-->
-        <exec dir="${module.virtualenv.dir}/bin" executable="pip" failonerror="true">
+        <exec dir="${module.virtualenv.dir}/${ant.project.name}/bin" executable="pip" failonerror="true">
             <arg value="install"/>
             <arg value="-r"/>
             <arg value="${module.src.dir}/requirements.txt"/>
