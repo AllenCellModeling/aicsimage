@@ -27,7 +27,6 @@ node ("python2.7")
         }
 
         stage ("Build and Publish") {
-            env.PATH = "${tool 'ant 1.9.7'}/bin:${env.PATH}"
             if (is_release) {
                 sh 'ant -f pipeline/build.xml publish-release'
             }

@@ -11,12 +11,11 @@
     <property name="module.build_folder.dir" location="${module.src.dir}/build"/>
     <property name="module.dist.dir" location="${module.src.dir}/dist"/>
     <property name="module.egg_info.dir" location="${module.src.dir}/${ant.project.name}.egg-info"/>
-    <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
-    <property name="python_executable" value="python"/>
-    <property name="nosetests_executable" value="nosetests"/>
+    <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}"/>
+    <property name="python_executable" value="${module.virtualenv.dir}/bin/python"/>
+    <property name="nosetests_executable" value="${module.virtualenv.dir}/bin/nosetests"/>
 
     <target name="venv-setup">
-        <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}"/>
         <!-- create virtual env directory -->
         <mkdir dir="${module.virtualenv.dir}"/>
         <!-- create virtual env within directory -->
@@ -29,8 +28,6 @@
             <arg value="-r"/>
             <arg value="${module.src.dir}/requirements.txt"/>
         </exec>
-        <!-- use the python executable within the virtualenv -->
-        <property name="python-executable" value="${module.virtualenv.dir}/bin"/>
     </target>
 
     <target name="venv-destroy">
@@ -38,6 +35,7 @@
     </target>
 
     <target name="testing">
+        <echo message="${nosetests_executable}"/>
         <exec dir="${module.src.dir}" executable="${nosetests_executable}" failonerror="true">
             <arg value='--with-xunit'/>
         </exec>
