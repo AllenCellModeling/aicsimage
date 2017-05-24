@@ -8,11 +8,13 @@ from aicsimage.processing.textureAtlas import generate_texture_atlas
 
 class TextureAtlasTestGroup(unittest.TestCase):
 
+    @unittest.skip("temporarily disabled")
     def test_Save(self):
         image = AICSImage("img/img40_1.ome.tif")
         atlas = generate_texture_atlas(im=image, pack_order=[[0, 1, 2], [3], [4]], prefix="test_Sizing", max_edge=1024)
         atlas.save("img/atlas_max")
 
+    @unittest.skip("temporarily disabled")
     def test_Sizing(self):
         # arrange
         image = AICSImage("img/img40_1.ome.tif")
@@ -25,6 +27,7 @@ class TextureAtlasTestGroup(unittest.TestCase):
         # assert
         self.assertTrue(atlas_maxedge <= max_edge)
 
+    @unittest.skip("temporarily disabled")
     def test_pickChannels(self):
         # arrange
         image = AICSImage("img/img40_1.ome.tif")
@@ -39,6 +42,7 @@ class TextureAtlasTestGroup(unittest.TestCase):
         # assert
         self.assertEqual(packing_list, output_packed)
 
+    @unittest.skip("temporarily disabled")
     def test_metadata(self):
         # arrange
         image = AICSImage("img/img40_1.ome.tif")

@@ -18,8 +18,6 @@
         <property name="python_executable" location="${module.virtualenv.dir}/python"/>
         <property name="nosetests_executable" location="${module.virtualenv.dir}/nosetests"/>
     </task>
-    <echo message="${python_executable}"/>
-    <echo message="${nosetests_executable}"/>
 
     <target name="testing">
         <exec dir="${module.src.dir}" executable="${nosetests_executable}" failonerror="true">

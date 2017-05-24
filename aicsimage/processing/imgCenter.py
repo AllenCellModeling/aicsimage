@@ -75,35 +75,58 @@ def crop_all(images, axis=(-3, -2, -1)):
     return [img[tuple(slice(*s) for s in slices)] for img in images]
 
 
-def center_image(image, moves=None, axis=(-3, -2, -1), fill=0):
+def get_center_moves(image, axes=(-3, -2, -1)):
     """
-    Aligns image based on the center of mass.
-    :param image: Image as a numpy array that will be centered by adding padding. Can be any dimensionality
-    :param moves: List of integers, returned from a previous call of this function. If specified, will move the image by
-    that amount instead of recalculating it (used to move multiple images by the same amount)
-    :param axis: Iterable containing the axis to center the image on. Order does not affect the output. Default is the last three
-    axis (meant to be ZYX)
-    :param fill: Value to use when adding padding. Default is 0
-    :return: If moves is not specified, a tuple containing the centered image and the moves tuple to be provided to
-    future function calls. If moves is specified, it returns just the moved image
+    Calculates moves needed to center an image based on its center of mass. 
+    Meant to be passed in to center_image
+    :param image: N-dimensional image to be used for calculation. The image will not be altered
+    :param axis: Iterable containing the axis to center the image on. Order does not affect the output. 
+    Default is the last three axis (meant to be ZYX). Can be positive or negative to index from the front
+    or back
+    :return: List of integers, meant to be passed to center_image
     """
     if not isinstance(image, np.ndarray):
         raise ValueError("image must be a numpy array")
-    return_tuple = moves is None
-    if moves is None:
-        # calculate how far off center the image is in each direction
-        com = center_of_mass(image)
-        moves = [0] * image.ndim
-        try:
-            for a in axis:
-                moves[a] = int(com[a]) - (image.shape[a] // 2)
-        except IndexError:
-            raise ValueError("Invalid axis")
-    # add padding to image to put center of mass in center
-    padding = [(-p * 2, 0) if p < 0 else (0, p * 2) for p in moves]
-    if not isinstance(moves, list):
-        raise ValueError("Incorrect format for 'moves', should be list returned from previous function call")
-    if return_tuple:
-        return (np.pad(image, padding, "constant", constant_values=fill), moves)
+    com = center_of_mass(image)
+    moves = [0] * image.ndim
+    try:
+        for a in axes:
+            moves[a] = int(com[a]) - (image.shape[a] // 2)
+    except IndexError:
+        raise ValueError("Axis is out of range")
+    return moves
+
+
+def center(images, moves, fill=0):
+    """
+    Aligns images based on the center of mass.
+    :param images: Either an n-dimensional image as a numpy array or a list of them. All images must be the same shape
+    :param moves: List of integers, returned from a previous call to get_center_moves. Tells the function
+    how to center the images
+    :param fill: Value to use when adding padding. Default is 0
+    :return: If a single image was passed in, will return a centered copy of the input. If a list was passed
+    in, it will return a list of centered images in the same order that they were passed in
+    """
+    if isinstance(images, (list, tuple)):
+        return_list = True
+        image_list = images
     else:
-        return np.pad(image, padding, "constant", constant_values=fill)
+        return_list = False
+        image_list = [images]
+    try:
+        # input checking
+        shape = image_list[0].shape
+        if not all(shape == img.shape for img in image_list[1:]):
+            raise ValueError("All images must have the same shape")
+        if len(shape) != len(moves):
+            raise ValueError("Invalid moves object for this set of images")
+    except AttributeError:  # thrown if img doesn't have the ndim attribute
+        raise ValueError("All images must be numpy arrays")
+    # get the padding to put the image in the center
+    padding = [(-p, 0) if p < 0 else (0, p) for p in moves]
+    out = [np.pad(img, padding, "constant", constant_values=fill) for img in image_list]
+    if return_list:
+        return out
+    else:
+        # convert from a list back to a single object
+        return out[0]
