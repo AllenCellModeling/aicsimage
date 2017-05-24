@@ -44,6 +44,11 @@ node ("python2.7")
                 sh 'manage_python_build.py tag_and_push_version'
             }
         }
+
+        stage ("Virtual Environment Teardown") {
+            deleteVirtualEnv()
+        }
+
         currentBuild.result = "SUCCESS"
     }
     catch(e) {
@@ -57,7 +62,7 @@ node ("python2.7")
               notifyEveryUnstableBuild: true,
               recipients: '!AICS_DevOps@alleninstitute.org',
               sendToIndividuals: true])
-        deleteVirtualEnv()
+
     }
 }
 
