@@ -35,7 +35,10 @@
     </target>
 
     <target name="venv-destroy">
-        <delete dir="${module.virtualenv.dir}"/>
+        <exec dir="${env.VENV_ROOT}" executable="rm" failonerror="true">
+            <arg value="-rf"/>
+            <arg value="${ant.project.name}"/>
+        </exec>
     </target>
 
     <target name="testing">
