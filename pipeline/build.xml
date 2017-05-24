@@ -23,11 +23,13 @@
         <!-- install all requirements specified in python package-->
         <exec dir="${module.virtualenv.dir}" executable="${module.virtualenv.dir}/bin/pip" failonerror="true">
             <arg value="install"/>
+            <arg value="-r"/>
             <arg value="${module.src.dir}/requirements.txt"/>
         </exec>
         <!-- install tifffile (dependent on numpy in setup.py)-->
         <exec dir="${module.virtualenv.dir}" executable="${module.virtualenv.dir}/bin/pip" failonerror="true">
             <arg value="install"/>
+            <arg value="-r"/>
             <arg value="${module.src.dir}/requirements2.txt"/>
         </exec>
     </target>
