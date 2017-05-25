@@ -2,8 +2,7 @@
 <!-- author: Zach Crabtree zacharyc@alleninstitute.org -->
 
 <!-- the project name, python package name, and venv name in Jenkins-01 must match! -->
-<project name="aicsimage" basedir="." default="clean"
-         xmlns:if="ant:if">
+<project name="aicsimage" basedir="." default="clean">
 
     <property environment="env"/>
     <property name="module.src.dir" location="${basedir}/.."/>
@@ -11,14 +10,15 @@
     <property name="module.build_folder.dir" location="${module.src.dir}/build"/>
     <property name="module.dist.dir" location="${module.src.dir}/dist"/>
     <property name="module.egg_info.dir" location="${module.src.dir}/${ant.project.name}.egg-info"/>
-    <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}"/>
+    <property name="module.virtualenv.dir" location="${module.src.dir}/${ant.project.name}"/>
+    <property name="venv_name" location="${ant.project.name}_venv"/>
     <property name="python_executable" value="${module.virtualenv.dir}/bin/python"/>
     <property name="nosetests_executable" value="${module.virtualenv.dir}/bin/nosetests"/>
 
     <target name="venv-setup">
         <!-- create virtual env within directory -->
-        <exec dir="${env.VENV_ROOT}" executable="virtualenv">
-            <arg value="${ant.project.name}"/>
+        <exec dir="${module.src.dir}" executable="virtualenv">
+            <arg value="${venv_name}"/>
         </exec>
         <!-- install all requirements specified in python package-->
         <exec dir="${module.virtualenv.dir}" executable="${module.virtualenv.dir}/bin/pip" failonerror="true">
@@ -26,18 +26,12 @@
             <arg value="-r"/>
             <arg value="${module.src.dir}/requirements.txt"/>
         </exec>
-        <!-- install tifffile (dependent on numpy in setup.py)-->
-        <exec dir="${module.virtualenv.dir}" executable="${module.virtualenv.dir}/bin/pip" failonerror="true">
-            <arg value="install"/>
-            <arg value="-r"/>
-            <arg value="${module.src.dir}/requirements2.txt"/>
-        </exec>
     </target>
 
     <target name="venv-destroy">
-        <exec dir="${env.VENV_ROOT}" executable="rm" failonerror="true">
+        <exec dir="${module.src.dir}" executable="rm" failonerror="true">
             <arg value="-rf"/>
-            <arg value="${ant.project.name}"/>
+            <arg value="${venv_name}"/>
         </exec>
     </target>
 
