@@ -13,7 +13,7 @@
     <property name="python_executable" value="${venv.name}/bin/python"/>
     <property name="nosetests_executable" value="${venv.name}/bin/nosetests"/>
 
-    <target name="venv-setup" depends="dir.check" if="dir.exists">
+    <target name="venv-setup">
         <!-- create virtual env within directory -->
         <exec dir="." executable="virtualenv">
             <arg value="${venv.name}"/>
@@ -33,12 +33,6 @@
         </exec>
     </target>
 
-    <target name="dir.check">
-        <condition property="dir.exists">
-            <available file="${venv.name}" type="dir"/>
-        </condition>
-    </target>
-
     <target name="testing">
         <echo message="${nosetests_executable}"/>
         <exec dir="${basedir}" executable="${nosetests_executable}" failonerror="true">
@@ -56,8 +50,6 @@
         <delete dir="${module.egg_info.dir}"/>
         <echo message="clean complete!"/>
     </target>
-
-    <target name="full-clean" depends="clean,venv-destroy"/>
 
     <target name="build-local" depends="testing">
         <exec dir="${basedir}" executable="${python_executable}" failonerror="true">
