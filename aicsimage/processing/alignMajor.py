@@ -49,68 +49,87 @@ def angle_between(v1, v2):
     return np.degrees(np.arccos(dot_prod))
 
 
-def align_major(img, axis="zyx", angles=None, reshape=False):
+def get_align_angles(img, axes="zyx"):
+    """
+    Returns the angles needed to rotate an image to align it with the specified axes
+    :param img: A CZYX image as a 4d numpy array. The image that will be measured to get the
+    alignment angles. The image will not be altered by this function
+    :param axes: string, that must be an arrangement of 'xyz'
+    The major axis will be aligned with the first one, the minor with the last one.
+    'zyx' by default
+    :return: A list of tuple pairs, containing the axis indices and angles to rotate along the paired
+    axis. Meant to be passed into align_major
+    """
+    if getattr(img, 'ndim', 0) != 4:
+        raise ValueError('img must be a 4d numpy array')
+    axis_map = {'x': 0, 'y': 1, 'z': 2}
+    if not isinstance(axes, str) or len(axes) != 3 or not all(a in axis_map for a in axes):
+        raise ValueError("axes must be an arrangement of 'xyz'")
+    # axes parameter string turned into a list of indices
+    axis_list = [axis_map[a] for a in axes]
+    maj_axis_i = axis_list[0]
+    # unit vectors for x, y, and z axis
+    axis_vectors = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    # slices for selecting yz, xz, and xy components from vectors
+    slices = (slice(1, 3), slice(0, 3, 2), slice(0, 2))
+    # index of the major axis (0, 1, or 2)
+    maj_axis = axis_vectors[axis_list[0]]
+    min_axis = axis_vectors[axis_list[-1]]
+    img_maj_axis, img_min_axis = get_major_minor_axis(img)
+    angles = []
+    for a in range(3):
+        if a != maj_axis_i:
+            # rotate around other two axis (e.g if aligning major to Z axis, rotate around Y and X to get there)
+            angles.append([a, angle_between(maj_axis[slices[a]], img_maj_axis[slices[a]])])
+    # final rotation goes around major axis to align the minor axis properly
+    # has to be done last
+    angles.append([maj_axis_i, angle_between(min_axis[slices[maj_axis_i]], img_min_axis[slices[maj_axis_i]])])
+    return angles
+
+
+def align_major(images, angles, reshape=False):
     """
     Rotates a CZYX image so that its major, minor-ish, and minor axis are aligned with
     the axis specified in the 'axis' parameter
     E.g. axis='zyx' will align the major axis of the image to align with the z axis
     and the minor to align with the x axis
-    :param img: a CZYX image as a 4d numpy array that will be rotated
-    :param axis: string, that must be an arrangement of 'xyz'
-    The major axis will be aligned with the first one, the minor with the last one.
-    'zyx' by default
-    :param angles: tuple of floats returned by previous call to align_major. Will be used as rotation angles
-    instead of calculated ones if defined
+    :param images: Either a CZYX image as a 4d numpy array or a list of them. The images that will be rotated
+    :param angles: The tuple returned by get_align_angles. Tells the function how to rotate the images
     :param reshape: boolean. If True, the output will be resized to ensure that no data
     from img is lost. If False, the output will be the same size as the input, with potential to
     lose data that lies outside of the input shape after rotation
-    :return: If angles is None, a tuple with a CZYX image as a 4d numpy array containing the rotated input
-    and the angles used to rotate the image, to be passed to future function calls as the angles parameter
-    If angles is defined, it will just return the rotated image
+    :return: If a single image was passed in, it will will return a rotated copy of that image. If a list was
+    passed in, it will return a list of rotated images in the same order that they were passed in
     """
-    if getattr(img, 'ndim', 0) != 4:
-        raise ValueError('img must be a 4d numpy array')
-    return_tuple = angles is None
-    rotate_axis = ((1, 2), (1, 3), (2, 3))
-    axis_map = {'x': 0, 'y': 1, 'z': 2}
-    if not isinstance(axis, str) or len(axis) != 3 or not all(a in axis_map for a in axis):
-        raise ValueError("axis must be an arrangement of 'xyz'")
-    # axis parameter string turned into a list of indices
-    axis_list = [axis_map[a] for a in axis]
-    maj_axis_i = axis_list[0]
-    if angles is None:
-        # unit vectors for x, y, and z axis
-        axis_vectors = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-        # slices for selecting yz, xz, and xy components from vectors
-        slices = (slice(1, 3), slice(0, 3, 2), slice(0, 2))
-        # index of the major axis (0, 1, or 2)
-        maj_axis = axis_vectors[axis_list[0]]
-        min_axis = axis_vectors[axis_list[-1]]
-        img_maj_axis, img_min_axis = get_major_minor_axis(img)
-        angles = []
-        for a in range(3):
-            if a == maj_axis_i:
-                continue
-            else:
-                # rotate around other two axis (e.g if aligning major to Z axis, rotate around Y and X to get there)
-                angles.append([a, angle_between(maj_axis[slices[a]], img_maj_axis[slices[a]])])
-        # final rotation goes around major axis to align the minor axis properly
-        # has to be done last
-        angles.append([maj_axis_i, angle_between(min_axis[slices[maj_axis_i]], img_min_axis[slices[maj_axis_i]])])
-
-    out = img.copy()
-    try:
+    if isinstance(images, (list, tuple)):
+        return_list = True
+        image_list = images
+    else:
+        # turn it into a single element list for easier code
+        return_list = False
+        image_list = [images]
+    if not all(getattr(img, "ndim", 0) == 4 for img in image_list):
+        raise ValueError("All images must be 4d CZYX images")
+    rotate_axes = ((1, 2), (1, 3), (2, 3))
+    # output list
+    out_list = []
+    # try:
+    for img in image_list:
+        out = img.copy()
         for axis, angle in angles:
-            out = rotate(out, angle, reshape=reshape, order=1, axes=rotate_axis[axis], cval=(np.nan if reshape else 0))
-    except:  # should only happen if angles is an invalid object
-        raise ValueError("Invalid format for angles object, should be returned from a previous call to this function")
+            out = rotate(out, angle, reshape=reshape, order=1, axes=rotate_axes[axis], cval=(np.nan if reshape else 0))
+        out_list.append(out)
+    # except:  # should only happen if angles is an invalid object
+    #     raise ValueError("Invalid format for angles object, should be returned from a previous call to this function")
 
     if reshape:
         # cropping necessary as each resize makes the image bigger
         # np.nan used as fill value when reshaping in order to make cropping easy
-        out = crop(out, np.nan)
-        out[np.isnan(out)] = 0
-    if return_tuple:
-        return (out, angles)
+        for i in len(out):
+            out_list[i] = crop(out[i], np.nan)
+            out_list[i][np.isnan(out[i])] = 0
+    if return_list:
+        return out_list
     else:
-        return out
+        # turn it back from a single element list to a single image
+        return out_list[0]
