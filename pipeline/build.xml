@@ -20,7 +20,7 @@
             <arg value="${venv_name}"/>
         </exec>
         <!-- install all requirements specified in python package-->
-        <exec dir="${basedir}" executable="${module.virtualenv.dir}/bin/pip" failonerror="true">
+        <exec dir="." executable="${module.virtualenv.dir}/bin/pip" failonerror="true">
             <arg value="install"/>
             <arg value="-r"/>
             <arg value="${basedir}/requirements.txt"/>
