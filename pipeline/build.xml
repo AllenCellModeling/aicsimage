@@ -10,8 +10,8 @@
     <property name="module.build_folder.dir" location="${module.src.dir}/build"/>
     <property name="module.dist.dir" location="${module.src.dir}/dist"/>
     <property name="module.egg_info.dir" location="${module.src.dir}/${ant.project.name}.egg-info"/>
-    <property name="module.virtualenv.dir" location="${module.src.dir}/${ant.project.name}"/>
     <property name="venv_name" location="${ant.project.name}_venv"/>
+    <property name="module.virtualenv.dir" location="${module.src.dir}/${venv_name}"/>
     <property name="python_executable" value="${module.virtualenv.dir}/bin/python"/>
     <property name="nosetests_executable" value="${module.virtualenv.dir}/bin/nosetests"/>
 

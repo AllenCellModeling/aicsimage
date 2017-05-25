@@ -45,10 +45,6 @@ node ("python2.7")
             }
         }
 
-        stage ("Virtual Environment Teardown") {
-            deleteVirtualEnv()
-        }
-
         currentBuild.result = "SUCCESS"
     }
     catch(e) {
@@ -56,6 +52,7 @@ node ("python2.7")
         throw e
     }
     finally {
+        deleteVirtualEnv()
         notifyBuildOnSlack(currentBuild.result, is_release)
         // Email
         step([$class: 'Mailer',
