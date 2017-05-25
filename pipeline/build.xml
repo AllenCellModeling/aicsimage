@@ -3,7 +3,8 @@
 
 <!-- the project name, python package name, and venv name in Jenkins-01 must match! -->
 <!-- the basedir should be /allen/aics/apps/prod/jenkins/jenkins-01/workspace/<yourprojectname>-->
-<project name="aicsimage" basedir="../" default="clean">
+<project name="aicsimage" basedir="../" default="clean"
+    xmlns:if="ant:if">
 
     <property environment="env"/>
     <property name="module.build_folder.dir" location="${basedir}/build"/>
