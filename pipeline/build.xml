@@ -3,8 +3,7 @@
 
 <!-- the project name, python package name, and venv name in Jenkins-01 must match! -->
 <!-- the basedir should be /allen/aics/apps/prod/jenkins/jenkins-01/workspace/<yourprojectname>-->
-<project name="aicsimage" basedir="../" default="clean"
-    xmlns:if="ant:if">
+<project name="aicsimage" basedir="../" default="clean">
 
     <property environment="env"/>
     <property name="module.build_folder.dir" location="${basedir}/build"/>
@@ -14,22 +13,17 @@
     <property name="python_executable" value="${venv.name}/bin/python"/>
     <property name="nosetests_executable" value="${venv.name}/bin/nosetests"/>
 
-    <target name="venv-setup">
-        <if>
-            <available file="${venv.name}" type="dir"/>
-            <then>
-                <!-- create virtual env within directory -->
-                <exec dir="." executable="virtualenv">
-                    <arg value="${venv.name}"/>
-                </exec>
-                <!-- install all requirements specified in python package-->
-                <exec dir="." executable="${venv.name}/bin/pip" failonerror="true">
-                    <arg value="install"/>
-                    <arg value="-r"/>
-                    <arg value="${basedir}/requirements.txt"/>
-                </exec>
-            </then>
-        </if>
+    <target name="venv-setup" depends="dir.check" if="dir.exists">
+        <!-- create virtual env within directory -->
+        <exec dir="." executable="virtualenv">
+            <arg value="${venv.name}"/>
+        </exec>
+        <!-- install all requirements specified in python package-->
+        <exec dir="." executable="${venv.name}/bin/pip" failonerror="true">
+            <arg value="install"/>
+            <arg value="-r"/>
+            <arg value="${basedir}/requirements.txt"/>
+        </exec>
     </target>
 
     <target name="venv-destroy">
@@ -37,6 +31,12 @@
             <arg value="-rf"/>
             <arg value="${venv.name}"/>
         </exec>
+    </target>
+
+    <target name="dir.check">
+        <condition property="dir.exists">
+            <available file="${venv.name}" type="dir"/>
+        </condition>
     </target>
 
     <target name="testing">
