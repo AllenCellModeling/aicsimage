@@ -10,9 +10,8 @@
     <property name="module.dist.dir" location="${basedir}/dist"/>
     <property name="module.egg_info.dir" location="${basedir}/${ant.project.name}.egg-info"/>
     <property name="venv_name" location="${ant.project.name}_venv"/>
-    <property name="module.virtualenv.dir" location="${basedir}/${venv_name}"/>
-    <property name="python_executable" value="${module.virtualenv.dir}/bin/python"/>
-    <property name="nosetests_executable" value="${module.virtualenv.dir}/bin/nosetests"/>
+    <property name="python_executable" value="${venv_name}/bin/python"/>
+    <property name="nosetests_executable" value="${venv_name}/bin/nosetests"/>
 
     <target name="venv-setup">
         <!-- create virtual env within directory -->
