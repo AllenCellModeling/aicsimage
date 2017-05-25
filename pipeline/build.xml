@@ -9,27 +9,32 @@
     <property name="module.build_folder.dir" location="${basedir}/build"/>
     <property name="module.dist.dir" location="${basedir}/dist"/>
     <property name="module.egg_info.dir" location="${basedir}/${ant.project.name}.egg-info"/>
-    <property name="venv_name" location="${ant.project.name}_venv"/>
-    <property name="python_executable" value="${venv_name}/bin/python"/>
-    <property name="nosetests_executable" value="${venv_name}/bin/nosetests"/>
+    <property name="venv.name" location="${ant.project.name}_venv"/>
+    <property name="python_executable" value="${venv.name}/bin/python"/>
+    <property name="nosetests_executable" value="${venv.name}/bin/nosetests"/>
 
     <target name="venv-setup">
-        <!-- create virtual env within directory -->
-        <exec dir="${basedir}" executable="virtualenv">
-            <arg value="${venv_name}"/>
-        </exec>
-        <!-- install all requirements specified in python package-->
-        <exec dir="." executable="${venv_name}/bin/pip" failonerror="true">
-            <arg value="install"/>
-            <arg value="-r"/>
-            <arg value="${basedir}/requirements.txt"/>
-        </exec>
+        <if>
+            <available file="${venv.name}" type="dir"/>
+            <then>
+                <!-- create virtual env within directory -->
+                <exec dir="." executable="virtualenv">
+                    <arg value="${venv.name}"/>
+                </exec>
+                <!-- install all requirements specified in python package-->
+                <exec dir="." executable="${venv.name}/bin/pip" failonerror="true">
+                    <arg value="install"/>
+                    <arg value="-r"/>
+                    <arg value="${basedir}/requirements.txt"/>
+                </exec>
+            </then>
+        </if>
     </target>
 
     <target name="venv-destroy">
         <exec dir="${basedir}" executable="rm" failonerror="true">
             <arg value="-rf"/>
-            <arg value="${venv_name}"/>
+            <arg value="${venv.name}"/>
         </exec>
     </target>
 
@@ -50,6 +55,8 @@
         <delete dir="${module.egg_info.dir}"/>
         <echo message="clean complete!"/>
     </target>
+
+    <target name="full-clean" depends="clean,venv-destroy"/>
 
     <target name="build-local" depends="testing">
         <exec dir="${basedir}" executable="${python_executable}" failonerror="true">
