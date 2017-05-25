@@ -123,7 +123,7 @@ def center(images, moves, fill=0):
     except AttributeError:  # thrown if img doesn't have the ndim attribute
         raise ValueError("All images must be numpy arrays")
     # get the padding to put the image in the center
-    padding = [(-p, 0) if p < 0 else (0, p) for p in moves]
+    padding = [(-2 * p, 0) if p < 0 else (0, 2 * p) for p in moves]
     out = [np.pad(img, padding, "constant", constant_values=fill) for img in image_list]
     if return_list:
         return out

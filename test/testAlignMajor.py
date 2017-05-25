@@ -53,7 +53,7 @@ class AlignMajorTestGroup(unittest.TestCase):
     def test_alignMajorReshape(self):
         axes = self.getRandAxes()
         angles = get_align_angles(self.testCube, axes)
-        res = align_major(self.testCube, angles)
+        res = align_major(self.testCube, angles, False)
         self.assertEqual(self.testCube.shape, res.shape, "Shape stays constant when not reshaping with axes " + axes)
 
     def test_alignMajorMultiple(self):
