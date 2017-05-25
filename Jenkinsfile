@@ -48,11 +48,11 @@ node ("python2.7")
         currentBuild.result = "SUCCESS"
     }
     catch(e) {
+        deleteVirtualEnv()
         currentBuild.result = "FAILURE"
         throw e
     }
     finally {
-        deleteVirtualEnv()
         notifyBuildOnSlack(currentBuild.result, is_release)
         // Email
         step([$class: 'Mailer',
@@ -68,7 +68,7 @@ def createVirtualEnv() {
 }
 
 def deleteVirtualEnv() {
-    sh 'ant -f pipeline/build.xml venv-destroy'
+    sh 'ant -f pipeline/build.xml full-clean'
 }
 
 def notifyBuildOnSlack(String buildStatus = 'STARTED', Boolean is_release) {
