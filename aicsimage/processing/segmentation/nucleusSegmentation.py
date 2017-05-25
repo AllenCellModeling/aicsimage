@@ -7,13 +7,8 @@ from skimage.filters import threshold_otsu
 from scipy.ndimage.measurements import label
 from skimage.measure import regionprops
 from skimage import morphology
-import os
-import timeit
-
-from aicsimage.io.omeTifWriter import OmeTifWriter
 
 def keep_connected_components(image, low_threshold, high_threshold=None):
-
     if high_threshold is None:
         high_threshold = np.prod(image.shape)
 
@@ -40,6 +35,9 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
     :param nuc_original_img: A ZYX ndarray - represents the original image of the nuclei channel
     :return: A ZYX ndarray - represents a corrected segmented image of the nuclei (all holes filled in)
     """
+    if len(cell_index_img.shape) != 3 or len(nuc_original_img.shape) != 3:
+        raise ValueError("fill_nucleus_segmentation only accepts ZYX ndarrays!")
+
     # cast as float and normalize the input image
     nuc_original_img = nuc_original_img.astype(np.float64)
     original_max = np.max(nuc_original_img)
