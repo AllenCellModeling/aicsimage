@@ -1,7 +1,7 @@
 # Author: Evan Wiederspan <evanw@alleninstitute.org>
 import unittest
 import numpy as np
-from aicsimage.processing.imgCenter import get_edges, crop_all, center_image
+from aicsimage.processing.imgCenter import get_edges, crop_all, center, get_center_moves
 from random import sample, randrange
 from scipy.ndimage.measurements import center_of_mass
 
@@ -22,16 +22,25 @@ class ImgCenterTestGroup(unittest.TestCase):
         with self.assertRaises(ValueError, msg="Must take in a numpy array"):
             get_edges([[[[1]]]])
 
-    def test_imgCenterCalc(self):
+    def test_getCenterCalc(self):
         test, moves = self.getRandTest()
-        res, res_moves = center_image(test)
-        self.assertEqual(moves, res_moves, "Calculated moves {} should equal {}".format(res_moves, moves))
+        calc_moves = get_center_moves(test)
+        self.assertEqual(moves, calc_moves, "Calculated moves {} should equal {}".format(calc_moves, moves))
 
     def test_imgCenterMoves(self):
         test = self.getRandTest()[0]
-        calc_res, moves = center_image(test)
-        move_res = center_image(test, moves=moves)
-        self.assertTrue(np.all(calc_res == move_res), "Calculated image should equal moved image")
+        moves = get_center_moves(test)
+        res = center([test, test], moves=moves)
+        self.assertTrue(np.array_equal(*res), "Should move multiple images the same amount")
+
+    def test_imgCenterInputs(self):
+        test = self.getRandTest()[0]
+        moves = get_center_moves(test)
+        moves += [0]
+        with self.assertRaises(ValueError, msg="Requires a valid moves object"):
+            center(test, moves)
+        with self.assertRaises(ValueError, msg="Images must be the shame shape"):
+            center([np.ones((3, 10, 10, 10)), np.ones((3, 5, 5, 5))], moves)
 
     def test_cropAllInputs(self):
         with self.assertRaises(ValueError, msg="crop_all requires an iterable as input"):

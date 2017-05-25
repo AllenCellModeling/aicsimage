@@ -15,12 +15,12 @@
 /*.egg
 /.eggs
 
-# Build files
-/build/*
-
 # PyCharm files
 /.idea/*
 *.iml
+
+# Build files
+/build/*
 
 # VSCode files
 .vscode/
