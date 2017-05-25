@@ -43,7 +43,7 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
     This function is built to fill in the holes of the nucleus segmentation channel
     :param cell_index_img: A ZYX ndarray - represents the segmented image of all cell bodies
     :param nuc_original_img: A ZYX ndarray - represents the original image of the nuclei channel
-    :return: corrected_image: A ZYX ndarray - represents a corrected segmented image of the nuclei (all holes filled in)
+    :return: A ZYX ndarray - represents a corrected segmented image of the nuclei (all holes filled in)
     """
     # cast as float and normalize the input image
     nuc_original_img = nuc_original_img.astype(np.float64)
@@ -93,8 +93,12 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
 
                 # clean the images of objects and holes
                 output = morphology.remove_small_objects(output.astype(np.int))
-                # TODO does this next call have to recast output as int?
                 output = morphology.remove_small_holes(output.astype(np.int))
+                # clean each slice of objects and holes
+                for z in range(output.shape[0]):
+                    slice_object = output[z].astype(np.int)
+                    output[z] = morphology.remove_small_objects(slice_object)
+                    output[z] = morphology.remove_small_holes(slice_object)
                 # output needs to be recast as int, because the morphology methods above return boolean arrays
                 output = output.astype(np.int)
                 # _save_inter_image(output, cell_value, "removal")
