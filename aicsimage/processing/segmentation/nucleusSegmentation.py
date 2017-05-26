@@ -9,6 +9,15 @@ from skimage.measure import regionprops
 from skimage import morphology
 
 def keep_connected_components(image, low_threshold, high_threshold=None):
+    """
+    This will keep components that have a larger volume than low_threshold
+    and a smaller volume than high_threshold
+
+    :param image: n-dimensional boolean array
+    :param low_threshold: if any component is smaller than this value, it will be removed
+    :param high_threshold: if any component is bigger than this value, it will be removed
+    :return: n-dimensional boolean array with same size as image
+    """
     if high_threshold is None:
         high_threshold = np.prod(image.shape)
 
@@ -22,6 +31,8 @@ def keep_connected_components(image, low_threshold, high_threshold=None):
 
         for component in components:
             if low_threshold < component.area <= high_threshold:
+                # if the component has a volume within the two thresholds,
+                # set the output image to 1 for every pixel of the component
                 output[labels == component.label] = 1
     else:
         output = image.copy()
@@ -33,9 +44,9 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
     This function is built to fill in the holes of the nucleus segmentation channel
     :param cell_index_img: A ZYX ndarray - represents the segmented image of all cell bodies
     :param nuc_original_img: A ZYX ndarray - represents the original image of the nuclei channel
-    :return: A ZYX ndarray - represents a corrected segmented image of the nuclei (all holes filled in)
+    :return: A ZYX ndarray - represents a corrected segmented image of the nuclei
     """
-    if len(cell_index_img.shape) != 3 or len(nuc_original_img.shape) != 3:
+    if cell_index_img.ndim != 3 or nuc_original_img.ndim != 3:
         raise ValueError("fill_nucleus_segmentation only accepts ZYX ndarrays!")
 
     # cast as float and normalize the input image
@@ -86,9 +97,8 @@ def fill_nucleus_segmentation(cell_index_img, nuc_original_img):
                 output = morphology.remove_small_holes(output.astype(np.int))
                 # clean each slice of objects and holes
                 for z in range(output.shape[0]):
-                    slice_object = output[z].astype(np.int)
-                    output[z] = morphology.remove_small_objects(slice_object)
-                    output[z] = morphology.remove_small_holes(slice_object)
+                    output[z] = morphology.remove_small_objects(output[z].astype(np.int))
+                    output[z] = morphology.remove_small_holes(output[z].astype(np.int))
                 # output needs to be recast as int, because the morphology methods above return boolean arrays
                 output = output.astype(np.int)
                 # get the total volume and ignore components less than a quarter of that volume
