@@ -2,6 +2,7 @@ from .aicsImage import *
 from .alignMajor import *
 from .backgroundSub import *
 from .backgroundCrop import *
+from .flip import *
 from .imgCenter import *
 from .imgToProjection import *
 from .isosurfaceGenerator import *
