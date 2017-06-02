@@ -6,6 +6,7 @@ from . import testAlignMajor
 from . import testBackgroundCrop
 from . import testBackgroundSub
 from . import testCziReader
+from . import testFlip
 from . import testImgCenter
 from . import testImgToProjection
 from . import testOmeTifReader
@@ -58,6 +59,7 @@ class TotalTestGroup(unittest.TestCase):
         suite.addTest(loader.loadTestsFromModule(testAICSImage))
         suite.addTest(loader.loadTestsFromModule(testResize))
         suite.addTest(loader.loadTestsFromModule(testTifReader))
+        suite.addTest(loader.loadTestsFromModule(testFlip))
         exitcode = unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
         print('\n')
         self.assertTrue(exitcode)
