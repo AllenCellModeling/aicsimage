@@ -2,25 +2,40 @@
 <!-- author: Zach Crabtree zacharyc@alleninstitute.org -->
 
 <!-- the project name, python package name, and venv name in Jenkins-01 must match! -->
-<project name="aicsimage" basedir="." default="clean"
-         xmlns:if="ant:if">
+<!-- the basedir should be /allen/aics/apps/prod/jenkins/jenkins-01/workspace/<yourprojectname>-->
+<project name="aicsimage" basedir="../" default="clean">
 
     <property environment="env"/>
-    <property name="module.src.dir" location="${basedir}/.."/>
-    <property name="module.pipeline.dir" location="${basedir}"/>
-    <property name="module.build_folder.dir" location="${module.src.dir}/build"/>
-    <property name="module.dist.dir" location="${module.src.dir}/dist"/>
-    <property name="module.egg_info.dir" location="${module.src.dir}/${ant.project.name}.egg-info"/>
-    <property name="module.virtualenv.dir" location="${env.VENV_ROOT}/${ant.project.name}/bin"/>
-    <property name="python_executable" value="python"/>
-    <property name="nosetests_executable" value="nosetests"/>
-    <task if:set="${module.virtualenv.dir}">
-        <property name="python_executable" location="${module.virtualenv.dir}/python"/>
-        <property name="nosetests_executable" location="${module.virtualenv.dir}/nosetests"/>
-    </task>
+    <property name="module.build_folder.dir" location="${basedir}/build"/>
+    <property name="module.dist.dir" location="${basedir}/dist"/>
+    <property name="module.egg_info.dir" location="${basedir}/${ant.project.name}.egg-info"/>
+    <property name="venv.name" location="${ant.project.name}_venv"/>
+    <property name="python_executable" value="${venv.name}/bin/python"/>
+    <property name="nosetests_executable" value="${venv.name}/bin/nosetests"/>
+
+    <target name="venv-setup">
+        <!-- create virtual env within directory -->
+        <exec dir="." executable="virtualenv">
+            <arg value="${venv.name}"/>
+        </exec>
+        <!-- install all requirements specified in python package-->
+        <exec dir="." executable="${venv.name}/bin/pip" failonerror="true">
+            <arg value="install"/>
+            <arg value="-r"/>
+            <arg value="${basedir}/requirements.txt"/>
+        </exec>
+    </target>
+
+    <target name="venv-destroy">
+        <exec dir="${basedir}" executable="rm" failonerror="true">
+            <arg value="-rf"/>
+            <arg value="${venv.name}"/>
+        </exec>
+    </target>
 
     <target name="testing">
-        <exec dir="${module.src.dir}" executable="${nosetests_executable}" failonerror="true">
+        <echo message="${nosetests_executable}"/>
+        <exec dir="${basedir}" executable="${nosetests_executable}" failonerror="true">
             <arg value='--with-xunit'/>
         </exec>
     </target>
@@ -37,19 +52,19 @@
     </target>
 
     <target name="build-local" depends="testing">
-        <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
+        <exec dir="${basedir}" executable="${python_executable}" failonerror="true">
             <arg line='setup.py bdist_wheel --universal'/>
         </exec>
     </target>
 
     <target name="publish-snapshot" depends="testing">
-        <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
+        <exec dir="${basedir}" executable="${python_executable}" failonerror="true">
             <arg line='setup.py bdist_wheel --universal upload -r snapshot-local'/>
         </exec>
     </target>
 
     <target name="publish-release" depends="testing">
-        <exec dir="${module.src.dir}" executable="${python_executable}" failonerror="true">
+        <exec dir="${basedir}" executable="${python_executable}" failonerror="true">
             <arg line='setup.py bdist_wheel --universal upload -r release-local'/>
         </exec>
     </target>

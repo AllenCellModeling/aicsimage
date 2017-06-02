@@ -7,7 +7,7 @@
 # my python virtual environment
 /venv/
 
-# testing images
+# testing images 
 /test/img/segmentation
 
 # Python egg metadata, regenerated from source files by setuptools.

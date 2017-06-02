@@ -6,6 +6,7 @@ node ("python2.7")
     // Set path for custom management tools on jenkins
     def is_release=(params.create_release)
     echo "BUILDTYPE: " + (is_release ? "Release" : "Integration")
+    env.PATH = "${tool 'ant 1.9.7'}/bin:${env.PATH}"
 
     try {
 
@@ -14,8 +15,11 @@ node ("python2.7")
         }
 
         stage ("Clean") {
-            env.PATH = "${tool 'ant 1.9.7'}/bin:${env.PATH}"
             sh 'ant -f pipeline/build.xml clean'
+        }
+
+        stage ("Virtual Environment Setup") {
+            createVirtualEnv()
         }
 
         stage ("Prepare Version") {
@@ -23,7 +27,6 @@ node ("python2.7")
         }
 
         stage ("Build and Publish") {
-            env.PATH = "${tool 'ant 1.9.7'}/bin:${env.PATH}"
             if (is_release) {
                 sh 'ant -f pipeline/build.xml publish-release'
             }
@@ -41,20 +44,32 @@ node ("python2.7")
                 sh 'manage_python_build.py tag_and_push_version'
             }
         }
+
         currentBuild.result = "SUCCESS"
     }
     catch(e) {
+
         currentBuild.result = "FAILURE"
         throw e
     }
     finally {
+        deleteVirtualEnv()
         notifyBuildOnSlack(currentBuild.result, is_release)
         // Email
         step([$class: 'Mailer',
               notifyEveryUnstableBuild: true,
               recipients: '!AICS_DevOps@alleninstitute.org',
               sendToIndividuals: true])
+
     }
+}
+
+def createVirtualEnv() {
+    sh 'ant -f pipeline/build.xml venv-setup'
+}
+
+def deleteVirtualEnv() {
+    sh 'ant -f pipeline/build.xml venv-destroy'
 }
 
 def notifyBuildOnSlack(String buildStatus = 'STARTED', Boolean is_release) {
