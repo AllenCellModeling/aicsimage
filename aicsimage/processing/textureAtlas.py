@@ -22,6 +22,9 @@ class TextureAtlasDims:
         self.tile_height = 0
         self.atlas_width = 0
         self.atlas_height = 0
+        self.pixel_size_x = 1
+        self.pixel_size_y = 1
+        self.pixel_size_z = 1
 
 
 class TextureAtlas:
@@ -131,8 +134,23 @@ class TextureAtlasGroup:
         dims.width = aics_image.size_x
         dims.height = aics_image.size_y
         dims.channels = aics_image.size_c
-        dims.channel_names = ['CH_'+str(i) for i in range(aics_image.size_c)]
         dims.tiles = aics_image.size_z
+
+        channel_names = aics_image.get_channel_names()
+        if channel_names is not None:
+            dims.channel_names = channel_names
+        else:
+            dims.channel_names = ['CH_'+str(i) for i in range(aics_image.size_c)]
+
+        physical_pixel_size = aics_image.get_physical_pixel_size()
+        if physical_pixel_size is not None:
+            dims.pixel_size_x = physical_pixel_size[0]
+            dims.pixel_size_y = physical_pixel_size[1]
+            dims.pixel_size_z = physical_pixel_size[2]
+        else:
+            dims.pixel_size_x = 1
+            dims.pixel_size_y = 1
+            dims.pixel_size_z = 1
 
         return dims
 
@@ -195,9 +213,3 @@ def generate_texture_atlas(im, prefix="texture_atlas", max_edge=2048, pack_order
     """
     atlas_group = TextureAtlasGroup(im, prefix=prefix, max_edge=max_edge, pack_order=pack_order)
     return atlas_group
-
-
-
-
-
-
