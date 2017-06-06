@@ -103,6 +103,19 @@ class AICSImage:
             self.dims = dim + self.dims
         self._transpose_to_defaults()
 
+    def get_channel_names(self):
+        if self.metadata and self.metadata.image:
+            return [self.metadata.image().Pixels.Channel(i).Name for i in range(self.size_c)]
+        else:
+            return None
+
+    def get_physical_pixel_size(self):
+        if self.metadata and self.metadata.image:
+            p = self.metadata.image().Pixels
+            return [p.get_PhysicalSizeX(), p.get_PhysicalSizeY(), p.get_PhysicalSizeZ()]
+        else:
+            return None
+
     # TODO get_reference_data if user is not going to manipulate data
     # TODO (minor) allow uppercase and lowercase kwargs
     def get_image_data(self, out_orientation="TCZYX", **kwargs):
