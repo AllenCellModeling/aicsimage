@@ -65,7 +65,7 @@ class OmeTifWriter:
                             pixels_physical_size=pixels_physical_size, channel_colors=channel_colors)
         else:
             pixels = omexml.image().Pixels
-            pixels.populate_TiffData(os.path.basename(self.file_path))
+            pixels.populate_TiffData()
             self.omeMetadata = omexml
         xml = self.omeMetadata.to_xml()
 
@@ -184,6 +184,6 @@ class OmeTifWriter:
             pixels.Channel(i).set_SamplesPerPixel(1)
 
         # many assumptions in here: one file per image, one plane per tiffdata, etc.
-        pixels.populate_TiffData(os.path.basename(self.file_path))
+        pixels.populate_TiffData()
 
         return ox

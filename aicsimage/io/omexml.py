@@ -849,7 +849,7 @@ class OMEXML(object):
             self.set_SizeC(self.get_SizeC() + 1)
 
         # can be done as a single step just prior to final output
-        def populate_TiffData(self, filename):
+        def populate_TiffData(self):
             ''' assuming Pixels has its sizes, set up tiffdata elements'''
             assert self.SizeC is not None
             assert self.SizeZ is not None
@@ -873,7 +873,8 @@ class OMEXML(object):
                         new_tiffdata.set_IFD(ifd)
                         new_tiffdata.set_PlaneCount(1)
                         uuidelem = ElementTree.SubElement(new_tiffdata.node, qn(self.ns['ome'], "UUID"))
-                        uuidelem.set('FileName', filename)
+                        # UUID has an optional FileName attribute for image data that
+                        # are split among several files but we do not currently support it.
                         uuidelem.text = self.ome_uuid
                         ifd = ifd + 1
 
@@ -1420,4 +1421,3 @@ class OMEXML(object):
                 ref = ElementTree.SubElement(self.node, qn(self.ns['spw'], "ImageRef"))
             ref.set("ID", value)
         ImageRef = property(get_ImageRef, set_ImageRef)
-
