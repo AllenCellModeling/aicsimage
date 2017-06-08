@@ -35,7 +35,7 @@ def imgtoprojection(im1, proj_all=False, proj_method='max', colors=lambda i: [1,
 
     # turn list of 2d or 3d arrays into single 4d array if needed
     try:
-        if isinstance(im1, (type([]), type(()))):
+        if isinstance(im1, (list, tuple)):
             # if only YX, add a single Z dimen
             if im1[0].ndim == 2:
                 im1 = [np.expand_dims(c, axis=0) for c in im1]
@@ -70,7 +70,7 @@ def imgtoprojection(im1, proj_all=False, proj_method='max', colors=lambda i: [1,
     # else, were assuming it's a list
     # scale colors down to 0-1 range if they're bigger than 1
     if any(v > 1 for v in np.array(colors).flatten()):
-        colors = [[v / 255 for v in c] for c in colors]
+        colors = [[v / 255.0 for v in c] for c in colors]
 
     # create final image
     if not proj_all:
@@ -78,16 +78,15 @@ def imgtoprojection(im1, proj_all=False, proj_method='max', colors=lambda i: [1,
     else:
         #                                 y + z,                     x + z
         img_final = np.zeros((3, im.shape[2] + im.shape[1], im.shape[3] + im.shape[1]))
-
-    img_piece = np.empty(img_final.shape)
+    img_piece = np.zeros(img_final.shape)
     # loop through all channels
     for i, img_c in enumerate(im):
         try:
-            proj_z = matproj(img_c, 0, proj_method, im.shape[0] // 2)
+            proj_z = matproj(img_c, 0, proj_method, img_c.shape[0] // 2)
             if proj_all:
-                proj_y, proj_x = (matproj(img_c, axis, proj_method, im.shape[axis] // 2) for axis in range(1, 3))
+                proj_y, proj_x = (matproj(img_c, axis, proj_method, img_c.shape[axis] // 2) for axis in range(1, 3))
                 # flipping to get them facing the right way
-                proj_x = np.fliplr(np.transpose(proj_x, (1, 0)))
+                proj_x = np.transpose(proj_x, (1, 0))
                 proj_y = np.flipud(proj_y)
                 sx, sy, sz = proj_z.shape[1], proj_z.shape[0], proj_y.shape[0]
                 img_piece[:, :sy, :sz] = proj_x
@@ -104,8 +103,11 @@ def imgtoprojection(im1, proj_all=False, proj_method='max', colors=lambda i: [1,
         # local contrast adjustment, minus the min, divide the max
         if local_adjust:
             img_piece -= np.min(img_piece)
-            img_piece /= np.max(img_piece)
-        img_final += img_piece
+            img_max = np.max(img_piece)
+            if img_max > 0:
+                img_piece /= img_max
+        # img_final += img_piece
+        img_final += (1 - img_final) * img_piece
 
     # color range adjustment, ensure that max value is 255
     if global_adjust:
@@ -113,6 +115,6 @@ def imgtoprojection(im1, proj_all=False, proj_method='max', colors=lambda i: [1,
         for c in range(3):
             max_val = np.max(img_final[c].flatten())
             if max_val > 0:
-                img_final[c] *= (255 / max_val)
+                img_final[c] *= (255.0 / max_val)
 
     return img_final
