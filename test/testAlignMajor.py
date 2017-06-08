@@ -63,6 +63,14 @@ class AlignMajorTestGroup(unittest.TestCase):
         self.assertTrue(len(res) == 2, "Output same number of images as passed in")
         self.assertTrue(np.array_equal(res[0], res[1]), "Multiple images rotated by same amount")
 
+    def test_getAnglesNDim(self):
+        axes = self.getRandAxes()
+        test3d = np.mean(self.testCube, axis=0)
+        test4d = self.testCube
+        test5d = np.expand_dims(self.testCube, axis=0)
+        self.assertEqual(get_align_angles(test3d, axes), get_align_angles(test4d, axes), "Angles for 3d image equal 4d")
+        self.assertEqual(get_align_angles(test4d, axes), get_align_angles(test5d, axes), "Angles for 4d image equal 5d")
+
     def test_alignMajorNDim(self):
         axes = self.getRandAxes()
         # create a 3d, 4d, and 5d test image
