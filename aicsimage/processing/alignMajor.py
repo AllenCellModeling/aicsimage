@@ -12,7 +12,11 @@ def get_major_minor_axis(img):
     :param img: CZYX numpy array
     :return: tuple containing two numpy arrays representing the major and minor axis as 3d vectors
     """
-    z, y, x = np.nonzero(np.mean(img, axis=0))
+    # do a mean projection if more than 3 axes
+    if img.ndim > 3:
+        z, y, x = np.nonzero(np.mean(img, axis=tuple(range(img.ndim - 3))))
+    else:
+        z, y, x = np.nonzero(img)
     coords = np.stack([x - np.mean(x), y - np.mean(y), z - np.mean(z)])
     # eigenvectors and values of the covariance matrix
     evals, evecs = np.linalg.eig(np.cov(coords))
@@ -79,8 +83,8 @@ def get_align_angles(img, axes="zyx"):
     :return: A list of tuple pairs, containing the axis indices and angles to rotate along the paired
     axis. Meant to be passed into align_major
     """
-    if getattr(img, 'ndim', 0) != 4:
-        raise ValueError('img must be a 4d numpy array')
+    if getattr(img, 'ndim', 0) < 3:
+        raise ValueError('img must be at least a 3d numpy array')
     axis_map = {'x': 0, 'y': 1, 'z': 2}
     if not isinstance(axes, str) or len(axes) != 3 or not all(a in axis_map for a in axes):
         raise ValueError("axes must be an arrangement of 'xyz'")
@@ -111,11 +115,9 @@ def get_align_angles(img, axes="zyx"):
 
 def align_major(images, angles, reshape=True):
     """
-    Rotates a CZYX image so that its major, minor-ish, and minor axis are aligned with
-    the axis specified in the 'axis' parameter
-    E.g. axis='zyx' will align the major axis of the image to align with the z axis
-    and the minor to align with the x axis
-    :param images: Either a CZYX image as a 4d numpy array or a list of them. The images that will be rotated
+    Rotates images based on the angles passed in
+    :param images: Either a single image or a list of them. Must be at least 3d
+    numpy arrays, ordered as TCZYX
     :param angles: The tuple returned by get_align_angles. Tells the function how to rotate the images
     :param reshape: boolean. If True, the output will be resized to ensure that no data
     from img is lost. If False, the output will be the same size as the input, with potential to
@@ -130,8 +132,8 @@ def align_major(images, angles, reshape=True):
         # turn it into a single element list for easier code
         return_list = False
         image_list = [images]
-    if not all(getattr(img, "ndim", 0) == 4 for img in image_list):
-        raise ValueError("All images must be 4d CZYX images")
+    if not all(getattr(img, "ndim", 0) >= 3 for img in image_list):
+        raise ValueError("All images must be at least 3d")
     rotate_axes = ((-3, -2), (-3, -1), (-2, -1))
     # output list
     out_list = []
