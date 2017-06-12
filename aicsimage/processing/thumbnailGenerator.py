@@ -66,14 +66,14 @@ def resize_cyx_image(image, new_size):
     :param new_size: tuple of shape of desired image dimensions in CYX
     :return: image with shape of new_size
     """
-    scaling = float(image.shape[1]) / new_size[1]
+    scaling = float(image.shape[1]) / float(new_size[1])
     # get the shape of the image that is resized by the scaling factor
     test_shape = np.ceil(np.divide(image.shape, [1, scaling, scaling]))
     # sometimes the scaling can be rounded incorrectly and scale the image to
     # one pixel too high or too low
     if not np.array_equal(test_shape, new_size):
         # getting the scaling from the other dimension solves this rounding problem
-        scaling = float(image.shape[2]) / new_size[2]
+        scaling = float(image.shape[2]) / float(new_size[2])
         test_shape = np.ceil(np.divide(image.shape, [1, scaling, scaling]))
         # if neither scaling factors achieve the desired shape, then the aspect ratio of the image
         # is different than the aspect ratio of new_size
@@ -81,6 +81,9 @@ def resize_cyx_image(image, new_size):
             raise ValueError("This image does not have the same aspect ratio as new_size")
 
     image = image.transpose((2, 1, 0))
+
+    # im_out = t.resize(image, new_size)
+
     if scaling < 1:
         scaling = 1.0 / scaling
         im_out = t.pyramid_expand(image, upscale=scaling)
@@ -88,6 +91,7 @@ def resize_cyx_image(image, new_size):
         im_out = t.pyramid_reduce(image, downscale=scaling)
     else:
         im_out = image
+
     im_out = im_out.transpose((2, 1, 0))
     assert im_out.shape == new_size
 
@@ -331,7 +335,7 @@ class ThumbnailGenerator:
                                max_edge if im_size[1] > im_size[2] else max_edge * (float(im_size[1]) / im_size[2]),
                                max_edge if im_size[1] < im_size[2] else max_edge * (float(im_size[2]) / im_size[1])
                                ))
-        return 4, int(round(shape_out[2])), int(round(shape_out[1]))
+        return 4 if not self.old_alg else 3, int(np.ceil(shape_out[2])), int(np.ceil(shape_out[1]))
 
     def _layer_projections(self, projection_array, mask_array):
         """
