@@ -872,10 +872,11 @@ class OMEXML(object):
                         new_tiffdata.set_FirstT(i)
                         new_tiffdata.set_IFD(ifd)
                         new_tiffdata.set_PlaneCount(1)
-                        uuidelem = ElementTree.SubElement(new_tiffdata.node, qn(self.ns['ome'], "UUID"))
+                        # child element <UUID FileName=""></UUID> is omitted here for single file ome tiffs
                         # UUID has an optional FileName attribute for image data that
                         # are split among several files but we do not currently support it.
-                        uuidelem.text = self.ome_uuid
+                        # uuidelem = ElementTree.SubElement(new_tiffdata.node, qn(self.ns['ome'], "UUID"))
+                        # uuidelem.text = self.ome_uuid
                         ifd = ifd + 1
 
     class StructuredAnnotations(dict):
