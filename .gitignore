@@ -6,9 +6,11 @@
 
 # my python virtual environment
 /venv/
+aicsimage_venv/
 
-# testing images 
+# testing images, results
 /test/img/segmentation
+nosetests.xml
 
 # Python egg metadata, regenerated from source files by setuptools.
 /*.egg-info
