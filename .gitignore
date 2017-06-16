@@ -1,0 +1,36 @@
+# Compiled python modules.
+*.pyc
+
+# Setuptools distribution folder.
+/dist/
+
+# my python virtual environment
+/venv/
+aicsimage_venv/
+
+# testing images, results
+/test/img/segmentation
+nosetests.xml
+
+# Python egg metadata, regenerated from source files by setuptools.
+/*.egg-info
+/*.egg
+/.eggs
+
+# PyCharm files
+/.idea/*
+*.iml
+
+# Build files
+/build/*
+
+# VSCode files
+.vscode/
+
+# stackdump files
+python2.7.exe*
+
+# hidden branch file for detaching git heads within jenkins
+.branch
+
+.ipynb_checkpoints/

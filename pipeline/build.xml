@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- author: Zach Crabtree zacharyc@alleninstitute.org -->
+
+<!-- the project name, python package name, and venv name in Jenkins-01 must match! -->
+<!-- the basedir should be /allen/aics/apps/prod/jenkins/jenkins-01/workspace/<yourprojectname>-->
+<project name="aicsimage" basedir="../" default="clean">
+
+    <property environment="env"/>
+    <property name="module.build_folder.dir" location="${basedir}/build"/>
+    <property name="module.dist.dir" location="${basedir}/dist"/>
+    <property name="module.egg_info.dir" location="${basedir}/${ant.project.name}.egg-info"/>
+    <property name="venv.name" location="${ant.project.name}_venv"/>
+    <property name="python_executable" value="${venv.name}/bin/python"/>
+    <property name="nosetests_executable" value="${venv.name}/bin/nosetests"/>
+
+    <target name="venv-setup">
+        <!-- create virtual env within directory -->
+        <exec dir="." executable="virtualenv">
+            <arg value="${venv.name}"/>
+        </exec>
+        <!-- install all requirements specified in python package-->
+        <exec dir="." executable="${venv.name}/bin/pip" failonerror="true">
+            <arg value="install"/>
+            <arg value="-r"/>
+            <arg value="${basedir}/requirements.txt"/>
+        </exec>
+    </target>
+
+    <target name="venv-destroy">
+        <exec dir="${basedir}" executable="rm" failonerror="true">
+            <arg value="-rf"/>
+            <arg value="${venv.name}"/>
+        </exec>
+    </target>
+
+    <target name="testing">
+        <echo message="${nosetests_executable}"/>
+        <exec dir="${basedir}" executable="${nosetests_executable}" failonerror="true">
+            <arg value='--with-xunit'/>
+        </exec>
+    </target>
+
+    <!-- ================================== -->
+    <!-- TOP LEVEL TARGETS -->
+    <!-- ================================== -->
+
+    <target name="clean">
+        <delete dir="${module.build_folder.dir}"/>
+        <delete dir="${module.dist.dir}"/>
+        <delete dir="${module.egg_info.dir}"/>
+        <echo message="clean complete!"/>
+    </target>
+
+    <target name="build-local" depends="testing">
+        <exec dir="${basedir}" executable="${python_executable}" failonerror="true">
+            <arg line='setup.py bdist_wheel --universal'/>
+        </exec>
+    </target>
+
+    <target name="publish-snapshot" depends="testing">
+        <exec dir="${basedir}" executable="${python_executable}" failonerror="true">
+            <arg line='setup.py bdist_wheel --universal upload -r snapshot-local'/>
+        </exec>
+    </target>
+
+    <target name="publish-release" depends="testing">
+        <exec dir="${basedir}" executable="${python_executable}" failonerror="true">
+            <arg line='setup.py bdist_wheel --universal upload -r release-local'/>
+        </exec>
+    </target>
+
+</project>
