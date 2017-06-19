@@ -78,11 +78,14 @@ class CziReader:
         # Start by taking the first element from each axis
         slicing = [0]*len(axes)
         # now find the index of axes we care about and take the whole data set of that axis using slice(None)
+        missing_axes = []
         for i in range(len(knowndims)):
             pos = axes.find(knowndims[i])
             if pos != -1:
                 axisordering.append(pos)
                 slicing[pos] = slice(None)
+            else:
+                missing_axes.append(i)
 
         # axisordering contains indices of dimensions in the original array.
         # convert to dimensions in the new sliced array.
@@ -93,7 +96,12 @@ class CziReader:
         # don't assume all known dimensions are present: time might be missing?
         # assert(len(transposed_image.shape) == len(knowndims))
         assert(len(transposed_image.shape) == len(axisordering))
-        return np.transpose(transposed_image, tuple(axisordering))
+        transposed_image = np.transpose(transposed_image, tuple(axisordering))
+
+        for i in missing_axes:
+            transposed_image = np.expand_dims(transposed_image, i)
+
+        return transposed_image
 
     def load_slice(self, z=0, c=0, t=0):
         """Retrieves the 2D YX slice from the image
