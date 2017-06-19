@@ -1,4 +1,5 @@
 import tifffile
+import numpy as np
 
 
 class TifReader:
@@ -31,9 +32,25 @@ class TifReader:
     def load(self):
         """This will get an entire z stack from a tif file.
 
-        :return: A 3D ZYX slice from the tif file.
+        :return: A 5D TZCYX array from the tif file.
         """
-        return self.tif.asarray()
+        im = self.tif.asarray()
+        # convert to 5D TZCYX
+        # 2 dims assumes YX (?)
+        if len(im.shape) == 2:
+            # insert C
+            im = np.expand_dims(im, 0)
+            # insert Z
+            im = np.expand_dims(im, 0)
+            # insert T
+            im = np.expand_dims(im, 0)
+        # 3 dims assumes ZYX
+        elif len(im.shape) == 3:
+            # insert C
+            im = np.expand_dims(im, 1)
+            # insert T
+            im = np.expand_dims(im, 0)
+        return im
 
     def load_slice(self, z=0, c=0, t=0):
         """This will get a single slice out of the z stack of a tif file.

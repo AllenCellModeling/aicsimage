@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from aicsimage.io import omeTifReader, cziReader
+from aicsimage.io import omeTifReader, cziReader, tifReader
 
 
 class AICSImage:
@@ -45,14 +45,18 @@ class AICSImage:
             # check for compatible data types
             czi_types = (".czi", ".CZI")
             ome_types = (".ome.tif", ".ome.tiff", ".OME.TIF", ".OME.TIFF")
+            tif_types = (".tif", ".tiff", ".TIF", ".TIFF")
             if data.endswith(czi_types):
                 self.reader = cziReader.CziReader(self.file_path)
             elif data.endswith(ome_types):
                 self.reader = omeTifReader.OmeTifReader(self.file_path)
+            elif data.endswith(tif_types):
+                self.reader = tifReader.TifReader(self.file_path)
             else:
-                raise ValueError("CellImage can only accept OME-TIFF and CZI file formats!")
+                raise ValueError("CellImage can only accept OME-TIFF, TIFF, and CZI file formats!")
 
             # TODO remove this transpose call once reader output is changed
+            # this line assumes that all the above readers return TZCYX order, and converts to TCZYX
             self.data = self.reader.load().transpose(0, 2, 1, 3, 4)
             self.metadata = self.reader.get_metadata()
             self.shape = self.data.shape
