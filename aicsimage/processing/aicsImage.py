@@ -55,9 +55,10 @@ class AICSImage:
             else:
                 raise ValueError("CellImage can only accept OME-TIFF, TIFF, and CZI file formats!")
 
+            self.data = self.reader.load()
             # TODO remove this transpose call once reader output is changed
             # this line assumes that all the above readers return TZCYX order, and converts to TCZYX
-            self.data = self.reader.load().transpose(0, 2, 1, 3, 4)
+            self.data = self.data.transpose(0, 2, 1, 3, 4)
             self.metadata = self.reader.get_metadata()
             self.shape = self.data.shape
 
@@ -108,13 +109,13 @@ class AICSImage:
         self._transpose_to_defaults()
 
     def get_channel_names(self):
-        if self.metadata and self.metadata.image:
+        if self.metadata is not None and hasattr(self.metadata, 'image'):
             return [self.metadata.image().Pixels.Channel(i).Name for i in range(self.size_c)]
         else:
             return None
 
     def get_physical_pixel_size(self):
-        if self.metadata and self.metadata.image:
+        if self.metadata is not None and hasattr(self.metadata, 'image'):
             p = self.metadata.image().Pixels
             return [p.get_PhysicalSizeX(), p.get_PhysicalSizeY(), p.get_PhysicalSizeZ()]
         else:
