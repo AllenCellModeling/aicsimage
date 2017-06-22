@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from aicsimage.io import omeTifReader, cziReader
+from aicsimage.io import omeTifReader, cziReader, tifReader
 
 
 class AICSImage:
@@ -45,15 +45,20 @@ class AICSImage:
             # check for compatible data types
             czi_types = (".czi", ".CZI")
             ome_types = (".ome.tif", ".ome.tiff", ".OME.TIF", ".OME.TIFF")
+            tif_types = (".tif", ".tiff", ".TIF", ".TIFF")
             if data.endswith(czi_types):
                 self.reader = cziReader.CziReader(self.file_path)
             elif data.endswith(ome_types):
                 self.reader = omeTifReader.OmeTifReader(self.file_path)
+            elif data.endswith(tif_types):
+                self.reader = tifReader.TifReader(self.file_path)
             else:
-                raise ValueError("CellImage can only accept OME-TIFF and CZI file formats!")
+                raise ValueError("CellImage can only accept OME-TIFF, TIFF, and CZI file formats!")
 
+            self.data = self.reader.load()
             # TODO remove this transpose call once reader output is changed
-            self.data = self.reader.load().transpose(0, 2, 1, 3, 4)
+            # this line assumes that all the above readers return TZCYX order, and converts to TCZYX
+            self.data = self.data.transpose(0, 2, 1, 3, 4)
             self.metadata = self.reader.get_metadata()
             self.shape = self.data.shape
 
@@ -104,13 +109,13 @@ class AICSImage:
         self._transpose_to_defaults()
 
     def get_channel_names(self):
-        if self.metadata and self.metadata.image:
+        if self.metadata is not None and hasattr(self.metadata, 'image'):
             return [self.metadata.image().Pixels.Channel(i).Name for i in range(self.size_c)]
         else:
             return None
 
     def get_physical_pixel_size(self):
-        if self.metadata and self.metadata.image:
+        if self.metadata is not None and hasattr(self.metadata, 'image'):
             p = self.metadata.image().Pixels
             return [p.get_PhysicalSizeX(), p.get_PhysicalSizeY(), p.get_PhysicalSizeZ()]
         else:

@@ -7,7 +7,7 @@ import json
 from scipy.ndimage.interpolation import zoom
 
 from aicsimage.io.pngWriter import PngWriter
-from aicsImage import AICSImage
+from .aicsImage import AICSImage
 
 class TextureAtlasDims:
     def __init__(self):
