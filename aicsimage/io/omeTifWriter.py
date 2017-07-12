@@ -1,9 +1,8 @@
 from __future__ import print_function
 
+import numpy as np
 import os
-
 import tifffile
-
 from . import omexml
 
 
@@ -49,7 +48,7 @@ class OmeTifWriter:
     def save(self, data, omexml=None, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
         """Save an image with the proper OME xml metadata.
 
-        :param data: An array of dimensions TZCYX, ZCYX, or CYX to be written out to a file.
+        :param data: An array of dimensions TZCYX, ZCYX, or ZYX to be written out to a file.
         :param channel_names: The names for each channel to be put into the OME metadata
         :param image_name: The name of the image to be put into the OME metadata
         :param pixels_physical_size: The physical size of each pixel in the image
@@ -59,6 +58,14 @@ class OmeTifWriter:
 
         shape = data.shape
         assert (len(shape) == 5 or len(shape) == 4 or len(shape) == 3)
+
+        # if this is 3d data, then assume it's ZYX and transform it to the expected TZCYX
+        if len(shape) == 3:
+            data = np.expand_dims(data, axis=1)
+            data = np.expand_dims(data, axis=0)
+        # if this is 4d data, then assume it's ZCYX and transform it to the expected TZCYX
+        elif len(shape) == 4:
+            data = np.expand_dims(data, axis=0)
 
         if omexml is None:
             self._make_meta(data, channel_names=channel_names, image_name=image_name,
@@ -120,7 +127,7 @@ class OmeTifWriter:
     def _make_meta(self, data, channel_names=None, image_name="IMAGE0", pixels_physical_size=None, channel_colors=None):
         """Creates the necessary metadata for an OME tiff image
 
-        :param data: An array of dimensions TZCYX, ZCYX, or CYX to be written out to a file.
+        :param data: An array of dimensions TZCYX, ZCYX, or ZYX to be written out to a file.
         :param channel_names: The names for each channel to be put into the OME metadata
         :param image_name: The name of the image to be put into the OME metadata
         :param pixels_physical_size: The physical size of each pixel in the image

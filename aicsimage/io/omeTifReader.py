@@ -57,8 +57,14 @@ class OmeTifReader:
         :return: 5D array with dimensions TZCYX.
         """
         data = self.tif.asarray()
-        # Expand return to have time value of 1
-        return np.expand_dims(data, axis=0)
+        # if data is 3d, then assume it is ZYX and convert to TZCYX
+        if len(data.shape) == 3:
+            data = np.expand_dims(data, axis=1)
+            data = np.expand_dims(data, axis=0)
+        # if data is 4d, then assume it is ZCYX and convert to TZCYX
+        elif len(data.shape) == 4:
+            data = np.expand_dims(data, axis=0)
+        return data
 
     def load_slice(self, z=0, c=0, t=0):
         """Retrieves the 2D YX slice from the image
