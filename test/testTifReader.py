@@ -8,7 +8,7 @@ import os
 import unittest
 import numpy as np
 
-from aicsimage.io import tifReader
+from aicsimage.io import TifReader
 
 
 class TifReaderTestGroup(unittest.TestCase):
@@ -16,7 +16,7 @@ class TifReaderTestGroup(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.dir_path = os.path.dirname(os.path.realpath(__file__))
-        cls.reader0 = tifReader.TifReader(os.path.join(cls.dir_path, 'img', 'img40_1_dna.tif'))
+        cls.reader0 = TifReader(os.path.join(cls.dir_path, 'img', 'img40_1_dna.tif'))
 
     """
     Test to check the dimensionality of the array loaded by TifReader

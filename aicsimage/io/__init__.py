@@ -1,9 +1,9 @@
-from . import cziReader
-from . import omeTifReader
-from . import omeTifWriter
-from . import pngReader
-from . import pngWriter
-from . import tifReader
+from .cziReader import CziReader
+from .omeTifReader import OmeTifReader
+from .omeTifWriter import OmeTifWriter
+from .pngReader import PngReader
+from .pngWriter import PngWriter
+from .tifReader import TifReader
 
 
 def init():
