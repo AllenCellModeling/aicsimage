@@ -3,7 +3,7 @@ import numpy as np
 import math as m
 
 from aicsimage.processing import isosurfaceGenerator
-from aicsimage.processing.aicsImage import AICSImage
+from aicsimage.processing import AICSImage
 
 class IsosurfaceGeneratorTestGroup(unittest.TestCase):
 

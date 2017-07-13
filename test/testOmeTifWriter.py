@@ -7,7 +7,7 @@ import unittest
 import numpy as np
 
 from aicsimage import io
-from aicsimage.io import omeTifWriter, omeTifReader
+from aicsimage.io import OmeTifWriter, OmeTifReader
 
 
 class OmeTifWriterTestGroup(unittest.TestCase):
@@ -18,7 +18,7 @@ class OmeTifWriterTestGroup(unittest.TestCase):
         cls.dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'img')
         cls.file = os.path.join(cls.dir_path, 'ometif_test_output.ome.tif')
         cls.image = np.random.rand(1, 40, 3, 128, 256).astype(np.uint16)
-        cls.writer = omeTifWriter.OmeTifWriter(cls.file, overwrite_file=True)
+        cls.writer = OmeTifWriter(cls.file, overwrite_file=True)
         if not os.path.isfile(cls.file):
             open(cls.file, 'a').close()
 
@@ -34,7 +34,7 @@ class OmeTifWriterTestGroup(unittest.TestCase):
     def test_writerShapeComparison(self):
         self.writer.save(self.image)
 
-        with omeTifReader.OmeTifReader(self.file) as test_output_reader:
+        with OmeTifReader(self.file) as test_output_reader:
             output = test_output_reader.load()
 
         self.assertEqual(output.shape, self.image.shape)
@@ -51,7 +51,7 @@ class OmeTifWriterTestGroup(unittest.TestCase):
     Test to check if save() can overwrite a file
     """
     def test_overwriteFile(self):
-        with omeTifWriter.OmeTifWriter(self.file, overwrite_file=True) as writer:
+        with OmeTifWriter(self.file, overwrite_file=True) as writer:
             writer.save(self.image)
 
     """
@@ -59,5 +59,5 @@ class OmeTifWriterTestGroup(unittest.TestCase):
     """
     def test_dontOverwriteFile(self):
         with self.assertRaises(Exception):
-            with omeTifWriter.OmeTifWriter(self.file) as writer:
+            with OmeTifWriter(self.file) as writer:
                 writer.save(self.image)
