@@ -17,12 +17,11 @@ setup(name='aicsimage',
       packages=find_packages(exclude=['test', 'pipeline']),
       scripts=[],
       install_requires=[
-            'numpy>=1.12',
+            'numpy>=1.13',
             'Pillow>=3.3.1',
             'scipy>=0.18.1',
             'matplotlib>=2.0.0',
             'scikit-image>=0.13.0',
-            'nose>=1.3.7',
             'tifffile>=0.12.1'
       ],
       test_suite='test.test_suite',
