@@ -7,7 +7,7 @@ import os
 import unittest
 
 from aicsimage import io
-from aicsimage.io.cziReader import CziReader
+from aicsimage.io import CziReader
 from .transformation import *
 
 

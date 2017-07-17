@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from aicsimage.io import pngReader
+from aicsimage.io import PngReader
 
 
 class PngReaderTestGroup(unittest.TestCase):
@@ -13,7 +13,7 @@ class PngReaderTestGroup(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        with pngReader.PngReader(os.path.join(dir_path, 'img', 'img40_1.png')) as reader:
+        with PngReader(os.path.join(dir_path, 'img', 'img40_1.png')) as reader:
             cls.input = reader.load()
 
     """

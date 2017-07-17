@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from aicsimage.io import pngReader, pngWriter
+from aicsimage.io import PngReader, PngWriter
 from .transformation import *
 
 
@@ -14,7 +14,7 @@ class PngWriterTestGroup(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.dir_path = os.path.dirname(os.path.realpath(__file__))
-        cls.writer = pngWriter.PngWriter(os.path.join(cls.dir_path, 'img', 'pngwriter_test_output.png'),
+        cls.writer = PngWriter(os.path.join(cls.dir_path, 'img', 'pngwriter_test_output.png'),
                                          overwrite_file=True)
         # unfortunately, the rounding is necessary - scipy.fromimage() only returns integer values for pixels
         cls.image = np.round(transform(np.random.rand(40, 3, 128, 256)))
@@ -25,7 +25,7 @@ class PngWriterTestGroup(unittest.TestCase):
     """
     def test_pngSaveComparison(self):
         self.writer.save(self.image)
-        reader = pngReader.PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png'))
+        reader = PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png'))
         output_image = reader.load()
         self.assertTrue(np.array_equal(self.image, output_image))
         reader.close()
@@ -36,7 +36,7 @@ class PngWriterTestGroup(unittest.TestCase):
     """
     def test_pngSaveImageComparison(self):
         self.writer.save_slice(self.image, z=1, c=2, t=3)
-        reader = pngReader.PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png'))
+        reader = PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png'))
         output_image = reader.load()
         self.assertTrue(np.array_equal(self.image, output_image))
         reader.close()
@@ -52,7 +52,7 @@ class PngWriterTestGroup(unittest.TestCase):
         image[1, 0] = 0
         image[1, 1] = 255
         self.writer.save(image)
-        with pngReader.PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png')) as reader:
+        with PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png')) as reader:
             loaded_image = reader.load()
             self.assertTrue(np.array_equal(image, loaded_image))
 
@@ -67,7 +67,7 @@ class PngWriterTestGroup(unittest.TestCase):
         image[0, 1, 0] = 0
         image[0, 1, 1] = 255
         self.writer.save(image)
-        with pngReader.PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png')) as reader:
+        with PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png')) as reader:
             all_channels = reader.load()
             channel_r = all_channels[0, :, :]
             channel_g = all_channels[1, :, :]
