@@ -5,7 +5,6 @@ from .pngReader import PngReader
 from .pngWriter import PngWriter
 from .tifReader import TifReader
 
-
 def init():
     pass
 
