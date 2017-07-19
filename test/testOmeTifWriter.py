@@ -61,3 +61,15 @@ class OmeTifWriterTestGroup(unittest.TestCase):
         with self.assertRaises(Exception):
             with OmeTifWriter(self.file) as writer:
                 writer.save(self.image)
+
+    """
+    Test to check if save() silently no-ops when user does not want to overwrite exiting file
+    """
+    def test_noopOverwriteFile(self):
+        with open(self.file, 'w') as f:
+            f.write("test")
+        with OmeTifWriter(self.file, overwrite_file=False) as writer:
+            writer.save(self.image)
+        with open(self.file, 'r') as f:
+            line = f.readline().strip()
+            self.assertEqual("test", line)
