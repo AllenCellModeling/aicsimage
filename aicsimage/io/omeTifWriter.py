@@ -44,7 +44,7 @@ class OmeTifWriter:
             if overwrite_file:
                 os.remove(self.file_path)
             elif overwrite_file is None:
-                raise IOError("File exists but user has chosen not to overwrite it.")
+                raise IOError("File {} exists but user has chosen not to overwrite it".format(self.file_path))
             elif overwrite_file is False:
                 self.silent_pass = True
 
