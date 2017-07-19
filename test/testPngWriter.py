@@ -6,7 +6,7 @@ import os
 import unittest
 
 from aicsimage.io import PngReader, PngWriter
-from .transformation import *
+from transformation import *
 
 
 class PngWriterTestGroup(unittest.TestCase):
@@ -14,10 +14,17 @@ class PngWriterTestGroup(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.dir_path = os.path.dirname(os.path.realpath(__file__))
-        cls.writer = PngWriter(os.path.join(cls.dir_path, 'img', 'pngwriter_test_output.png'),
-                                         overwrite_file=True)
+        cls.file = os.path.join(cls.dir_path, 'img', 'pngwriter_test_output.png')
+        cls.writer = PngWriter(cls.file, overwrite_file=True)
         # unfortunately, the rounding is necessary - scipy.fromimage() only returns integer values for pixels
         cls.image = np.round(transform(np.random.rand(40, 3, 128, 256)))
+        if not os.path.isfile(cls.file):
+            open(cls.file, 'a').close()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.writer.close()
+        os.remove(cls.file)
 
     """
     Test saves an image and compares it with a previously saved image.
@@ -25,7 +32,7 @@ class PngWriterTestGroup(unittest.TestCase):
     """
     def test_pngSaveComparison(self):
         self.writer.save(self.image)
-        reader = PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png'))
+        reader = PngReader(self.file)
         output_image = reader.load()
         self.assertTrue(np.array_equal(self.image, output_image))
         reader.close()
@@ -36,10 +43,37 @@ class PngWriterTestGroup(unittest.TestCase):
     """
     def test_pngSaveImageComparison(self):
         self.writer.save_slice(self.image, z=1, c=2, t=3)
-        reader = PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png'))
+        reader = PngReader(self.file)
         output_image = reader.load()
         self.assertTrue(np.array_equal(self.image, output_image))
         reader.close()
+
+    """
+    Test to check if save() can overwrite a file
+    """
+    def test_overwriteFile(self):
+        with PngWriter(self.file, overwrite_file=True) as writer:
+            writer.save(self.image)
+
+    """
+    Test to check if save() will raise error when user does not want to overwrite a file that exists
+    """
+    def test_dontOverwriteFile(self):
+        with self.assertRaises(Exception):
+            with PngWriter(self.file) as writer:
+                writer.save(self.image)
+
+    """
+    Test to check if save() silently no-ops when user does not want to overwrite exiting file
+    """
+    def test_noopOverwriteFile(self):
+        with open(self.file, 'w') as f:
+            f.write("test")
+        with PngWriter(self.file, overwrite_file=False) as writer:
+            writer.save(self.image)
+        with open(self.file, 'r') as f:
+            line = f.readline().strip()
+            self.assertEqual("test", line)
 
     """
     Test saves an image with a single xy plane
@@ -52,7 +86,7 @@ class PngWriterTestGroup(unittest.TestCase):
         image[1, 0] = 0
         image[1, 1] = 255
         self.writer.save(image)
-        with PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png')) as reader:
+        with PngReader(self.file) as reader:
             loaded_image = reader.load()
             self.assertTrue(np.array_equal(image, loaded_image))
 
@@ -67,7 +101,7 @@ class PngWriterTestGroup(unittest.TestCase):
         image[0, 1, 0] = 0
         image[0, 1, 1] = 255
         self.writer.save(image)
-        with PngReader(os.path.join(self.dir_path, 'img', 'pngwriter_test_output.png')) as reader:
+        with PngReader(self.file) as reader:
             all_channels = reader.load()
             channel_r = all_channels[0, :, :]
             channel_g = all_channels[1, :, :]

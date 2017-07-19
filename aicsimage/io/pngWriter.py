@@ -9,21 +9,33 @@ class PngWriter:
     Example:
         image = numpy.ndarray([3, 1024, 2048])
         # There needs to be some sort of data inside the image array
-        writer = pngWriter.PngWriter(path="file.png")
+        writer = pngWriter.PngWriter("file.png")
         writer.save(image)
 
         image2 = numpy.ndarray([3, 1024, 2048])
         # There needs to be some sort of data inside the image2 array
-        with pngWriter.PngWriter(path="file2.png") as writer2:
+        with pngWriter.PngWriter("file2.png") as writer2:
             writer2.save(image2)
     """
 
-    def __init__(self, file_path, overwrite_file=False):
+    def __init__(self, file_path, overwrite_file=None):
+        """
+        Class initializer
+        :param file_path: path to image output location
+        :param overwrite_file: flag to overwrite image or pass over image if it already exists
+            None : (default) throw IOError if file exists
+            True : overwrite existing file if file exists
+            False: silently perform no write actions if file exists
+        """
         self.file_path = file_path.encode('utf-8')
-        if overwrite_file and os.path.isfile(self.file_path):
-            os.remove(self.file_path)
-        elif os.path.isfile(self.file_path):
-            raise IOError("File exists but user has chosen not to overwrite it.")
+        self.silent_pass = False
+        if os.path.isfile(self.file_path):
+            if overwrite_file:
+                os.remove(self.file_path)
+            elif overwrite_file is None:
+                raise IOError("File exists but user has chosen not to overwrite it.")
+            elif overwrite_file is False:
+                self.silent_pass = True
 
     def __enter__(self):
         return self
@@ -39,6 +51,8 @@ class PngWriter:
 
         :param data: a CYX or YX array with C being the rgb channels for each pixel value
         """
+        if self.silent_pass:
+            return
 
         # check for rgb, rgba, or r
         if len(data.shape) == 3:
@@ -63,4 +77,7 @@ class PngWriter:
         :param c: an arbitrary c index that does nothing
         :param t: an arbitrary t index that does nothing
         """
+        if self.silent_pass:
+            return
+
         self.save(data)
