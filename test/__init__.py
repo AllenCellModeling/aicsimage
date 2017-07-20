@@ -1,6 +1,7 @@
 import unittest
 
 from aicsimage.io import init, close
+from . import transformation
 from . import testAICSImage
 from . import testAlignMajor
 from . import testBackgroundCrop
