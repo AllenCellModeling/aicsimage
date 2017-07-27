@@ -35,7 +35,8 @@ class AICSImage:
         Constructor for AICSImage class
         :param data: String with path to ometif/czi file, or ndarray with up to 5 dimensions
         :param kwargs: If ndarray is used for data, then you can specify the dim ordering
-                       with dims arg (ie dims="TZCYX")
+                       with dims arg (ie dims="TZCYX"). type arg will only be used if data
+                       is a file name without an extension. Must be one of .czi, .ome.tif, or .tif
         """
         self.dims = AICSImage.default_dims
         if isinstance(data, str):
@@ -53,8 +54,15 @@ class AICSImage:
             elif data.endswith(tif_types):
                 self.reader = tifReader.TifReader(self.file_path)
             else:
-                raise ValueError("CellImage can only accept OME-TIFF, TIFF, and CZI file formats!")
-
+                type = kwargs.get("type")
+                if type == ".ome.tif":
+                    self.reader = omeTifReader.OmeTifReader(self.file_path)
+                elif type == ".czi":
+                    self.reader = cziReader.CziReader(self.file_path)
+                elif type == ".tif":
+                    self.reader = tifReader.TifReader(self.file_path)
+                else:
+                    raise ValueError("CellImage can only accept OME-TIFF, TIFF, and CZI file formats!")
             self.data = self.reader.load()
             # TODO remove this transpose call once reader output is changed
             # this line assumes that all the above readers return TZCYX order, and converts to TCZYX

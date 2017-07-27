@@ -182,6 +182,7 @@ class TextureAtlasGroup:
     def get_metadata(self):
         metadata = self.dims.__dict__
         metadata["images"] = [atlas.metadata for atlas in self.atlas_list]
+        metadata["name"] = self.prefix
         return metadata
 
 
