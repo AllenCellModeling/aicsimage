@@ -48,7 +48,7 @@ class AICSImage:
             czi_types = (".czi", ".CZI")
             ome_types = (".ome.tif", ".ome.tiff", ".OME.TIF", ".OME.TIFF")
             tif_types = (".tif", ".tiff", ".TIF", ".TIFF")
-            if data.endswith(czi_types):
+            if data.endswith(czi_types) :
                 self.reader = cziReader.CziReader(self.file_path)
             elif data.endswith(ome_types):
                 self.reader = omeTifReader.OmeTifReader(self.file_path)
@@ -56,14 +56,11 @@ class AICSImage:
                 self.reader = tifReader.TifReader(self.file_path)
             else:
                 type = kwargs.get("type").toLower()
-                rx = re.compile('[^\w]')
-                type = rx.sub('', type).strip()
-                if type == "ometif":
-                    self.reader = omeTifReader.OmeTifReader(self.file_path)
-                elif type == "czi":
-                    self.reader = cziReader.CziReader(self.file_path)
-                elif type == "tif":
-                    self.reader = tifReader.TifReader(self.file_path)
+                rx = re.compile("[^\w]")
+                type = rx.sub("", type).strip()
+                type_to_reader_map = {"ometif": omeTifReader.OmeTifReader, "czi": cziReader.CziReader, "tif": tifReader.TifReader}
+                if type in type_to_reader_map:
+                    self.reader = type_to_reader_map[type](self.file_path)
                 else:
                     raise ValueError("CellImage can only accept OME-TIFF, TIFF, and CZI file formats!")
             self.data = self.reader.load()
