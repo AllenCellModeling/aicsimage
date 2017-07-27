@@ -23,6 +23,7 @@ nosetests.xml
 
 # Build files
 /build/*
+aicsimage/aicsimage_version.py
 
 # VSCode files
 .vscode/

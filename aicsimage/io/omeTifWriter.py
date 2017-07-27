@@ -13,28 +13,40 @@ class OmeTifWriter:
     Example:
         image = numpy.ndarray([1, 10, 3, 1024, 2048])
         # There needs to be some sort of data inside the image array
-        writer = omeTifWriter.OmeTifWriter(path="file.ome.tif")
+        writer = omeTifWriter.OmeTifWriter("file.ome.tif")
         writer.save(image)
 
         image2 = numpy.ndarray([5, 486, 210])
         # There needs to be some sort of data inside the image2 array
-        with omeTifWriter.OmeTifWriter(path="file2.ome.tif") as writer2:
+        with omeTifWriter.OmeTifWriter("file2.ome.tif") as writer2:
             writer2.save(image2)
 
         # Convert a CZI file into OME Tif.
-        reader = cziReader.CziReader(path="file3.czi")
-        writer = omeTifWriter.OmeTifWriter(path="file3.ome.tif")
+        reader = cziReader.CziReader("file3.czi")
+        writer = omeTifWriter.OmeTifWriter("file3.ome.tif")
         writer.save(reader.load())
 
     """
 
-    def __init__(self, file_path, overwrite_file=False):
+    def __init__(self, file_path, overwrite_file=None):
+        """
+        Class initializer
+        :param file_path: path to image output location
+        :param overwrite_file: flag to overwrite image or pass over image if it already exists
+            None : (default) throw IOError if file exists
+            True : overwrite existing file if file exists
+            False: silently perform no write actions if file exists
+        """
         self.file_path = file_path
         self.omeMetadata = omexml.OMEXML()
-        if overwrite_file and os.path.isfile(self.file_path):
-            os.remove(self.file_path)
-        elif os.path.isfile(self.file_path):
-            raise IOError("File exists but user has chosen not to overwrite it.")
+        self.silent_pass = False
+        if os.path.isfile(self.file_path):
+            if overwrite_file:
+                os.remove(self.file_path)
+            elif overwrite_file is None:
+                raise IOError("File {} exists but user has chosen not to overwrite it".format(self.file_path))
+            elif overwrite_file is False:
+                self.silent_pass = True
 
     def __enter__(self):
         return self
@@ -54,6 +66,9 @@ class OmeTifWriter:
         :param pixels_physical_size: The physical size of each pixel in the image
         :param channel_colors: The channel colors to be put into the OME metadata
         """
+        if self.silent_pass:
+            return
+
         tif = tifffile.TiffWriter(self.file_path)
 
         shape = data.shape
@@ -98,6 +113,9 @@ class OmeTifWriter:
         :param t:
         :return:
         """
+        if self.silent_pass:
+            return
+
         assert len(data.shape) == 2
         assert data.shape[0] == self.size_y()
         assert data.shape[1] == self.size_x()
