@@ -1,6 +1,7 @@
 # author: Zach Crabtree zacharyc@alleninstitute.org
 
 import numpy as np
+import re
 
 from aicsimage.io import omeTifReader, cziReader, tifReader
 
@@ -54,12 +55,14 @@ class AICSImage:
             elif data.endswith(tif_types):
                 self.reader = tifReader.TifReader(self.file_path)
             else:
-                type = kwargs.get("type")
-                if type == ".ome.tif":
+                type = kwargs.get("type").toLower()
+                rx = re.compile('[^\w]')
+                type = rx.sub('', type).strip()
+                if type == "ometif":
                     self.reader = omeTifReader.OmeTifReader(self.file_path)
-                elif type == ".czi":
+                elif type == "czi":
                     self.reader = cziReader.CziReader(self.file_path)
-                elif type == ".tif":
+                elif type == "tif":
                     self.reader = tifReader.TifReader(self.file_path)
                 else:
                     raise ValueError("CellImage can only accept OME-TIFF, TIFF, and CZI file formats!")
