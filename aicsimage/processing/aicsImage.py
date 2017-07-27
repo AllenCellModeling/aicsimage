@@ -1,11 +1,12 @@
 # author: Zach Crabtree zacharyc@alleninstitute.org
 
 import numpy as np
-import re
-from enum import Enum
 
 from aicsimage.io import omeTifReader, cziReader, tifReader
 
+def enum(**named_values):
+    return type('Enum', (), named_values)
+FileType = enum(OMETIF = 1, TIF = 2, CZI = 3)
 
 class AICSImage:
     """
@@ -56,12 +57,9 @@ class AICSImage:
             elif data.endswith(tif_types):
                 self.reader = tifReader.TifReader(self.file_path)
             else:
-                type = kwargs.get("type").toLower()
-                rx = re.compile("[^\w]")
-                type = rx.sub("", type).strip()
-                extension = Enum("Extension", "ometif czi tif")
-                type_to_reader_map = {extension.ometif: omeTifReader.OmeTifReader, extension.czi: cziReader.CziReader, extension.tif: tifReader.TifReader}
-                if extension[type] in type_to_reader_map:
+                type = kwargs.get("type")
+                type_to_reader_map = {FileType.OMETIF: omeTifReader.OmeTifReader, FileType.CZI: cziReader.CziReader, FileType.TIF: tifReader.TifReader}
+                if type in type_to_reader_map:
                     self.reader = type_to_reader_map[type](self.file_path)
                 else:
                     raise ValueError("CellImage can only accept OME-TIFF, TIFF, and CZI file formats!")
