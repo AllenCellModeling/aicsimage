@@ -28,7 +28,7 @@ class TextureAtlasDims:
 
 
 class TextureAtlas:
-    def __init__(self, aics_image, filename, pack_order, dims):
+    def __init__(self, aics_image, pack_order, dims):
         if not isinstance(dims, TextureAtlasDims):
             raise ValueError("Texture atlas dimension data must be of type TextureAtlasDims!")
         if not isinstance(aics_image, AICSImage):
@@ -42,7 +42,6 @@ class TextureAtlas:
 
         self.pack_order = pack_order
         self.metadata = {
-            "name": filename,
             "channels": self.pack_order
         }
         self.atlas = self.generate_atlas(dims)
@@ -76,8 +75,8 @@ class TextureAtlas:
 
 
 class TextureAtlasGroup:
-    def __init__(self, aics_image, prefix="texture_atlas", pack_order=None, max_edge=2048):
-        self.prefix = prefix
+    def __init__(self, aics_image, name="texture_atlas", pack_order=None, max_edge=2048):
+        self.name = name
         self.max_edge = max_edge
         self.stack_height = aics_image.size_z
         self.dims = self._calc_atlas_dimensions(aics_image)
@@ -90,8 +89,7 @@ class TextureAtlasGroup:
             pack_order = [channel_list[x:x+max_channels_per_png] for x in range(0, len(channel_list), max_channels_per_png)]
         png_count = 0
         for png in pack_order:
-            file_path = prefix + "_" + str(png_count) + ".png"
-            self._append(TextureAtlas(aics_image, filename=file_path, pack_order=png, dims=self.dims))
+            self._append(TextureAtlas(aics_image, pack_order=png, dims=self.dims))
             png_count += 1
 
     def _calc_atlas_dimensions(self, aics_image):
@@ -182,35 +180,43 @@ class TextureAtlasGroup:
     def get_metadata(self):
         metadata = self.dims.__dict__
         metadata["images"] = [atlas.metadata for atlas in self.atlas_list]
-        metadata["name"] = self.prefix
+        metadata["name"] = self.name
         return metadata
 
 
-    def save(self, output_dir):
+    def save(self, output_dir, name=None):
+        """
+        Saves a TextureAtlasGroup into one json file and 1 to many png files. Files are named with format:
+        name+'_atlas.json'
+        name+'_atlas_N.png'
+        :param output_dir: directory in which to write the files
+        :param name: if not supplied, then use the name given when creating the TextureAtlasGroup
+        """
+        if name is None:
+            name = self.name
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         i = 0
         for atlas in self.atlas_list:
-            full_path = os.path.join(output_dir, self.prefix + "_" + str(i) + ".png")
+            full_path = os.path.join(output_dir, name + "_atlas_" + str(i) + ".png")
             with PngWriter(full_path, overwrite_file=True) as writer:
                 writer.save(atlas.atlas)
             i += 1
 
         metadata = self.get_metadata()
-        with open(os.path.join(output_dir, self.prefix + "_atlas.json"), 'w') as json_output:
+        with open(os.path.join(output_dir, name + "_atlas.json"), 'w') as json_output:
             json.dump(metadata, json_output)
 
-def generate_texture_atlas(im, prefix="texture_atlas", max_edge=2048, pack_order=None):
+def generate_texture_atlas(im, name="texture_atlas", max_edge=2048, pack_order=None):
     """
     Creates a TextureAtlasGroup object
     :param im: aicsImage object
-    :param outpath: string containing directory path to save images in
-    :param prefix: all atlases will be saved with this prefix and append _x for each atlas for the image
+    :param name: will be stored in metadata and used at save time if no name is supplied at that time
     :param max_edge: this designates the largest side in the texture atlas
     :param pack_order: a 2d list that contains what channel in the image should be saved to the RGBA values in the
                        final png. for example, a 7 channel image might be saved like [[0, 1, 2, 3], [4, 5], [6]]
                        where the first texture atlas will code channel 0 as r, channel 1 as g, and so on.
     :return: TextureAtlasGroup object
     """
-    atlas_group = TextureAtlasGroup(im, prefix=prefix, max_edge=max_edge, pack_order=pack_order)
+    atlas_group = TextureAtlasGroup(im, name=name, max_edge=max_edge, pack_order=pack_order)
     return atlas_group
