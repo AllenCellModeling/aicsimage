@@ -42,6 +42,7 @@ class TextureAtlas:
 
         self.pack_order = pack_order
         self.metadata = {
+            "name": "NOT_YET_ASSIGNED",
             "channels": self.pack_order
         }
         self.atlas = self.generate_atlas(dims)
@@ -198,7 +199,10 @@ class TextureAtlasGroup:
             os.makedirs(output_dir)
         i = 0
         for atlas in self.atlas_list:
-            full_path = os.path.join(output_dir, name + "_atlas_" + str(i) + ".png")
+            atlasname = name + "_atlas_" + str(i) + ".png"
+            # add this name to the atlas's metadata for use in get_metadata below.
+            atlas.metadata["name"] = atlasname
+            full_path = os.path.join(output_dir, atlasname)
             with PngWriter(full_path, overwrite_file=True) as writer:
                 writer.save(atlas.atlas)
             i += 1
