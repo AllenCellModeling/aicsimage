@@ -1,5 +1,5 @@
 import numpy as np
-from PIL import image
+from PIL import Image
 
 
 def normalize_image_zero_one(im):
@@ -66,6 +66,8 @@ def quantile_projection(img, proj_axis=2, projection_quantile=100, clip_quantile
     return (final_img)
 
 
-def image_from_array(arr):
+def image_from_array(arr,scale=1):
     img = Image.fromarray(arr, 'RGB')
+    x_s,y_s = img.size
+    img = img.resize([scale*x_s, scale*y_s])
     return (img)
