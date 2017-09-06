@@ -8,3 +8,4 @@ from .imgToProjection import *
 from .isosurfaceGenerator import *
 from .resize import *
 from .thumbnailGenerator import *
+from .quantileProjection.py import *
