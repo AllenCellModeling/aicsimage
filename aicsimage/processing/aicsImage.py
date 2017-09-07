@@ -4,6 +4,9 @@ import numpy as np
 
 from aicsimage.io import omeTifReader, cziReader, tifReader
 
+def enum(**named_values):
+    return type('Enum', (), named_values)
+FileType = enum(OMETIF = 1, TIF = 2, CZI = 3)
 
 class AICSImage:
     """
@@ -35,7 +38,8 @@ class AICSImage:
         Constructor for AICSImage class
         :param data: String with path to ometif/czi file, or ndarray with up to 5 dimensions
         :param kwargs: If ndarray is used for data, then you can specify the dim ordering
-                       with dims arg (ie dims="TZCYX")
+                       with dims arg (ie dims="TZCYX"). type arg will only be used if data
+                       is a file name without an extension. Must be one of .czi, .ome.tif, or .tif
         """
         self.dims = AICSImage.default_dims
         if isinstance(data, str):
@@ -46,15 +50,19 @@ class AICSImage:
             czi_types = (".czi", ".CZI")
             ome_types = (".ome.tif", ".ome.tiff", ".OME.TIF", ".OME.TIFF")
             tif_types = (".tif", ".tiff", ".TIF", ".TIFF")
-            if data.endswith(czi_types):
+            if data.endswith(czi_types) :
                 self.reader = cziReader.CziReader(self.file_path)
             elif data.endswith(ome_types):
                 self.reader = omeTifReader.OmeTifReader(self.file_path)
             elif data.endswith(tif_types):
                 self.reader = tifReader.TifReader(self.file_path)
             else:
-                raise ValueError("CellImage can only accept OME-TIFF, TIFF, and CZI file formats!")
-
+                type = kwargs.get("type")
+                type_to_reader_map = {FileType.OMETIF: omeTifReader.OmeTifReader, FileType.CZI: cziReader.CziReader, FileType.TIF: tifReader.TifReader}
+                if type in type_to_reader_map:
+                    self.reader = type_to_reader_map[type](self.file_path)
+                else:
+                    raise ValueError("CellImage can only accept OME-TIFF, TIFF, and CZI file formats!")
             self.data = self.reader.load()
             # TODO remove this transpose call once reader output is changed
             # this line assumes that all the above readers return TZCYX order, and converts to TCZYX
