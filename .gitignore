@@ -1,3 +1,6 @@
+# ignore test suite for push to github
+test/*
+
 # Compiled python modules.
 *.pyc
 
