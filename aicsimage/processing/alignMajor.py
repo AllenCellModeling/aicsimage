@@ -69,7 +69,15 @@ def angle_between(v1, v2):
     # happens if of one the passed in vectors has length 0
     if np.isnan(dot_prod):
         return 0
-    return np.degrees(np.arccos(dot_prod))
+    
+    return np.degrees(np.arccos(np.clip(dot_prod, -1.0, 1.0)))
+    
+
+    
+    # return  np.arctan2(v1, v2)[0] * 180 / np.pi
+    # return np.degrees(np.arctan2(v1, v2))[0]
+    
+    # return np.degrees(np.arctan2(unit_vector(v1), unit_vector(v2)))[0]
 
 
 def get_align_angles(img, axes="zyx"):

@@ -9,3 +9,5 @@ from .isosurfaceGenerator import *
 from .resize import *
 from .thumbnailGenerator import *
 from .quantileProjection import *
+from .rigidAlignment import *
+from .normalization import *
